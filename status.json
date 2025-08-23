@@ -1,6 +1,36 @@
 {
   "items": [
     {
+      "Estado1": "AAA",
+      "Estado2": "BBB",
+      "Estado3": "CCC",
+      "Estado4": "DDD",
+      "Estado5": "EEEE",
+      "Estado6": "FFF",
+      "Pozo1": "POZO #1",
+      "Pozo2": "POZO #2",
+      "Pozo3": "POZO #3",
+      "Pozo4": "POZO #4",
+      "Pozo5": "POZO #5",
+      "Pozo6": "POZO #6",
+      "fila": ""
+    },
+    {
+      "Estado1": "FRACTURADO",
+      "Estado2": "FRACTURADO",
+      "Estado3": "FRACTURADO",
+      "Estado4": "FRACTURADO",
+      "Estado5": "FRACTURADO",
+      "Estado6": "FRACTURADO",
+      "Pozo1": "TPN",
+      "Pozo2": "TPN",
+      "Pozo3": "TPN",
+      "Pozo4": "TPN",
+      "Pozo5": "TPN",
+      "Pozo6": "TPN",
+      "fila": ""
+    },
+    {
       "Estado1": "",
       "Estado2": "",
       "Estado3": "",
@@ -69,7 +99,7 @@
       "Estado6": "",
       "Pozo1": "4444444",
       "Pozo2": "gssrg",
-      "Pozo3": "",
+      "Pozo3": "dfdfs",
       "Pozo4": "",
       "Pozo5": "",
       "Pozo6": "",
@@ -901,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-23T19:56:18.1850660Z"
+  "lastUpdate": "2025-08-23T20:09:19.1059085Z"
 }
