@@ -1,62 +1,40 @@
-name: Update status.json from repository_dispatch
+name: Write status.json using GitHub API (github-script)
+uses: actions/github-script@v6
+  with:
+    script: |
+      // Log completo del evento para depuración
+      core.info('EVENT RECEIVED: ' + JSON.stringify(github.event, null, 2));
 
-on:
-  repository_dispatch:
-    types: [power_automate_update]
+      // Tomamos client_payload si existe; si no, intentamos usar github.event directamente
+      const payload = github.event.client_payload ?? github.event;
 
-jobs:
-  update-status:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      // Si payload está vacío aún, lanzar un error claro
+      if (!payload || (typeof payload === 'object' && Object.keys(payload).length === 0)) {
+        throw new Error('No client_payload found in repository_dispatch. Compruebe Power Automate client payload.');
+      }
 
-      - name: Write status.json using GitHub API (github-script)
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const payload = github.event.client_payload;
-            const content = JSON.stringify(payload, null, 2);
-            const path = 'status.json';
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+      const content = JSON.stringify(payload, null, 2);
+      const path = 'status.json';
+      const owner = context.repo.owner;
+      const repo = context.repo.repo;
 
-            // intentamos obtener el archivo para conocer el sha (si existe)
-            try {
-              const response = await github.rest.repos.getContent({
-                owner,
-                repo,
-                path,
-              });
-              const sha = response.data.sha;
-              // actualizar archivo existente
-              await github.rest.repos.createOrUpdateFileContents({
-                owner,
-                repo,
-                path,
-                message: 'Update status.json from repository_dispatch',
-                content: Buffer.from(content).toString('base64'),
-                sha,
-              });
-              core.info('status.json actualizado (commit).');
-            } catch (err) {
-              if (err.status === 404) {
-                // crear archivo si no existe
-                await github.rest.repos.createOrUpdateFileContents({
-                  owner,
-                  repo,
-                  path,
-                  message: 'Create status.json from repository_dispatch',
-                  content: Buffer.from(content).toString('base64'),
-                });
-                core.info('status.json creado.');
-              } else {
-                throw err;
-              }
-            }
-
-      - name: Confirm write
-        run: |
-          echo "status.json write attempted. List repo files:"
-          ls -la
-
+      try {
+        const response = await github.rest.repos.getContent({ owner, repo, path });
+        const sha = response.data.sha;
+        await github.rest.repos.createOrUpdateFileContents({
+          owner, repo, path, message: 'Update status.json from repository_dispatch',
+          content: Buffer.from(content).toString('base64'),
+          sha,
+        });
+        core.info('status.json actualizado (commit).');
+      } catch (err) {
+        if (err.status === 404) {
+          await github.rest.repos.createOrUpdateFileContents({
+            owner, repo, path, message: 'Create status.json from repository_dispatch',
+            content: Buffer.from(content).toString('base64'),
+          });
+          core.info('status.json creado.');
+        } else {
+          throw err;
+        }
+      }
