@@ -18,7 +18,7 @@ jobs:
             core.info('EVENT RECEIVED: ' + JSON.stringify(github.event, null, 2));
 
             // Tomamos client_payload si existe; si no, intentamos usar github.event directamente
-            const payload = github.event.client_payload ?? github.event;
+            const payload = context.payload.client_payload ?? context.payload;
 
             // Si payload está vacío aún, lanzar un error claro
             if (!payload || (typeof payload === 'object' && Object.keys(payload).length === 0)) {
