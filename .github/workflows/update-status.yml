@@ -11,21 +11,52 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Write status.json from payload
-        shell: bash
-        run: |
-          # Escribimos el payload tal cual en status.json usando un heredoc seguro.
-          # El delimitador entre comillas simples evita expansión de shell.
-          cat > status.json <<'JSON'
-${{ toJson(github.event.client_payload) }}
-JSON
+      - name: Write status.json using GitHub API (github-script)
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const payload = github.event.client_payload;
+            const content = JSON.stringify(payload, null, 2);
+            const path = 'status.json';
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
-      - name: Commit status.json
+            // intentamos obtener el archivo para conocer el sha (si existe)
+            try {
+              const response = await github.rest.repos.getContent({
+                owner,
+                repo,
+                path,
+              });
+              const sha = response.data.sha;
+              // actualizar archivo existente
+              await github.rest.repos.createOrUpdateFileContents({
+                owner,
+                repo,
+                path,
+                message: 'Update status.json from repository_dispatch',
+                content: Buffer.from(content).toString('base64'),
+                sha,
+              });
+              core.info('status.json actualizado (commit).');
+            } catch (err) {
+              if (err.status === 404) {
+                // crear archivo si no existe
+                await github.rest.repos.createOrUpdateFileContents({
+                  owner,
+                  repo,
+                  path,
+                  message: 'Create status.json from repository_dispatch',
+                  content: Buffer.from(content).toString('base64'),
+                });
+                core.info('status.json creado.');
+              } else {
+                throw err;
+              }
+            }
+
+      - name: Confirm write
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git add status.json && git commit -m "Update status.json from repository_dispatch"; then
-            git push
-          else
-            echo "No changes to commit"
-          fi
+          echo "status.json write attempted. List repo files:"
+          ls -la
+
