@@ -1,0 +1,27 @@
+name: Update status.json from repository_dispatch
+
+on:
+  repository_dispatch:
+    types: [power_automate_update]
+
+jobs:
+  update-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Write status.json from payload
+        shell: bash
+        run: |
+          printf '%s' "${{ toJson(github.event.client_payload) }}" > status.json
+
+      - name: Commit status.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git add status.json && git commit -m "Update status.json from repository_dispatch"; then
+            git push
+          else
+            echo "No changes to commit"
+          fi
