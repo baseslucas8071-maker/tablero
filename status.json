@@ -2,7 +2,7 @@
   "items": [
     {
       "Estado1": "AAA",
-      "Estado2": "BBB",
+      "Estado2": "7777",
       "Estado3": "CCC",
       "Estado4": "DDD",
       "Estado5": "EEEE",
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-23T21:22:39.4719906Z"
+  "lastUpdate": "2025-08-23T21:24:49.1692280Z"
 }
