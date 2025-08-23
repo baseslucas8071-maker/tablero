@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Visor de Estado - TV</title>
+<style>
+  :root{
+    --bg:#071027;
+    --card:#08203a;
+    --muted:#cfe8ff;
+    --accent:#00a3ff;
+    --row-alt: #eaf5ff;
+    --row-alt-2: #ffffff;
+    --header-height: 88px;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
+  .wrap{padding:18px;box-sizing:border-box;display:flex;flex-direction:column;height:100%}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  header h1{margin:0;font-size:34px;letter-spacing:0.6px}
+  header .meta{opacity:0.9;font-size:14px;color:var(--muted)}
+  .controls{display:flex;gap:8px;align-items:center}
+  .btn{background:#0b61a8;border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
+  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08)}
+  .switch{display:flex;align-items:center;gap:8px;font-size:14px}
+  main{flex:1;margin-top:14px;display:flex;gap:18px;align-items:stretch}
+  .board{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column}
+  .table-wrap{flex:1;background:transparent;border-radius:8px;overflow:auto;position:relative}
+  table{border-collapse:collapse;width:100%;min-width:1100px}
+  th,td{border:1px solid rgba(255,255,255,0.06);padding:6px 8px;text-align:center}
+  thead th{background:transparent}
+  /* sticky headers: first header row sticks at top 0, second header below it */
+  thead tr:first-child th{position:sticky;top:0;z-index:5;padding-top:10px;padding-bottom:10px;font-size:18px}
+  thead tr:nth-child(2) th{position:sticky;top:44px;z-index:6;padding:6px 8px;background:rgba(0,0,0,0.15);font-weight:700}
+  tbody td{height:36px;background:rgba(255,255,255,0.02);color:#e6f7ff}
+  tbody tr.alt td{background:rgba(255,255,255,0.02)}
+  /* column 0 (row id) */
+  td.rowid{background:rgba(255,255,255,0.03);font-weight:700;color:#bfe8ff;position:sticky;left:0;z-index:4}
+  thead th:first-child{position:sticky;left:0;top:0;z-index:10;background:linear-gradient(90deg, rgba(8,8,8,0.6), rgba(8,8,8,0.4));}
+  thead tr:nth-child(2) th:first-child{top:44px}
+  /* colors per pozo group */
+  .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a); color:#002;}
+  .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
+  .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
+  .pozo-4{background:linear-gradient(90deg,#ff7b7b,#ff4c4c); color:#002;}
+  .pozo-5{background:linear-gradient(90deg,#dfe6ea,#cfd9de); color:#002;}
+  .pozo-6{background:linear-gradient(90deg,#e6f7ff,#d2efff); color:#002;text-transform:uppercase}
+  /* highlight on change */
+  .changed { animation: highlight 2s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.12) inset; }
+  @keyframes highlight {
+    0% { background: rgba(255,255,0,0.45); transform: translateY(-4px); }
+    100% { background: none; transform: translateY(0); }
+  }
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}
+  .indicators{display:flex;gap:12px;align-items:center}
+  .ind{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px;font-weight:700}
+  /* responsive smaller screens */
+  @media(max-width:900px){
+    header h1{font-size:20px}
+    thead tr:first-child th{font-size:14px}
+    thead tr:nth-child(2) th{font-size:12px}
+    td,th{padding:6px 4px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Visor de Estado — Pozos</h1>
+        <div class="meta">Kiosk / TV • Actualiza automáticamente</div>
+      </div>
+      <div class="controls">
+        <div class="switch">
+          <label style="font-size:13px;color:#cfe8ff">Mover filas actualizadas al inicio</label>
+          <input id="moveUpdated" type="checkbox" checked />
+        </div>
+        <button class="btn" id="btnRefresh">Forzar actualización</button>
+        <button class="btn secondary" id="btnPause">Pausar</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="board">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-size:16px">Última actualización: <strong id="lastUpdate">-</strong></div>
+          <div class="indicators">
+            <div class="ind" id="totalCount">Total: 0</div>
+            <div class="ind" id="alertCount">Alertas: 0</div>
+          </div>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+          <table id="mainTable" aria-label="Visor">
+            <thead>
+              <tr id="hdrTop">
+                <!-- first top-left empty cell -->
+                <th style="width:90px">#</th>
+                <!-- POZO top headers inserted dynamically -->
+              </tr>
+              <tr id="hdrSub">
+                <th>&nbsp;</th>
+                <!-- Subheaders (TPN / FRACTURADO) inserted dynamically -->
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <!-- Rows injected here -->
+            </tbody>
+          </table>
+        </div>
+
+        <footer>
+          <div class="meta">Fuente: status.json (GitHub Pages)</div>
+          <div class="meta">Actualiza cada <span id="refreshSec">15</span>s</div>
+        </footer>
+      </div>
+    </main>
+  </div>
+
+<script>
+/*
+  Visor configurable
+  - JSON_URL: ruta al status.json (por defecto: mismo folder)
+  - POZOS: nombres mostrados en top header (cada pozo ocupa 2 columnas)
+  - ROWS: cantidad de filas a mostrar (#01 .. #60)
+*/
+const JSON_URL = 'status.json'; // <--- edita aquí si tu JSON está en otra ruta
+const REFRESH_SECONDS = 15;     // intervalo de refresco
+const ROWS = 60;                // mostrar hasta #60
+const POZOS = [
+  "POZO #1 AAA",
+  "POZO #2 BBB",
+  "POZO #3 CCC",
+  "POZO #4 DDD",
+  "POZO #5 EEEE",
+  "POZO #6 FFF"
+];
+
+let paused = false;
+let prevMap = {};   // { rowId: jsonString }
+let displayOrder = []; // order of rowIds to render (allows moving updated ones to top)
+let latestDataMap = {}; // current data map
+
+document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
+document.getElementById('btnRefresh').addEventListener('click', ()=> loadAndRender(true));
+document.getElementById('btnPause').addEventListener('click', togglePause);
+
+function togglePause(){
+  paused = !paused;
+  document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
+}
+
+function pad(n){
+  return (n<10? '0'+n : ''+n);
+}
+
+function buildHeaders(){
+  const hdrTop = document.getElementById('hdrTop');
+  const hdrSub = document.getElementById('hdrSub');
+
+  // clear old
+  hdrTop.querySelectorAll('th.pozoTop').forEach(n=> n.remove());
+  hdrSub.querySelectorAll('th.pozoSub').forEach(n=> n.remove());
+
+  // for each pozo -> two columns
+  POZOS.forEach((name, idx) => {
+    const top = document.createElement('th');
+    top.className = `pozo-${idx+1} pozoTop`;
+    top.colSpan = 2;
+    top.style.fontWeight = 800;
+    top.style.fontSize = '16px';
+    top.innerText = name;
+    hdrTop.appendChild(top);
+
+    const sub1 = document.createElement('th');
+    sub1.className = 'pozoSub';
+    sub1.innerText = 'TPN';
+    const sub2 = document.createElement('th');
+    sub2.className = 'pozoSub';
+    sub2.innerText = 'FRACTURADO';
+    hdrSub.appendChild(sub1);
+    hdrSub.appendChild(sub2);
+  });
+}
+
+function makeEmptyRowObject(rowId){
+  const obj = { 'Columna1': rowId };
+  // Columna2..Columna13 (1 + 6*2 = 13)
+  for(let c=2;c<= (1 + POZOS.length*2); c++){
+    obj['Columna'+c] = '';
+  }
+  return obj;
+}
+
+function itemsArrayToMap(items){
+  // attempt to key by Columna1 or Fila/Row
+  const map = {};
+  if(!Array.isArray(items)) return map;
+  for(const it of items){
+    let key = it['Columna1'] || it['Fila'] || it['Row'] || it['row'] || null;
+    if(!key){
+      // try to form key from position if none
+      continue;
+    }
+    map[String(key).trim()] = it;
+  }
+  return map;
+}
+
+function ensureDisplayOrder(){
+  if(displayOrder.length===0){
+    for(let i=1;i<=ROWS;i++){
+      displayOrder.push('#'+pad(i));
+    }
+  }
+}
+
+function renderTable(){
+  ensureDisplayOrder();
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  const total = Object.keys(latestDataMap).length;
+  let alertCount = 0;
+
+  displayOrder.slice(0, ROWS).forEach((rowId, rIndex) => {
+    const tr = document.createElement('tr');
+    if(rIndex%2===0) tr.classList.add('alt');
+
+    // row id cell (sticky)
+    const tdId = document.createElement('td');
+    tdId.className = 'rowid';
+    tdId.innerText = rowId;
+    tr.appendChild(tdId);
+
+    // build columns from Columna2..ColumnaN
+    const dataObj = latestDataMap[rowId] || makeEmptyRowObject(rowId);
+    const cols = 1 + POZOS.length*2;
+    for(let c=2;c<=cols;c++){
+      const td = document.createElement('td');
+      const v = (dataObj['Columna'+c] !== undefined) ? dataObj['Columna'+c] : '';
+      td.innerText = v===null ? '' : v;
+      tr.appendChild(td);
+
+      // count alerts: simplistic: cell contains text 'FRACTURADO' or 'ALERTA'
+      const val = String(v||'').toUpperCase();
+      if(val.includes('FRACT') || val.includes('ALERT') || val.includes('FAULT')) alertCount++;
+    }
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('totalCount').innerText = `Total: ${total}`;
+  document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
+}
+
+function applyChangeHighlights(changedIds){
+  // add changed class to rows in DOM and remove after a timeout
+  const tbody = document.getElementById('tbody');
+  for(const rowId of changedIds){
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const tr = rows.find(tr => tr.querySelector('td.rowid')?.innerText === rowId);
+    if(tr){
+      tr.classList.add('changed');
+      setTimeout(()=> tr.classList.remove('changed'), 2200);
+    }
+  }
+}
+
+function reorderDisplayOrderByChanges(changedIds){
+  if(!document.getElementById('moveUpdated').checked) return;
+  // move changedIds to the front preserving order and uniqueness
+  const setChanged = new Set(changedIds);
+  const newOrder = [];
+  // add changed (in the order provided)
+  changedIds.forEach(id => { if(!newOrder.includes(id)) newOrder.push(id); });
+  // then append existing displayOrder filtered
+  displayOrder.forEach(id => { if(!setChanged.has(id) && !newOrder.includes(id)) newOrder.push(id); });
+  displayOrder = newOrder;
+}
+
+async function loadAndRender(force=false){
+  if(paused && !force) return;
+  try{
+    const res = await fetch(JSON_URL + '?_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+
+    // update lastUpdate display
+    const last = json.lastUpdate || new Date().toISOString();
+    document.getElementById('lastUpdate').innerText = new Date(last).toLocaleString();
+
+    // convert items to map keyed by Columna1/#id
+    const newMap = itemsArrayToMap(json.items || []);
+    latestDataMap = newMap;
+
+    // detect changed rows versus prevMap
+    const changed = [];
+    // if prevMap empty on first run, we will not consider everything changed (option)
+    for(const [rowId, obj] of Object.entries(newMap)){
+      const s = JSON.stringify(obj);
+      if(!prevMap[rowId] || prevMap[rowId] !== s){
+        changed.push(rowId);
+      }
+    }
+    // also check rows removed? ignore for now
+
+    // update prevMap
+    for(const [k,v] of Object.entries(newMap)) prevMap[k] = JSON.stringify(v);
+
+    // reorder displayOrder to put changed rows first
+    reorderDisplayOrderByChanges(changed);
+
+    // ensure displayOrder contains at least default #01..#60
+    ensureDisplayOrder();
+    // if changed rows included new rowId not in displayOrder, they were added by reorder above; ensure global uniqueness and completeness
+    // fill remainder with any default missing
+    const setOrder = new Set(displayOrder);
+    for(let i=1;i<=ROWS;i++){
+      const id = '#'+pad(i);
+      if(!setOrder.has(id)) displayOrder.push(id);
+    }
+
+    // render
+    renderTable();
+
+    // highlight changed rows in DOM
+    if(changed.length) applyChangeHighlights(changed);
+
+  }catch(err){
+    console.error('Error cargando status.json:', err);
+  }
+}
+
+// build UI headers & initial display rows
+buildHeaders();
+ensureDisplayOrder();
+renderTable();
+
+// start refresh loop
+loadAndRender(true);
+setInterval(()=> loadAndRender(false), REFRESH_SECONDS * 1000);
+</script>
+</body>
+</html>
