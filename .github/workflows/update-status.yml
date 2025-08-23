@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: [update-status]
 
+permissions:
+  contents: write   # ⬅️ Necesario para poder hacer commit/push
+  actions: read
+
 jobs:
   update:
     runs-on: ubuntu-latest
