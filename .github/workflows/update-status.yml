@@ -14,7 +14,11 @@ jobs:
       - name: Write status.json from payload
         shell: bash
         run: |
-          printf '%s' "${{ toJson(github.event.client_payload) }}" > status.json
+          # Escribimos el payload tal cual en status.json usando un heredoc seguro.
+          # El delimitador entre comillas simples evita expansión de shell.
+          cat > status.json <<'JSON'
+${{ toJson(github.event.client_payload) }}
+JSON
 
       - name: Commit status.json
         run: |
