@@ -3,7 +3,7 @@
     {
       "Estado1": "AAA",
       "Estado2": "7777",
-      "Estado3": "CCC",
+      "Estado3": "999",
       "Estado4": "DDD",
       "Estado5": "EEEE",
       "Estado6": "FFF",
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-23T21:24:49.1692280Z"
+  "lastUpdate": "2025-08-23T21:32:00.6603755Z"
 }
