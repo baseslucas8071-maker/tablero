@@ -121,19 +121,16 @@
 /*
   Visor configurable
   - JSON_URL: ruta al status.json (por defecto: mismo folder)
-  - POZOS: nombres mostrados en top header (cada pozo ocupa 2 columnas)
   - ROWS: cantidad de filas a mostrar (#01 .. #60)
 */
 const JSON_URL = 'status.json'; // <--- edita aquí si tu JSON está en otra ruta
 const REFRESH_SECONDS = 15;     // intervalo de refresco
 const ROWS = 60;                // mostrar hasta #60
-const POZOS = [
-  "POZO #1 AAA",
-  "POZO #2 BBB",
-  "POZO #3 CCC",
-  "POZO #4 DDD",
-  "POZO #5 EEEE",
-  "POZO #6 FFF"
+
+// ✅ MODIFICACIÓN 1: 'POZOS' ahora es una variable 'pozoNames' para poder actualizarla.
+// Estos son solo valores iniciales antes de la primera carga del JSON.
+let pozoNames = [
+  "POZO #1", "POZO #2", "POZO #3", "POZO #4", "POZO #5", "POZO #6"
 ];
 
 let paused = false;
@@ -158,12 +155,12 @@ function buildHeaders(){
   const hdrTop = document.getElementById('hdrTop');
   const hdrSub = document.getElementById('hdrSub');
 
-  // clear old
+  // Limpia cabeceras viejas
   hdrTop.querySelectorAll('th.pozoTop').forEach(n=> n.remove());
   hdrSub.querySelectorAll('th.pozoSub').forEach(n=> n.remove());
 
-  // for each pozo -> two columns
-  POZOS.forEach((name, idx) => {
+  // ✅ Usa la variable 'pozoNames' para construir las cabeceras
+  pozoNames.forEach((name, idx) => {
     const top = document.createElement('th');
     top.className = `pozo-${idx+1} pozoTop`;
     top.colSpan = 2;
@@ -185,7 +182,8 @@ function buildHeaders(){
 
 function makeEmptyRowObject(rowId){
   const obj = { 'fila': rowId };
-  POZOS.forEach((_, idx) => {
+  // ✅ Usa la variable 'pozoNames'
+  pozoNames.forEach((_, idx) => {
     const n = idx + 1;
     obj['Pozo' + n] = '';
     obj['Estado' + n] = '';
@@ -197,7 +195,6 @@ function itemsArrayToMap(items){
   const map = {};
   if(!Array.isArray(items)) return map;
   for(const it of items){
-    // ✅ CORRECCIÓN 1: Se agrega 'fila' para identificar la fila
     let key = it['fila'] || it['Columna1'] || it['Fila'] || it['Row'] || it['row'] || null;
     if(!key){
       continue;
@@ -215,7 +212,6 @@ function ensureDisplayOrder(){
   }
 }
 
-// ✅ CORRECCIÓN 2: Función de renderizado totalmente nueva
 function renderTable(){
   ensureDisplayOrder();
   const tbody = document.getElementById('tbody');
@@ -232,25 +228,22 @@ function renderTable(){
     tdId.innerText = rowId;
     tr.appendChild(tdId);
 
-    const dataObj = latestDataMap[rowId] || {}; // Usar objeto vacío si no hay datos
+    const dataObj = latestDataMap[rowId] || {};
 
-    // Itera a través de los POZOS definidos en la configuración
-    POZOS.forEach((_, pozoIndex) => {
+    // ✅ Usa la variable 'pozoNames' para saber cuántas columnas crear
+    pozoNames.forEach((_, pozoIndex) => {
       const pozoNum = pozoIndex + 1;
       
-      // La primera columna de cada pozo (TPN)
       const td1 = document.createElement('td');
       const val1 = dataObj['Pozo' + pozoNum] || '';
       td1.innerText = val1;
       tr.appendChild(td1);
 
-      // La segunda columna de cada pozo (FRACTURADO)
       const td2 = document.createElement('td');
       const val2 = dataObj['Estado' + pozoNum] || '';
       td2.innerText = val2;
       tr.appendChild(td2);
 
-      // Lógica para contar alertas
       const alertVal = String(val2).toUpperCase();
       if(alertVal.includes('FRACT') || alertVal.includes('ALERT') || alertVal.includes('FAULT')) {
         alertCount++;
@@ -294,6 +287,29 @@ async function loadAndRender(force=false){
     
     document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
 
+    // ✅ MODIFICACIÓN 2: Lógica para leer los nombres de los pozos del JSON
+    if (json.items && Array.isArray(json.items)) {
+        const headerData = json.items.find(item => item.fila === "");
+        if (headerData) {
+            const newPozoNames = [];
+            // Asumimos hasta 6 pozos, pero se podría hacer más dinámico
+            for (let i = 1; i <= 6; i++) {
+                const pozoKey = 'Pozo' + i;
+                const estadoKey = 'Estado' + i;
+                if (headerData[pozoKey] && headerData[estadoKey]) {
+                    // Combina "POZO #1" y "AAA" para formar "POZO #1 AAA"
+                    newPozoNames.push(`${headerData[pozoKey]} ${headerData[estadoKey]}`);
+                }
+            }
+            
+            // Si los nombres extraídos son diferentes a los actuales, actualiza y reconstruye las cabeceras
+            if (newPozoNames.length > 0 && JSON.stringify(pozoNames) !== JSON.stringify(newPozoNames)) {
+                pozoNames = newPozoNames;
+                buildHeaders(); // Vuelve a dibujar las cabeceras con los nuevos nombres
+            }
+        }
+    }
+
     const newMap = itemsArrayToMap(json.items || []);
     latestDataMap = newMap;
 
@@ -326,12 +342,12 @@ async function loadAndRender(force=false){
   }
 }
 
-// build UI headers & initial display rows
+// Llama a buildHeaders una vez al inicio para dibujar la estructura inicial
 buildHeaders();
 ensureDisplayOrder();
 renderTable();
 
-// start refresh loop
+// Inicia el ciclo de actualización
 loadAndRender(true);
 setInterval(()=> loadAndRender(false), REFRESH_SECONDS * 1000);
 </script>
