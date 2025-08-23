@@ -112,7 +112,7 @@
       "Estado4": "",
       "Estado5": "",
       "Estado6": "",
-      "Pozo1": "",
+      "Pozo1": "xxxxxx",
       "Pozo2": "",
       "Pozo3": "",
       "Pozo4": "",
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-23T21:33:17.0441369Z"
+  "lastUpdate": "2025-08-23T21:34:32.2703566Z"
 }
