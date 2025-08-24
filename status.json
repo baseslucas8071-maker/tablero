@@ -277,10 +277,10 @@
       "Estado4": "",
       "Estado5": "",
       "Estado6": "",
-      "Pozo1": "",
-      "Pozo2": "",
-      "Pozo3": "",
-      "Pozo4": "",
+      "Pozo1": "erer",
+      "Pozo2": "wrwerw",
+      "Pozo3": "wrwer",
+      "Pozo4": "erwere",
       "Pozo5": "",
       "Pozo6": "",
       "fila": "#17"
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-24T05:13:59.5792844Z"
+  "lastUpdate": "2025-08-24T05:14:50.9824081Z"
 }
