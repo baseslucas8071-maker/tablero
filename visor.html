@@ -120,12 +120,11 @@
 <script>
 /*
   Visor configurable
-  - JSON_URL: ruta al status.json (por defecto: mismo folder)
-  - ROWS: cantidad de filas a mostrar (ya no se usa para el límite, pero sí para generar la lista inicial)
+  - JSON_URL: ruta al status.json
 */
 const JSON_URL = 'status.json';
 const REFRESH_SECONDS = 15;
-const ROWS = 60; // Se mantiene para la lista base, pero no limita la vista.
+const ROWS = 60;
 
 let pozoNames = [
   "POZO #1", "POZO #2", "POZO #3", "POZO #4", "POZO #5", "POZO #6"
@@ -135,7 +134,7 @@ let paused = false;
 let prevMap = {};
 let latestDataMap = {};
 
-// ✅ MODIFICACIÓN: La opción de mover filas ya no es necesaria con la nueva lógica, así que la ocultamos.
+// Ocultamos la opción de mover filas, ya que la nueva lógica no la necesita.
 document.addEventListener('DOMContentLoaded', () => {
     const moveUpdatedSwitch = document.getElementById('moveUpdated')?.parentElement;
     if (moveUpdatedSwitch) {
@@ -150,10 +149,6 @@ document.getElementById('btnPause').addEventListener('click', togglePause);
 function togglePause() {
   paused = !paused;
   document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
-}
-
-function pad(n) {
-  return (n < 10 ? '0' + n : '' + n);
 }
 
 function buildHeaders() {
@@ -195,11 +190,10 @@ function itemsArrayToMap(items) {
   return map;
 }
 
-// ✅ MODIFICACIÓN: La función de renderizado ahora recibe las filas que debe mostrar.
 function renderTable(rowsToRender) {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
-  const total = Object.keys(latestDataMap).filter(k => k.startsWith('#')).length;
+  const totalConDatos = Object.values(latestDataMap).filter(obj => tieneDatosVisibles(obj)).length;
   let alertCount = 0;
 
   rowsToRender.forEach((rowId, rIndex) => {
@@ -234,7 +228,7 @@ function renderTable(rowsToRender) {
     tbody.appendChild(tr);
   });
 
-  document.getElementById('totalCount').innerText = `Total: ${total}`;
+  document.getElementById('totalCount').innerText = `Total: ${totalConDatos}`;
   document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
 }
 
@@ -249,6 +243,19 @@ function applyChangeHighlights(changedIds) {
       setTimeout(() => tr.classList.remove('changed'), 2200);
     }
   }
+}
+
+// ✅ NUEVA FUNCIÓN: Revisa si una fila tiene texto en sus columnas TPN o FRACTURADO.
+function tieneDatosVisibles(dataObj) {
+    if (!dataObj || !dataObj.fila.startsWith('#')) return false;
+    for (let i = 1; i <= pozoNames.length; i++) {
+        const pozoVal = dataObj['Pozo' + i];
+        const estadoVal = dataObj['Estado' + i];
+        if ((pozoVal && String(pozoVal).trim() !== '') || (estadoVal && String(estadoVal).trim() !== '')) {
+            return true; // Si encuentra al menos un dato, la fila es válida.
+        }
+    }
+    return false; // Si todas las columnas están vacías, la fila no se cuenta.
 }
 
 async function loadAndRender(force = false) {
@@ -291,24 +298,19 @@ async function loadAndRender(force = false) {
 
     for (const [k, v] of Object.entries(newMap)) prevMap[k] = JSON.stringify(v);
     
-    // ✅ MODIFICACIÓN PRINCIPAL: Lógica para obtener las últimas 9 filas con datos.
-    // 1. Obtener todas las claves de las filas de datos (las que empiezan con #).
+    // ✅ FILTRO MEJORADO: Ahora usa la función tieneDatosVisibles.
     const todasLasFilasConDatos = Object.keys(latestDataMap)
-        .filter(key => key.startsWith('#'));
+        .filter(key => tieneDatosVisibles(latestDataMap[key]));
 
-    // 2. Ordenarlas numéricamente para asegurar el orden correcto.
     todasLasFilasConDatos.sort((a, b) => {
         const numA = parseInt(a.slice(1));
         const numB = parseInt(b.slice(1));
         return numA - numB;
     });
 
-    // 3. Tomar las últimas 9 filas de la lista ordenada.
     const filasAMostrar = todasLasFilasConDatos.slice(-9);
 
-    // 4. Renderizar la tabla pasando solo esas 9 filas.
     renderTable(filasAMostrar);
-
     if (changed.length) applyChangeHighlights(changed);
 
   } catch (err) {
@@ -318,7 +320,6 @@ async function loadAndRender(force = false) {
 }
 
 buildHeaders();
-// Renderiza una tabla vacía al inicio antes de la primera carga.
 renderTable([]); 
 
 loadAndRender(true);
