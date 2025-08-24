@@ -121,45 +121,48 @@
 /*
   Visor configurable
   - JSON_URL: ruta al status.json (por defecto: mismo folder)
-  - ROWS: cantidad de filas a mostrar (#01 .. #60)
+  - ROWS: cantidad de filas a mostrar (ya no se usa para el límite, pero sí para generar la lista inicial)
 */
-const JSON_URL = 'status.json'; // <--- edita aquí si tu JSON está en otra ruta
-const REFRESH_SECONDS = 15;     // intervalo de refresco
-const ROWS = 60;                // mostrar hasta #60
+const JSON_URL = 'status.json';
+const REFRESH_SECONDS = 15;
+const ROWS = 60; // Se mantiene para la lista base, pero no limita la vista.
 
-// ✅ MODIFICACIÓN 1: 'POZOS' ahora es una variable 'pozoNames' para poder actualizarla.
-// Estos son solo valores iniciales antes de la primera carga del JSON.
 let pozoNames = [
   "POZO #1", "POZO #2", "POZO #3", "POZO #4", "POZO #5", "POZO #6"
 ];
 
 let paused = false;
-let prevMap = {};   // { rowId: jsonString }
-let displayOrder = []; // order of rowIds to render (allows moving updated ones to top)
-let latestDataMap = {}; // current data map
+let prevMap = {};
+let latestDataMap = {};
+
+// ✅ MODIFICACIÓN: La opción de mover filas ya no es necesaria con la nueva lógica, así que la ocultamos.
+document.addEventListener('DOMContentLoaded', () => {
+    const moveUpdatedSwitch = document.getElementById('moveUpdated')?.parentElement;
+    if (moveUpdatedSwitch) {
+        moveUpdatedSwitch.style.display = 'none';
+    }
+});
 
 document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
-document.getElementById('btnRefresh').addEventListener('click', ()=> loadAndRender(true));
+document.getElementById('btnRefresh').addEventListener('click', () => loadAndRender(true));
 document.getElementById('btnPause').addEventListener('click', togglePause);
 
-function togglePause(){
+function togglePause() {
   paused = !paused;
   document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
 }
 
-function pad(n){
-  return (n<10? '0'+n : ''+n);
+function pad(n) {
+  return (n < 10 ? '0' + n : '' + n);
 }
 
-function buildHeaders(){
+function buildHeaders() {
   const hdrTop = document.getElementById('hdrTop');
   const hdrSub = document.getElementById('hdrSub');
 
-  // Limpia cabeceras viejas
-  hdrTop.querySelectorAll('th.pozoTop').forEach(n=> n.remove());
-  hdrSub.querySelectorAll('th.pozoSub').forEach(n=> n.remove());
+  hdrTop.querySelectorAll('th.pozoTop').forEach(n => n.remove());
+  hdrSub.querySelectorAll('th.pozoSub').forEach(n => n.remove());
 
-  // ✅ Usa la variable 'pozoNames' para construir las cabeceras
   pozoNames.forEach((name, idx) => {
     const top = document.createElement('th');
     top.className = `pozo-${idx+1} pozoTop`;
@@ -180,176 +183,146 @@ function buildHeaders(){
   });
 }
 
-function makeEmptyRowObject(rowId){
-  const obj = { 'fila': rowId };
-  // ✅ Usa la variable 'pozoNames'
-  pozoNames.forEach((_, idx) => {
-    const n = idx + 1;
-    obj['Pozo' + n] = '';
-    obj['Estado' + n] = '';
-  });
-  return obj;
-}
-
-function itemsArrayToMap(items){
+function itemsArrayToMap(items) {
   const map = {};
-  if(!Array.isArray(items)) return map;
-  for(const it of items){
-    let key = it['fila'] || it['Columna1'] || it['Fila'] || it['Row'] || it['row'] || null;
-    if(!key){
-      continue;
+  if (!Array.isArray(items)) return map;
+  for (const it of items) {
+    let key = it['fila'] || null;
+    if (key) {
+      map[String(key).trim()] = it;
     }
-    map[String(key).trim()] = it;
   }
   return map;
 }
 
-function ensureDisplayOrder(){
-  if(displayOrder.length===0){
-    for(let i=1;i<=ROWS;i++){
-      displayOrder.push('#'+pad(i));
-    }
-  }
-}
-
-function renderTable(){
-  ensureDisplayOrder();
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-  const total = Object.keys(latestDataMap).length;
-  let alertCount = 0;
-
-  displayOrder.slice(0, ROWS).forEach((rowId, rIndex) => {
-    const tr = document.createElement('tr');
-    if(rIndex%2===0) tr.classList.add('alt');
-
-    const tdId = document.createElement('td');
-    tdId.className = 'rowid';
-    tdId.innerText = rowId;
-    tr.appendChild(tdId);
-
-    const dataObj = latestDataMap[rowId] || {};
-
-    // ✅ Usa la variable 'pozoNames' para saber cuántas columnas crear
-    pozoNames.forEach((_, pozoIndex) => {
-      const pozoNum = pozoIndex + 1;
-      
-      const td1 = document.createElement('td');
-      const val1 = dataObj['Pozo' + pozoNum] || '';
-      td1.innerText = val1;
-      tr.appendChild(td1);
-
-      const td2 = document.createElement('td');
-      const val2 = dataObj['Estado' + pozoNum] || '';
-      td2.innerText = val2;
-      tr.appendChild(td2);
-
-      const alertVal = String(val2).toUpperCase();
-      if(alertVal.includes('FRACT') || alertVal.includes('ALERT') || alertVal.includes('FAULT')) {
-        alertCount++;
-      }
-    });
-
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById('totalCount').innerText = `Total: ${total}`;
-  document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
-}
-
-function applyChangeHighlights(changedIds){
+// ✅ MODIFICACIÓN: La función de renderizado ahora recibe las filas que debe mostrar.
+function renderTable(rowsToRender) {
   const tbody = document.getElementById('tbody');
-  for(const rowId of changedIds){
+  tbody.innerHTML = '';
+  const total = Object.keys(latestDataMap).filter(k => k.startsWith('#')).length;
+  let alertCount = 0;
+
+  rowsToRender.forEach((rowId, rIndex) => {
+    const tr = document.createElement('tr');
+    if (rIndex % 2 === 0) tr.classList.add('alt');
+
+    const tdId = document.createElement('td');
+    tdId.className = 'rowid';
+    tdId.innerText = rowId;
+    tr.appendChild(tdId);
+
+    const dataObj = latestDataMap[rowId] || {};
+
+    pozoNames.forEach((_, pozoIndex) => {
+      const pozoNum = pozoIndex + 1;
+      const td1 = document.createElement('td');
+      const val1 = dataObj['Pozo' + pozoNum] || '';
+      td1.innerText = val1;
+      tr.appendChild(td1);
+
+      const td2 = document.createElement('td');
+      const val2 = dataObj['Estado' + pozoNum] || '';
+      td2.innerText = val2;
+      tr.appendChild(td2);
+
+      const alertVal = String(val2).toUpperCase();
+      if (alertVal.includes('FRACT') || alertVal.includes('ALERT') || alertVal.includes('FAULT')) {
+        alertCount++;
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('totalCount').innerText = `Total: ${total}`;
+  document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
+}
+
+
+function applyChangeHighlights(changedIds) {
+  const tbody = document.getElementById('tbody');
+  for (const rowId of changedIds) {
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const tr = rows.find(tr => tr.querySelector('td.rowid')?.innerText === rowId);
-    if(tr){
+    if (tr) {
       tr.classList.add('changed');
-      setTimeout(()=> tr.classList.remove('changed'), 2200);
+      setTimeout(() => tr.classList.remove('changed'), 2200);
     }
   }
 }
 
-function reorderDisplayOrderByChanges(changedIds){
-  if(!document.getElementById('moveUpdated').checked) return;
-  const setChanged = new Set(changedIds);
-  const newOrder = [];
-  changedIds.forEach(id => { if(!newOrder.includes(id)) newOrder.push(id); });
-  displayOrder.forEach(id => { if(!setChanged.has(id) && !newOrder.includes(id)) newOrder.push(id); });
-  displayOrder = newOrder;
-}
-
-async function loadAndRender(force=false){
-  if(paused && !force) return;
-  try{
-    const res = await fetch(JSON_URL + '?_=' + Date.now(), {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP ' + res.status);
+async function loadAndRender(force = false) {
+  if (paused && !force) return;
+  try {
+    const res = await fetch(JSON_URL + '?_=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    
-    document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
 
-    // ✅ MODIFICACIÓN 2: Lógica para leer los nombres de los pozos del JSON
-    if (json.items && Array.isArray(json.items)) {
-        const headerData = json.items.find(item => item.fila === "");
-        if (headerData) {
-            const newPozoNames = [];
-            // Asumimos hasta 6 pozos, pero se podría hacer más dinámico
-            for (let i = 1; i <= 6; i++) {
-                const pozoKey = 'Pozo' + i;
-                const estadoKey = 'Estado' + i;
-                if (headerData[pozoKey] && headerData[estadoKey]) {
-                    // Combina "POZO #1" y "AAA" para formar "POZO #1 AAA"
-                    newPozoNames.push(`${headerData[pozoKey]} ${headerData[estadoKey]}`);
-                }
-            }
-            
-            // Si los nombres extraídos son diferentes a los actuales, actualiza y reconstruye las cabeceras
-            if (newPozoNames.length > 0 && JSON.stringify(pozoNames) !== JSON.stringify(newPozoNames)) {
-                pozoNames = newPozoNames;
-                buildHeaders(); // Vuelve a dibujar las cabeceras con los nuevos nombres
-            }
-        }
-    }
+    document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
+
+    if (json.items && Array.isArray(json.items)) {
+      const headerData = json.items.find(item => item.fila === "");
+      if (headerData) {
+        const newPozoNames = [];
+        for (let i = 1; i <= 6; i++) {
+          const pozoKey = 'Pozo' + i;
+          const estadoKey = 'Estado' + i;
+          if (headerData[pozoKey] && headerData[estadoKey]) {
+            newPozoNames.push(`${headerData[pozoKey]} ${headerData[estadoKey]}`);
+          }
+        }
+        if (newPozoNames.length > 0 && JSON.stringify(pozoNames) !== JSON.stringify(newPozoNames)) {
+          pozoNames = newPozoNames;
+          buildHeaders();
+        }
+      }
+    }
 
     const newMap = itemsArrayToMap(json.items || []);
     latestDataMap = newMap;
 
     const changed = [];
-    for(const [rowId, obj] of Object.entries(newMap)){
+    for (const [rowId, obj] of Object.entries(newMap)) {
       const s = JSON.stringify(obj);
-      if(!prevMap[rowId] || prevMap[rowId] !== s){
+      if (prevMap[rowId] !== s) {
         changed.push(rowId);
       }
     }
 
-    for(const [k,v] of Object.entries(newMap)) prevMap[k] = JSON.stringify(v);
-
-    reorderDisplayOrderByChanges(changed);
-    ensureDisplayOrder();
+    for (const [k, v] of Object.entries(newMap)) prevMap[k] = JSON.stringify(v);
     
-    const setOrder = new Set(displayOrder);
-    for(let i=1;i<=ROWS;i++){
-      const id = '#'+pad(i);
-      if(!setOrder.has(id)) displayOrder.push(id);
-    }
+    // ✅ MODIFICACIÓN PRINCIPAL: Lógica para obtener las últimas 9 filas con datos.
+    // 1. Obtener todas las claves de las filas de datos (las que empiezan con #).
+    const todasLasFilasConDatos = Object.keys(latestDataMap)
+        .filter(key => key.startsWith('#'));
 
-    renderTable();
+    // 2. Ordenarlas numéricamente para asegurar el orden correcto.
+    todasLasFilasConDatos.sort((a, b) => {
+        const numA = parseInt(a.slice(1));
+        const numB = parseInt(b.slice(1));
+        return numA - numB;
+    });
 
-    if(changed.length) applyChangeHighlights(changed);
+    // 3. Tomar las últimas 9 filas de la lista ordenada.
+    const filasAMostrar = todasLasFilasConDatos.slice(-9);
 
-  }catch(err){
+    // 4. Renderizar la tabla pasando solo esas 9 filas.
+    renderTable(filasAMostrar);
+
+    if (changed.length) applyChangeHighlights(changed);
+
+  } catch (err) {
     console.error('Error cargando status.json:', err);
-    document.getElementById('lastUpdate').innerHTML = `<span style="color:red;">Error al cargar datos. Reintentando...</span>`;
+    document.getElementById('lastUpdate').innerHTML = `<span style="color:red;">Error al cargar datos. Reintentando...</span>`;
   }
 }
 
-// Llama a buildHeaders una vez al inicio para dibujar la estructura inicial
 buildHeaders();
-ensureDisplayOrder();
-renderTable();
+// Renderiza una tabla vacía al inicio antes de la primera carga.
+renderTable([]); 
 
-// Inicia el ciclo de actualización
 loadAndRender(true);
-setInterval(()=> loadAndRender(false), REFRESH_SECONDS * 1000);
+setInterval(() => loadAndRender(false), REFRESH_SECONDS * 1000);
 </script>
 </body>
 </html>
