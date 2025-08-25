@@ -10,56 +10,52 @@
     --card:#08203a;
     --muted:#cfe8ff;
     --accent:#00a3ff;
-    --row-alt: #eaf5ff;
-    --row-alt-2: #ffffff;
+    --row-alt: #0b2233;
+    --row-alt-2: #071027;
     --header-height: 88px;
   }
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
-  .wrap{padding:18px;box-sizing:border-box;display:flex;flex-direction:column;height:100%}
+  .wrap{padding:14px;box-sizing:border-box;display:flex;flex-direction:column;height:100%}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  header h1{margin:0;font-size:34px;letter-spacing:0.6px}
-  header .meta{opacity:0.9;font-size:14px;color:var(--muted)}
+  header h1{margin:0;font-size:28px;letter-spacing:0.6px}
+  header .meta{opacity:0.9;font-size:13px;color:var(--muted)}
   .controls{display:flex;gap:8px;align-items:center}
   .btn{background:#0b61a8;border:none;color:white;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
   .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08)}
-  .switch{display:flex;align-items:center;gap:8px;font-size:14px}
-  main{flex:1;margin-top:14px;display:flex;gap:18px;align-items:stretch}
-  .board{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:14px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column}
+  .switch{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+  main{flex:1;margin-top:12px;display:flex;gap:18px;align-items:stretch}
+  .board{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:12px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column}
   .table-wrap{flex:1;background:transparent;border-radius:8px;overflow:auto;position:relative}
-  table{border-collapse:collapse;width:100%;min-width:1100px}
-  th,td{border:1px solid rgba(255,255,255,0.06);padding:6px 8px;text-align:center}
+  /* Make the table as wide as needed and enable horizontal scroll if required */
+  table{border-collapse:collapse;width:100%;min-width:1200px}
+  th,td{border:1px solid rgba(255,255,255,0.06);padding:8px 10px;text-align:center}
   thead th{background:transparent}
-  /* sticky headers: first header row sticks at top 0, second header below it */
-  thead tr:first-child th{position:sticky;top:0;z-index:5;padding-top:10px;padding-bottom:10px;font-size:18px}
-  thead tr:nth-child(2) th{position:sticky;top:44px;z-index:6;padding:6px 8px;background:rgba(0,0,0,0.15);font-weight:700}
-  tbody td{height:36px;background:rgba(255,255,255,0.02);color:#e6f7ff}
-  tbody tr.alt td{background:rgba(255,255,255,0.02)}
-  /* column 0 (row id) */
-  td.rowid{background:rgba(255,255,255,0.03);font-weight:700;color:#bfe8ff;position:sticky;left:0;z-index:4}
-  thead th:first-child{position:sticky;left:0;top:0;z-index:10;background:linear-gradient(90deg, rgba(8,8,8,0.6), rgba(8,8,8,0.4));}
+  /* sticky headers inside the scrollable container: position sticky relative to .table-wrap */
+  thead tr:first-child th{position:sticky;top:0;z-index:6;padding-top:12px;padding-bottom:12px;font-size:16px}
+  thead tr:nth-child(2) th{position:sticky;top:44px;z-index:7;padding:8px 10px;background:rgba(0,0,0,0.15);font-weight:800}
+  tbody td{height:44px;background:transparent;color:#e6f7ff}
+  tbody tr.alt td{background:rgba(255,255,255,0.01)}
+  td.rowid{background:rgba(255,255,255,0.03);font-weight:800;color:#bfe8ff;position:sticky;left:0;z-index:8}
+  thead th:first-child{position:sticky;left:0;top:0;z-index:12;background:linear-gradient(90deg, rgba(8,8,8,0.6), rgba(8,8,8,0.4));}
   thead tr:nth-child(2) th:first-child{top:44px}
-  /* colors per pozo group */
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a); color:#002;}
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
   .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
   .pozo-4{background:linear-gradient(90deg,#ff7b7b,#ff4c4c); color:#002;}
   .pozo-5{background:linear-gradient(90deg,#dfe6ea,#cfd9de); color:#002;}
   .pozo-6{background:linear-gradient(90deg,#e6f7ff,#d2efff); color:#002;text-transform:uppercase}
-  /* highlight on change */
-  .changed { animation: highlight 2s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.12) inset; }
+  .changed { animation: highlight 1.8s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.10) inset; }
   @keyframes highlight {
-    0% { background: rgba(255,255,0,0.45); transform: translateY(-4px); }
+    0% { background: rgba(255,255,0,0.45); transform: translateY(-3px); }
     100% { background: none; transform: translateY(0); }
   }
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}
   .indicators{display:flex;gap:12px;align-items:center}
   .ind{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px;font-weight:700}
-  /* responsive smaller screens */
+  /* Small screens */
   @media(max-width:900px){
-    header h1{font-size:20px}
-    thead tr:first-child th{font-size:14px}
-    thead tr:nth-child(2) th{font-size:12px}
-    td,th{padding:6px 4px}
+    header h1{font-size:18px}
+    th,td{padding:6px 6px}
   }
 </style>
 </head>
@@ -71,10 +67,7 @@
         <div class="meta">Kiosk / TV • Actualiza automáticamente</div>
       </div>
       <div class="controls">
-        <div class="switch">
-          <label style="font-size:13px;color:#cfe8ff">Mover filas actualizadas al inicio</label>
-          <input id="moveUpdated" type="checkbox" checked />
-        </div>
+        <label class="switch"><input id="autoScroll" type="checkbox" checked /> Auto-scroll (últimas 9)</label>
         <button class="btn" id="btnRefresh">Forzar actualización</button>
         <button class="btn secondary" id="btnPause">Pausar</button>
       </div>
@@ -83,28 +76,27 @@
     <main>
       <div class="board">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="font-size:16px">Última actualización: <strong id="lastUpdate">-</strong></div>
+          <div style="font-size:14px">Última actualización: <strong id="lastUpdate">-</strong></div>
           <div class="indicators">
             <div class="ind" id="totalCount">Total: 0</div>
             <div class="ind" id="alertCount">Alertas: 0</div>
           </div>
         </div>
 
-        <div class="table-wrap" id="tableWrap">
+        <div class="table-wrap" id="tableWrap" tabindex="0">
           <table id="mainTable" aria-label="Visor">
             <thead>
               <tr id="hdrTop">
-                <!-- first top-left empty cell -->
                 <th style="width:90px">#</th>
-                <!-- POZO top headers inserted dynamically -->
+                <!-- pozo headers insertados dinámicamente -->
               </tr>
               <tr id="hdrSub">
                 <th>&nbsp;</th>
-                <!-- Subheaders (TPN / FRACTURADO) inserted dynamically -->
+                <!-- subheaders (TPN / FRACTURADO) insertados dinámicamente -->
               </tr>
             </thead>
             <tbody id="tbody">
-              <!-- Rows injected here -->
+              <!-- filas generadas dinámicamente -->
             </tbody>
           </table>
         </div>
@@ -118,212 +110,218 @@
   </div>
 
 <script>
-/*
-  Visor configurable
-  - JSON_URL: ruta al status.json
-*/
-const JSON_URL = 'status.json';
-const REFRESH_SECONDS = 15;
-const ROWS = 60;
+/* CONFIGURACIÓN */
+const JSON_URL = 'status.json';    // ruta del JSON
+const REFRESH_SECONDS = 15;        // intervalo
+const ROWS = 60;                   // #01..#60
+const POZOS = 6;                   // número de pozos (cada uno = 2 columnas)
 
-let pozoNames = [
-  "POZO #1", "POZO #2", "POZO #3", "POZO #4", "POZO #5", "POZO #6"
-];
-
+/* ESTADO */
+let pozoNames = ["POZO #1 AAA","POZO #2 BBB","POZO #3 CCC","POZO #4 DDD","POZO #5 EEEE","POZO #6 FFF"];
 let paused = false;
-let prevMap = {};
-let latestDataMap = {};
+let prevMap = {};        // snapshot anterior por fila
+let latestDataMap = {};  // mapa actual por fila
 
-// Ocultamos la opción de mover filas, ya que la nueva lógica no la necesita.
-document.addEventListener('DOMContentLoaded', () => {
-    const moveUpdatedSwitch = document.getElementById('moveUpdated')?.parentElement;
-    if (moveUpdatedSwitch) {
-        moveUpdatedSwitch.style.display = 'none';
-    }
-});
-
+/* UI bindings */
 document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
-document.getElementById('btnRefresh').addEventListener('click', () => loadAndRender(true));
+document.getElementById('btnRefresh').addEventListener('click', ()=> loadAndRender(true));
 document.getElementById('btnPause').addEventListener('click', togglePause);
+const autoScrollCheckbox = document.getElementById('autoScroll');
+const tableWrap = document.getElementById('tableWrap');
+const tbody = document.getElementById('tbody');
 
-function togglePause() {
-  paused = !paused;
-  document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
+function togglePause(){
+  paused = !paused;
+  document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
 }
 
-function buildHeaders() {
-  const hdrTop = document.getElementById('hdrTop');
-  const hdrSub = document.getElementById('hdrSub');
+/* Construye los headers superior y subheaders */
+function buildHeaders(){
+  const hdrTop = document.getElementById('hdrTop');
+  const hdrSub = document.getElementById('hdrSub');
+  // limpiar existentes
+  hdrTop.querySelectorAll('th.pozoTop').forEach(n=>n.remove());
+  hdrSub.querySelectorAll('th.pozoSub').forEach(n=>n.remove());
+  for(let i=0;i<POZOS;i++){
+    const idx = i+1;
+    const name = pozoNames[i] || `POZO #${idx}`;
+    const thTop = document.createElement('th');
+    thTop.className = `pozo-${idx} pozoTop`;
+    thTop.colSpan = 2;
+    thTop.innerText = name;
+    hdrTop.appendChild(thTop);
 
-  hdrTop.querySelectorAll('th.pozoTop').forEach(n => n.remove());
-  hdrSub.querySelectorAll('th.pozoSub').forEach(n => n.remove());
-
-  pozoNames.forEach((name, idx) => {
-    const top = document.createElement('th');
-    top.className = `pozo-${idx+1} pozoTop`;
-    top.colSpan = 2;
-    top.style.fontWeight = 800;
-    top.style.fontSize = '16px';
-    top.innerText = name;
-    hdrTop.appendChild(top);
-
-    const sub1 = document.createElement('th');
-    sub1.className = 'pozoSub';
-    sub1.innerText = 'TPN';
-    const sub2 = document.createElement('th');
-    sub2.className = 'pozoSub';
-    sub2.innerText = 'FRACTURADO';
-    hdrSub.appendChild(sub1);
-    hdrSub.appendChild(sub2);
-  });
+    const sub1 = document.createElement('th');
+    sub1.className = 'pozoSub';
+    sub1.innerText = 'TPN';
+    const sub2 = document.createElement('th');
+    sub2.className = 'pozoSub';
+    sub2.innerText = 'FRACTURADO';
+    hdrSub.appendChild(sub1);
+    hdrSub.appendChild(sub2);
+  }
 }
 
-function itemsArrayToMap(items) {
-  const map = {};
-  if (!Array.isArray(items)) return map;
-  for (const it of items) {
-    let key = it['fila'] || null;
-    if (key) {
-      map[String(key).trim()] = it;
-    }
-  }
-  return map;
+/* Convierte array de items a map por 'fila' */
+function itemsArrayToMap(items){
+  const map = {};
+  if(!Array.isArray(items)) return map;
+  for(const it of items){
+    const key = (it.fila||'').toString().trim();
+    if(key) map[key] = it;
+  }
+  return map;
 }
 
-function renderTable(rowsToRender) {
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = '';
-  const totalConDatos = Object.values(latestDataMap).filter(obj => tieneDatosVisibles(obj)).length;
-  let alertCount = 0;
-
-  rowsToRender.forEach((rowId, rIndex) => {
-    const tr = document.createElement('tr');
-    if (rIndex % 2 === 0) tr.classList.add('alt');
-
-    const tdId = document.createElement('td');
-    tdId.className = 'rowid';
-    tdId.innerText = rowId;
-    tr.appendChild(tdId);
-
-    const dataObj = latestDataMap[rowId] || {};
-
-    pozoNames.forEach((_, pozoIndex) => {
-      const pozoNum = pozoIndex + 1;
-      const td1 = document.createElement('td');
-      const val1 = dataObj['Pozo' + pozoNum] || '';
-      td1.innerText = val1;
-      tr.appendChild(td1);
-
-      const td2 = document.createElement('td');
-      const val2 = dataObj['Estado' + pozoNum] || '';
-      td2.innerText = val2;
-      tr.appendChild(td2);
-
-      const alertVal = String(val2).toUpperCase();
-      if (alertVal.includes('FRACT') || alertVal.includes('ALERT') || alertVal.includes('FAULT')) {
-        alertCount++;
-      }
-    });
-
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById('totalCount').innerText = `Total: ${totalConDatos}`;
-  document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
+/* Comprueba si la fila tiene algún dato visible */
+function tieneDatosVisibles(dataObj){
+  if(!dataObj) return false;
+  for(let i=1;i<=POZOS;i++){
+    const p = dataObj['Pozo'+i];
+    const e = dataObj['Estado'+i];
+    if((p && String(p).trim()!=='') || (e && String(e).trim()!=='')) return true;
+  }
+  return false;
 }
 
+/* Renderiza TODAS las filas (#01..#60) en el tbody */
+function renderAllRows(){
+  tbody.innerHTML = '';
+  for(let i=1;i<=ROWS;i++){
+    const id = '#' + String(i).padStart(2,'0');
+    const tr = document.createElement('tr');
+    if(i%2===0) tr.classList.add('alt');
 
-function applyChangeHighlights(changedIds) {
-  const tbody = document.getElementById('tbody');
-  for (const rowId of changedIds) {
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const tr = rows.find(tr => tr.querySelector('td.rowid')?.innerText === rowId);
-    if (tr) {
-      tr.classList.add('changed');
-      setTimeout(() => tr.classList.remove('changed'), 2200);
-    }
-  }
-}
+    const tdId = document.createElement('td');
+    tdId.className = 'rowid';
+    tdId.innerText = id;
+    tr.appendChild(tdId);
 
-// ✅ NUEVA FUNCIÓN: Revisa si una fila tiene texto en sus columnas TPN o FRACTURADO.
-function tieneDatosVisibles(dataObj) {
-    if (!dataObj || !dataObj.fila.startsWith('#')) return false;
-    for (let i = 1; i <= pozoNames.length; i++) {
-        const pozoVal = dataObj['Pozo' + i];
-        const estadoVal = dataObj['Estado' + i];
-        if ((pozoVal && String(pozoVal).trim() !== '') || (estadoVal && String(estadoVal).trim() !== '')) {
-            return true; // Si encuentra al menos un dato, la fila es válida.
-        }
+    const data = latestDataMap[id] || {};
+    for(let po=1;po<=POZOS;po++){
+      const td1 = document.createElement('td');
+      td1.innerText = data['Pozo'+po] || '';
+      tr.appendChild(td1);
+      const td2 = document.createElement('td');
+      td2.innerText = data['Estado'+po] || '';
+      tr.appendChild(td2);
     }
-    return false; // Si todas las columnas están vacías, la fila no se cuenta.
+
+    tbody.appendChild(tr);
+  }
 }
 
-async function loadAndRender(force = false) {
-  if (paused && !force) return;
-  try {
-    const res = await fetch(JSON_URL + '?_=' + Date.now(), { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const json = await res.json();
-
-    document.getElementById('lastUpdate').innerText = new Date().toLocaleString();
-
-    if (json.items && Array.isArray(json.items)) {
-      const headerData = json.items.find(item => item.fila === "");
-      if (headerData) {
-        const newPozoNames = [];
-        for (let i = 1; i <= 6; i++) {
-          const pozoKey = 'Pozo' + i;
-          const estadoKey = 'Estado' + i;
-          if (headerData[pozoKey] && headerData[estadoKey]) {
-            newPozoNames.push(`${headerData[pozoKey]} ${headerData[estadoKey]}`);
-          }
-        }
-        if (newPozoNames.length > 0 && JSON.stringify(pozoNames) !== JSON.stringify(newPozoNames)) {
-          pozoNames = newPozoNames;
-          buildHeaders();
-        }
-      }
-    }
-
-    const newMap = itemsArrayToMap(json.items || []);
-    latestDataMap = newMap;
-
-    const changed = [];
-    for (const [rowId, obj] of Object.entries(newMap)) {
-      const s = JSON.stringify(obj);
-      if (prevMap[rowId] !== s) {
-        changed.push(rowId);
-      }
-    }
-
-    for (const [k, v] of Object.entries(newMap)) prevMap[k] = JSON.stringify(v);
-    
-    // ✅ FILTRO MEJORADO: Ahora usa la función tieneDatosVisibles.
-    const todasLasFilasConDatos = Object.keys(latestDataMap)
-        .filter(key => tieneDatosVisibles(latestDataMap[key]));
-
-    todasLasFilasConDatos.sort((a, b) => {
-        const numA = parseInt(a.slice(1));
-        const numB = parseInt(b.slice(1));
-        return numA - numB;
-    });
-
-    const filasAMostrar = todasLasFilasConDatos.slice(-9);
-
-    renderTable(filasAMostrar);
-    if (changed.length) applyChangeHighlights(changed);
-
-  } catch (err) {
-    console.error('Error cargando status.json:', err);
-    document.getElementById('lastUpdate').innerHTML = `<span style="color:red;">Error al cargar datos. Reintentando...</span>`;
-  }
+/* Resalta filas que cambiaron */
+function applyChangeHighlights(changedIds){
+  if(!changedIds || changedIds.length===0) return;
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  changedIds.forEach(id=>{
+    const tr = rows.find(r => r.querySelector('td.rowid')?.innerText === id);
+    if(tr){
+      tr.classList.add('changed');
+      setTimeout(()=> tr.classList.remove('changed'), 2000);
+    }
+  });
 }
 
+/* Hace scroll para que la primera fila de las últimas N esté visible */
+function scrollToShowLastN(n){
+  if(!autoScrollCheckbox.checked) return;
+  // buscar las filas con datos, ordenadas por número
+  const allIds = [];
+  for(let i=1;i<=ROWS;i++) allIds.push('#'+String(i).padStart(2,'0'));
+  const withData = allIds.filter(id => tieneDatosVisibles(latestDataMap[id]));
+  if(withData.length===0) return;
+  const lastN = withData.slice(-n); // últimas N por índice
+  const firstToShow = lastN[0]; // mantener orden ascendente
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const tr = rows.find(r => r.querySelector('td.rowid')?.innerText === firstToShow);
+  if(!tr) return;
+  // calcular desplazamiento relativo al contenedor
+  const container = tableWrap;
+  const containerRect = container.getBoundingClientRect();
+  const trRect = tr.getBoundingClientRect();
+  const offset = trRect.top - containerRect.top;
+  // desplazar suavemente para que la fila quede algo centrada (menos el encabezado sticky)
+  const headerHeight = container.querySelector('thead').offsetHeight;
+  container.scrollTop = container.scrollTop + offset - headerHeight - 8;
+}
+
+/* Actualiza contadores y llama al render */
+function updateCounters(){
+  const totalConDatos = Object.keys(latestDataMap).filter(k => tieneDatosVisibles(latestDataMap[k])).length;
+  let alertCount = 0;
+  for(const k of Object.keys(latestDataMap)){
+    for(let p=1;p<=POZOS;p++){
+      const val = String(latestDataMap[k]['Estado'+p] || '').toUpperCase();
+      if(val.includes('FRACT') || val.includes('ALERT') || val.includes('FAULT')) alertCount++;
+    }
+  }
+  document.getElementById('totalCount').innerText = `Total: ${totalConDatos}`;
+  document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
+}
+
+/* Carga JSON, actualiza latestDataMap, renderiza y hace scroll si corresponde */
+async function loadAndRender(force=false){
+  if(paused && !force) return;
+  try{
+    const res = await fetch(JSON_URL + '?_=' + Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    // si JSON trae encabezados (fila == "" ), actualizamos nombres de pozo
+    if(Array.isArray(json.items)){
+      const header = json.items.find(it => (it.fila||'').toString().trim()==='');
+      if(header){
+        const newNames = [];
+        for(let i=1;i<=POZOS;i++){
+          const p = header['Pozo'+i] || '';
+          const e = header['Estado'+i] || '';
+          newNames.push( (p? p : `POZO #${i}`) + (e? (' ' + e) : '') );
+        }
+        if(JSON.stringify(newNames) !== JSON.stringify(pozoNames)){
+          pozoNames = newNames;
+          buildHeaders();
+        }
+      }
+    }
+    // construir mapa
+    const newMap = itemsArrayToMap(json.items || []);
+    // detectar cambios
+    const changed = [];
+    for(const i=1;i<=ROWS;i++){
+      const id = '#'+String(i).padStart(2,'0');
+      const newObj = newMap[id] || {};
+      const s = JSON.stringify(newObj);
+      if(prevMap[id] !== s && prevMap[id] !== undefined){ // si prevMap undefined = primer run -> no highlight
+        changed.push(id);
+      }
+      prevMap[id] = s;
+    }
+    latestDataMap = newMap;
+    // renderizamos todo
+    renderAllRows();
+    updateCounters();
+    // aplicar highlight
+    applyChangeHighlights(changed);
+    // si hay auto-scroll -> mostrar últimas 9 filas con datos
+    if(autoScrollCheckbox.checked && !paused){
+      scrollToShowLastN(9);
+    }
+    // actualizar fecha
+    const last = json.lastUpdate || new Date().toISOString();
+    document.getElementById('lastUpdate').innerText = new Date(last).toLocaleString();
+  }catch(err){
+    console.error('Error cargando status.json:', err);
+    document.getElementById('lastUpdate').innerHTML = `<span style="color:salmon">Error al cargar datos</span>`;
+  }
+}
+
+/* Init */
 buildHeaders();
-renderTable([]); 
-
+renderAllRows();
 loadAndRender(true);
-setInterval(() => loadAndRender(false), REFRESH_SECONDS * 1000);
+setInterval(()=> loadAndRender(false), REFRESH_SECONDS * 1000);
+
 </script>
 </body>
 </html>
