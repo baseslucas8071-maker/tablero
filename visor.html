@@ -111,10 +111,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableContainer = document.getElementById('tableContainer');
   const autoScrollCheckbox = document.getElementById('autoScroll');
   const updateContainer = document.getElementById('updateContainer');
+  const btnRefresh = document.getElementById('btnRefresh');
+  const btnPause = document.getElementById('btnPause');
 
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
-  document.getElementById('btnRefresh').addEventListener('click', () => loadAndRender(true));
-  document.getElementById('btnPause').addEventListener('click', togglePause);
+  btnRefresh.addEventListener('click', handleForceRefresh);
+  btnPause.addEventListener('click', togglePause);
   autoScrollCheckbox.addEventListener('change', () => {
     if (autoScrollCheckbox.checked) {
       userScrolledManually = false; // retomamos el seguimiento
@@ -125,6 +127,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function togglePause() {
     paused = !paused;
     document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
+  }
+
+  async function handleForceRefresh() {
+    if (isFetching) return;
+    const original = btnRefresh.innerText;
+    btnRefresh.disabled = true;
+    btnRefresh.innerText = 'Actualizando...';
+    await loadAndRender(true);
+    btnRefresh.innerText = original;
+    btnRefresh.disabled = false;
   }
 
   function initializeDOM() {
