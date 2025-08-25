@@ -347,15 +347,15 @@
     },
     {
       "Estado1": "",
-      "Estado2": "",
-      "Estado3": "",
+      "Estado2": "FRACTURADO",
+      "Estado3": "ALERT",
       "Estado4": "",
       "Estado5": "",
       "Estado6": "",
       "Pozo1": "dffddu",
       "Pozo2": "",
       "Pozo3": "yjtj",
-      "Pozo4": "",
+      "Pozo4": "stjth",
       "Pozo5": "",
       "Pozo6": "",
       "fila": "#22"
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-25T16:55:19.7460137Z"
+  "lastUpdate": "2025-08-25T16:56:33.4275080Z"
 }
