@@ -42,7 +42,7 @@
   .pozo-6{background:linear-gradient(90deg,#e6f7ff,#d2efff); color:#002;}
   .changed { animation: highlight 1.6s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.10) inset; }
   @keyframes highlight { 0% { background: rgba(0,163,255,0.35);} 100% { background: none; } }
-  .fetching-indicator { animation: pulse 1s; }
+  .fetching-indicator { animation: pulse 1s infinite; }
   @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
   footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .indicators { display: flex; gap: 12px; align-items: center; }
@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let paused = false;
   let prevDataMap = {};
   let latestDataMap = {};
+  let isFetching = false;
 
   const tbody = document.getElementById('tbody');
   const hdrTop = document.getElementById('hdrTop');
@@ -121,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initializeDOM() {
+    // Encabezados por pozo
     for (let i = 1; i <= POZOS; i++) {
       const thTop = document.createElement('th');
       thTop.className = `pozo-${i} pozoTop`;
@@ -132,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const thSub2 = document.createElement('th'); thSub2.innerText = 'FRACTURADO'; hdrSub.appendChild(thSub2);
     }
 
+    // Filas fijas
     tbody.innerHTML = '';
     for (let i = 1; i <= ROWS; i++) {
       const id = '#' + String(i).padStart(2, '0');
@@ -158,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!Array.isArray(items)) return map;
     for (const it of items) {
       const key = (it.fila || '').toString().trim();
-      if (!key) continue;
+      if (!key) continue; // salta encabezados (fila == "")
       map[key] = it;
     }
     return map;
@@ -196,12 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
       ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
     }
 
+    // Actualiza sub-encabezados (respetando el primer th vacío de hdrSub)
     if (subRow) {
       const subCells = hdrSub.querySelectorAll('th');
       for (let i = 1; i <= POZOS; i++) {
         const pSub = (subRow['Pozo' + i] || '').toString().trim() || 'TPN';
         const eSub = (subRow['Estado' + i] || '').toString().trim() || 'FRACTURADO';
-        const idxCell = (i - 1) * 2;
+        const idxCell = (i - 1) * 2 + 1; // +1 por la primera celda vacía
         if (subCells[idxCell]) subCells[idxCell].innerText = pSub;
         if (subCells[idxCell + 1]) subCells[idxCell + 1].innerText = eSub;
       }
@@ -301,6 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tableContainer.scrollTo({ top: offset - headerHeight - 8, behavior: 'smooth' });
   }
 
+  // Detecta si el usuario está al fondo para no forzar el scroll
   let userScrolledManually = false;
   function isUserAtBottom(margin = 60) {
     return (tableContainer.scrollHeight - (tableContainer.scrollTop + tableContainer.clientHeight)) <= margin;
@@ -309,45 +314,57 @@ document.addEventListener('DOMContentLoaded', () => {
     userScrolledManually = !isUserAtBottom(40);
   });
 
+  // Carga y render principal
   async function loadAndRender(isForced = false) {
-    if (isLoading) return;
-    isLoading = true;
+    if (paused && !isForced) return;
+    if (isFetching) return;
+    isFetching = true;
+    updateContainer.classList.add('fetching-indicator');
 
     try {
-      const res = await fetch('/api/data');
-      const data = await res.json();
+      const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
 
-      if (!data.items || !Array.isArray(data.items)) {
-        console.error("El JSON recibido no contiene 'items' válidos");
-        return;
+      // Muestra fecha/hora de actualización
+      document.getElementById('lastUpdate').innerText =
+        new Date(json.lastUpdate || Date.now()).toLocaleString();
+
+      // Encabezados (dos filas) y datos
+      const { top, sub } = extractHeaderRows(json.items || []);
+      updateHeaderNames(top, sub);
+
+      const dataMap = itemsArrayToMap(json.items || []);
+
+      // ¿estaba al fondo antes de actualizar?
+      const wasAtBottom = isUserAtBottom(40);
+
+      // Pinta la tabla
+      updateDOM(dataMap);
+
+      // Auto-scroll si corresponde
+      if (autoScrollCheckbox.checked && (isForced || wasAtBottom) && !userScrolledManually) {
+        autoScrollView();
       }
 
-      // Verificamos si hay nuevos datos
-      const dataString = JSON.stringify(data.items);
-      if (!isForced && dataString === lastDataString) {
-        return; // No hay cambios
-      }
-      lastDataString = dataString;
+      // Si volvió al fondo, resetea la marca manual
+      if (isUserAtBottom(40)) userScrolledManually = false;
 
-      // Renderizamos las filas
-      renderTable(data.items);
-
-      // Auto-scroll solo si el usuario no movió manualmente
-      if (!userScrolledManually && isUserAtBottom()) {
-        tableContainer.scrollTop = tableContainer.scrollHeight;
-      }
     } catch (err) {
-      console.error("Error cargando datos:", err);
+      console.error('Error al cargar datos:', err);
+      document.getElementById('lastUpdate').innerHTML =
+        `<span style="color:salmon">Error de conexión</span>`;
     } finally {
-      isLoading = false;
+      setTimeout(() => updateContainer.classList.remove('fetching-indicator'), 400);
+      isFetching = false;
     }
   }
 
-  // Refrescar cada 5 segundos
-  setInterval(() => loadAndRender(false), 5000);
-
-  // Cargar inicial
+  // Init
+  initializeDOM();
   loadAndRender(true);
+  setInterval(() => loadAndRender(false), REFRESH_SECONDS * 1000);
+});
 </script>
 </body>
 </html>
