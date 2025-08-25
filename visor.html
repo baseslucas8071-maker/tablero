@@ -10,7 +10,6 @@
     --card: #08203a;
     --muted: #cfe8ff;
     --accent: #00a3ff;
-    /* ✅ Usamos variables para la altura de los encabezados fijos */
     --header-h-1: 48px;
     --header-h-2: 44px;
   }
@@ -26,18 +25,10 @@
   main { flex: 1; margin-top: 12px; display: flex; min-height: 0; }
   .board { flex: 1; background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)); border-radius: 10px; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; }
   
-  /* ✅ Contenedor de la tabla: este es el elemento clave para el scroll */
-  .table-container {
-    flex: 1;
-    overflow: auto; /* Permite el scroll vertical y horizontal */
-    border-radius: 8px;
-    position: relative; /* Contexto para elementos posicionados */
-    min-height: 0;
-  }
+  .table-container { flex: 1; overflow: auto; border-radius: 8px; position: relative; min-height: 0; }
   table { border-collapse: collapse; width: 100%; min-width: 1200px; }
   th, td { border: 1px solid rgba(255, 255, 255, 0.06); padding: 8px 10px; text-align: center; white-space: nowrap; }
   
-  /* ✅ Encabezados fijos (pegajosos) */
   thead th { background: var(--bg); }
   thead tr:first-child th { position: sticky; top: 0; z-index: 11; height: var(--header-h-1); }
   thead tr:nth-child(2) th { position: sticky; top: var(--header-h-1); z-index: 12; height: var(--header-h-2); }
@@ -45,7 +36,6 @@
   tbody td { height: 44px; background: transparent; color: #e6f7ff; }
   tbody tr.alt td { background: rgba(255, 255, 255, 0.01); }
   
-  /* ✅ Columna de ID fija (pegajosa a la izquierda) */
   td.rowid { position: sticky; left: 0; z-index: 5; font-weight: 800; color: #bfe8ff; background: #0c1833; }
   thead th:first-child { position: sticky; left: 0; z-index: 15; }
   
@@ -61,6 +51,15 @@
     0%, 20% { background: rgba(0, 163, 255, 0.4); }
     100% { background: none; }
   }
+
+  /* ✅ Indicador visual para saber que el refresco está funcionando */
+  .fetching-indicator { animation: pulse 1s; }
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
+
   footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .indicators { display: flex; gap: 12px; align-items: center; }
   .ind { background: rgba(255, 255, 255, 0.03); padding: 6px 10px; border-radius: 8px; font-weight: 700; }
@@ -76,7 +75,7 @@
         <div class="meta">Kiosk / TV • Actualiza automáticamente</div>
       </div>
       <div class="controls">
-        <label class="switch"><input id="autoScroll" type="checkbox" checked /> Auto-scroll (últimas 9)</label>
+        <label class="switch"><input id="autoScroll" type="checkbox" checked /> Auto-scroll (últimas 7)</label>
         <button class="btn" id="btnRefresh">Forzar actualización</button>
         <button class="btn secondary" id="btnPause">Pausar</button>
       </div>
@@ -84,7 +83,7 @@
     <main>
       <div class="board">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <div style="font-size:14px">Última actualización: <strong id="lastUpdate">-</strong></div>
+          <div id="updateContainer" style="font-size:14px">Última actualización: <strong id="lastUpdate">-</strong></div>
           <div class="indicators">
             <div class="ind" id="totalCount">Total: 0</div>
             <div class="ind" id="alertCount">Alertas: 0</div>
@@ -107,13 +106,13 @@
     </main>
   </div>
 
-<<script>
+<script>
 document.addEventListener('DOMContentLoaded', () => {
     const JSON_URL = 'status.json';
     const REFRESH_SECONDS = 15;
     const ROWS = 60;
     const POZOS = 6;
-    const LAST_N_TO_SHOW = 7; // ✅ Ajustado a 7 líneas
+    const LAST_N_TO_SHOW = 7;
 
     let pozoNames = Array.from({ length: POZOS }, (_, i) => `POZO #${i + 1}`);
     let paused = false;
@@ -124,8 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const hdrSub = document.getElementById('hdrSub');
     const tableContainer = document.getElementById('tableContainer');
     const autoScrollCheckbox = document.getElementById('autoScroll');
+    const updateContainer = document.getElementById('updateContainer');
 
-    // --- Lógica de Control y UI ---
     document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
     document.getElementById('btnRefresh').addEventListener('click', () => loadAndRender(true));
     document.getElementById('btnPause').addEventListener('click', togglePause);
@@ -135,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
     }
 
-    // --- Construcción Inicial del DOM ---
     function initializeDOM() {
         for (let i = 1; i <= POZOS; i++) {
             const thTop = document.createElement('th');
@@ -175,8 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Funciones de Actualización de Datos ---
-    // ✅ CORRECCIÓN: Se ajusta la función para que no ignore la fila con la clave vacía ("").
     function itemsArrayToMap(items) {
         const map = {};
         if (!Array.isArray(items)) return map;
@@ -192,22 +188,30 @@ document.addEventListener('DOMContentLoaded', () => {
     function hasVisibleData(dataObj) {
         if (!dataObj) return false;
         for (let i = 1; i <= POZOS; i++) {
-            const p = dataObj['Pozo' + i];
-            const e = dataObj['Estado' + i];
-            if ((p && String(p).trim() !== '') || (e && String(e).trim() !== '')) return true;
+            if ((dataObj['Pozo' + i] && String(dataObj['Pozo' + i]).trim() !== '') || (dataObj['Estado' + i] && String(dataObj['Estado' + i]).trim() !== '')) return true;
         }
         return false;
     }
     
+    // ✅ FUNCIÓN CORREGIDA: Ahora es más segura y solo actualiza si el dato parece un nombre de pozo.
     function updateHeaderNames(headerObj) {
         if (!headerObj) return;
         const newNames = [];
+        let needsUpdate = false;
         for (let i = 1; i <= POZOS; i++) {
-            const p = headerObj['Pozo' + i] || `POZO #${i}`;
-            const e = headerObj['Estado' + i] ? ' ' + headerObj['Estado' + i] : '';
-            newNames.push((p + e).trim());
+            const p = headerObj['Pozo' + i] || '';
+            const e = headerObj['Estado' + i] || '';
+            
+            // Solo combinamos si 'p' realmente parece un nombre de pozo
+            let finalName = pozoNames[i-1]; // Empezamos con el nombre actual
+            if (p.toUpperCase().startsWith('POZO')) {
+                finalName = (p + (e ? ' ' + e : '')).trim();
+            }
+            newNames.push(finalName);
+            if(finalName !== pozoNames[i-1]) needsUpdate = true;
         }
-        if (JSON.stringify(newNames) !== JSON.stringify(pozoNames)) {
+
+        if (needsUpdate) {
             pozoNames = newNames;
             hdrTop.querySelectorAll('th.pozoTop').forEach((th, idx) => {
                 if (newNames[idx]) th.innerText = newNames[idx];
@@ -229,17 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const prevDataString = prevDataMap[id] || '{}';
             const newDataString = JSON.stringify(newData);
 
-            if (hasVisibleData(newData)) {
-                totalWithData++;
-            }
+            if (hasVisibleData(newData)) totalWithData++;
             
             if (newDataString !== prevDataString) {
                 allChangedRows.add(tr);
                 for (let p = 1; p <= POZOS; p++) {
-                    const valPozo = newData['Pozo' + p] || '';
-                    const valEstado = newData['Estado' + p] || '';
-                    tr.querySelector(`td[data-col="Pozo${p}"]`).innerText = valPozo;
-                    tr.querySelector(`td[data-col="Estado${p}"]`).innerText = valEstado;
+                    tr.querySelector(`td[data-col="Pozo${p}"]`).innerText = newData['Pozo' + p] || '';
+                    tr.querySelector(`td[data-col="Estado${p}"]`).innerText = newData['Estado' + p] || '';
                 }
                 prevDataMap[id] = newDataString;
             }
@@ -259,9 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Lógica de Scroll ---
     function autoScrollView() {
-        // ✅ AJUSTE: Se elimina la condición 'userScrolledManually'. Ahora solo depende del checkbox.
         if (!autoScrollCheckbox.checked) return;
 
         const rowsWithData = Array.from(tbody.querySelectorAll('tr'))
@@ -275,16 +273,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetRow) {
             const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
             const targetPosition = targetRow.offsetTop - headerHeight - 10;
-            tableContainer.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-            });
+            tableContainer.scrollTo({ top: targetPosition, behavior: 'smooth' });
         }
     }
 
-    // --- Bucle Principal ---
     async function loadAndRender(isForced = false) {
         if (paused && !isForced) return;
+        
+        // ✅ Añadimos el indicador visual de que la actualización está en curso
+        updateContainer.classList.add('fetching-indicator');
 
         try {
             const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
@@ -294,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('lastUpdate').innerText = new Date(json.lastUpdate || Date.now()).toLocaleString();
             
             const dataMap = itemsArrayToMap(json.items || []);
-            const headerRow = dataMap[""]; // Esto ahora funcionará gracias a la corrección
+            const headerRow = dataMap[""];
             if (headerRow) updateHeaderNames(headerRow);
             
             updateDOM(dataMap);
@@ -303,10 +300,14 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Error al cargar datos:', err);
             document.getElementById('lastUpdate').innerHTML = `<span style="color:salmon">Error de conexión</span>`;
+        } finally {
+            // ✅ Quitamos el indicador visual al terminar
+            setTimeout(() => {
+                updateContainer.classList.remove('fetching-indicator');
+            }, 500);
         }
     }
 
-    // --- Arranque ---
     initializeDOM();
     loadAndRender(true);
     setInterval(() => loadAndRender(false), REFRESH_SECONDS * 1000);
