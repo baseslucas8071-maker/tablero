@@ -115,6 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   document.getElementById('btnRefresh').addEventListener('click', () => loadAndRender(true));
   document.getElementById('btnPause').addEventListener('click', togglePause);
+  autoScrollCheckbox.addEventListener('change', () => {
+    if (autoScrollCheckbox.checked) {
+      userScrolledManually = false; // retomamos el seguimiento
+      requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
+    }
+  });
 
   function togglePause() {
     paused = !paused;
@@ -284,41 +290,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // === Auto-scroll: última fila con datos y 7 anteriores (ventana de 8) ===
+  let programmaticScroll = false;
+  let userScrolledManually = false;
+
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
     if (!autoScrollCheckbox.checked) return;
 
-    // Recolecta índices (DOM) de filas que tienen datos visibles
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const idxWithData = [];
     rows.forEach((tr, idx) => {
       const id = tr.dataset.rowId;
       if (hasVisibleData(latestDataMap[id])) idxWithData.push(idx);
     });
-
     if (idxWithData.length === 0) return;
 
-    // Índice DOM de la última fila con datos
-    const lastIdx = idxWithData[idxWithData.length - 1];
-
-    // Índice DOM de la primera fila a mostrar dentro de la ventana
     const startIdx = idxWithData[Math.max(0, idxWithData.length - n)];
-
     const startRow = rows[startIdx];
     if (!startRow) return;
 
     const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
     const targetTop = startRow.offsetTop - headerHeight - 8;
 
+    programmaticScroll = true;
     tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+    setTimeout(() => { programmaticScroll = false; }, 200);
   }
 
-  // Detecta si el usuario está al fondo para no forzar el scroll
-  let userScrolledManually = false;
-  function isUserAtBottom(margin = 60) {
-    return (tableContainer.scrollHeight - (tableContainer.scrollTop + tableContainer.clientHeight)) <= margin;
-  }
+  // Marca scroll manual solo cuando es del usuario (no programático)
   tableContainer.addEventListener('scroll', () => {
-    userScrolledManually = !isUserAtBottom(40);
+    if (programmaticScroll) return;
+    userScrolledManually = true;
   });
 
   // Carga y render principal
@@ -343,19 +344,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const dataMap = itemsArrayToMap(json.items || []);
 
-      // ¿estaba al fondo antes de actualizar?
-      const wasAtBottom = isUserAtBottom(40);
-
       // Pinta la tabla
       updateDOM(dataMap);
 
-      // Auto-scroll: solo si el usuario no “se fue” del fondo o forzado
-      if ((isForced || wasAtBottom) && !userScrolledManually) {
-        scrollToLastWithData(LAST_N_TO_SHOW); // última + 7 anteriores
+      // Auto-scroll: si el usuario no lo “rompió” manualmente
+      if (!userScrolledManually) {
+        scrollToLastWithData(LAST_N_TO_SHOW);
       }
-
-      // Si volvió al fondo, resetea la marca manual
-      if (isUserAtBottom(40)) userScrolledManually = false;
 
     } catch (err) {
       console.error('Error al cargar datos:', err);
