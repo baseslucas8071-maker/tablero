@@ -931,5 +931,27 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-25T23:15:32.3459998Z"
+  "lastUpdate": "2025-08-25T23:25:13.2231108Z",
+  "stock": [
+    {
+      "ITEM": "GAS OIL",
+      "STOCK": "100 M3"
+    },
+    {
+      "ITEM": "ARENA MALLA #100",
+      "STOCK": "300 Tn"
+    },
+    {
+      "ITEM": "ARENA MALLA #30/70",
+      "STOCK": "1000 Tn"
+    },
+    {
+      "ITEM": "GEL BOLSONES",
+      "STOCK": "30"
+    },
+    {
+      "ITEM": "GEL TOTE",
+      "STOCK": "20"
+    }
+  ]
 }
