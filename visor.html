@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filas fijas
     tbody.innerHTML = '';
+    const frag = document.createDocumentFragment();
     for (let i = 1; i <= ROWS; i++) {
       const id = '#' + String(i).padStart(2, '0');
       const tr = document.createElement('tr');
@@ -169,8 +170,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const td1 = document.createElement('td'); td1.dataset.col = `Pozo${p}`; tr.appendChild(td1);
         const td2 = document.createElement('td'); td2.dataset.col = `Estado${p}`; tr.appendChild(td2);
       }
-      tbody.appendChild(tr);
+      frag.appendChild(tr);
     }
+    tbody.appendChild(frag);
   }
 
   // ---------- funciones nuevas ----------
