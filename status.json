@@ -452,14 +452,14 @@
     },
     {
       "Estado1": "",
-      "Estado2": "",
-      "Estado3": "",
+      "Estado2": "62",
+      "Estado3": "356",
       "Estado4": "",
       "Estado5": "",
       "Estado6": "",
-      "Pozo1": "",
-      "Pozo2": "",
-      "Pozo3": "",
+      "Pozo1": "446525",
+      "Pozo2": "23562",
+      "Pozo3": "66",
       "Pozo4": "",
       "Pozo5": "",
       "Pozo6": "",
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-25T21:30:23.6557713Z"
+  "lastUpdate": "2025-08-25T21:44:19.5353426Z"
 }
