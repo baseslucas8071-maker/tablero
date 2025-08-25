@@ -107,18 +107,17 @@
     </main>
   </div>
 
-<script>
+<<script>
 document.addEventListener('DOMContentLoaded', () => {
     const JSON_URL = 'status.json';
     const REFRESH_SECONDS = 15;
     const ROWS = 60;
     const POZOS = 6;
-    const LAST_N_TO_SHOW = 9;
+    const LAST_N_TO_SHOW = 7; // ✅ Ajustado a 7 líneas
 
     let pozoNames = Array.from({ length: POZOS }, (_, i) => `POZO #${i + 1}`);
     let paused = false;
     let prevDataMap = {};
-    let userScrolledManually = false;
 
     const tbody = document.getElementById('tbody');
     const hdrTop = document.getElementById('hdrTop');
@@ -131,10 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnRefresh').addEventListener('click', () => loadAndRender(true));
     document.getElementById('btnPause').addEventListener('click', togglePause);
     
-    tableContainer.addEventListener('scroll', () => {
-        userScrolledManually = true;
-    }, { passive: true });
-
     function togglePause() {
         paused = !paused;
         document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
@@ -181,12 +176,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Funciones de Actualización de Datos ---
+    // ✅ CORRECCIÓN: Se ajusta la función para que no ignore la fila con la clave vacía ("").
     function itemsArrayToMap(items) {
         const map = {};
         if (!Array.isArray(items)) return map;
         for (const it of items) {
-            const key = (it.fila || '').toString().trim();
-            if (key) map[key] = it;
+            if (it.hasOwnProperty('fila')) {
+                const key = (it.fila || '').toString().trim();
+                map[key] = it;
+            }
         }
         return map;
     }
@@ -263,7 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Lógica de Scroll ---
     function autoScrollView() {
-        if (!autoScrollCheckbox.checked || userScrolledManually) return;
+        // ✅ AJUSTE: Se elimina la condición 'userScrolledManually'. Ahora solo depende del checkbox.
+        if (!autoScrollCheckbox.checked) return;
 
         const rowsWithData = Array.from(tbody.querySelectorAll('tr'))
             .filter(tr => hasVisibleData(prevDataMap[tr.dataset.rowId] ? JSON.parse(prevDataMap[tr.dataset.rowId]) : null));
@@ -275,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (targetRow) {
             const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
-            const targetPosition = targetRow.offsetTop - headerHeight - 10; // 10px de margen
+            const targetPosition = targetRow.offsetTop - headerHeight - 10;
             tableContainer.scrollTo({
                 top: targetPosition,
                 behavior: 'smooth'
@@ -286,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Bucle Principal ---
     async function loadAndRender(isForced = false) {
         if (paused && !isForced) return;
-        if (isForced) userScrolledManually = false; // Forzar resetea el scroll manual
 
         try {
             const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
@@ -296,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('lastUpdate').innerText = new Date(json.lastUpdate || Date.now()).toLocaleString();
             
             const dataMap = itemsArrayToMap(json.items || []);
-            const headerRow = dataMap[""];
+            const headerRow = dataMap[""]; // Esto ahora funcionará gracias a la corrección
             if (headerRow) updateHeaderNames(headerRow);
             
             updateDOM(dataMap);
