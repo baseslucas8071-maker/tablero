@@ -12,7 +12,6 @@
     --accent:#00a3ff;
     --row-alt: #0b2233;
     --row-alt-2: #071027;
-    --header-height: 88px;
   }
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
   .wrap{padding:14px;box-sizing:border-box;display:flex;flex-direction:column;height:100%}
@@ -24,13 +23,20 @@
   .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.08)}
   .switch{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
   main{flex:1;margin-top:12px;display:flex;gap:18px;align-items:stretch}
-  .board{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:12px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column}
-  .table-wrap{flex:1;background:transparent;border-radius:8px;overflow:auto;position:relative}
-  /* Make the table as wide as needed and enable horizontal scroll if required */
+  .board{flex:1;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:12px;box-sizing:border-box;display:flex;flex-direction:column}
+  /* NEW: contenedor de la tabla con scroll (ocupa el espacio disponible dentro de .board) */
+  .table-container{
+    flex:1;               /* ocupa resto del espacio */
+    overflow-y:auto;      /* scroll vertical */
+    overflow-x:auto;      /* scroll horizontal si es necesario */
+    border-radius:8px;
+    padding-right:6px;    /* espacio para scrollbar */
+  }
+  /* Mantener la tabla grande si es necesario */
   table{border-collapse:collapse;width:100%;min-width:1200px}
   th,td{border:1px solid rgba(255,255,255,0.06);padding:8px 10px;text-align:center}
   thead th{background:transparent}
-  /* sticky headers inside the scrollable container: position sticky relative to .table-wrap */
+  /* sticky headers - funcionan dentro de .table-container */
   thead tr:first-child th{position:sticky;top:0;z-index:6;padding-top:12px;padding-bottom:12px;font-size:16px}
   thead tr:nth-child(2) th{position:sticky;top:44px;z-index:7;padding:8px 10px;background:rgba(0,0,0,0.15);font-weight:800}
   tbody td{height:44px;background:transparent;color:#e6f7ff}
@@ -52,7 +58,9 @@
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted)}
   .indicators{display:flex;gap:12px;align-items:center}
   .ind{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:8px;font-weight:700}
-  /* Small screens */
+  /* Optional: show a clearer scrollbar on webkit (TV's browser might ignore) */
+  .table-container::-webkit-scrollbar{height:10px;width:10px}
+  .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.06);border-radius:6px}
   @media(max-width:900px){
     header h1{font-size:18px}
     th,td{padding:6px 6px}
@@ -83,7 +91,8 @@
           </div>
         </div>
 
-        <div class="table-wrap" id="tableWrap" tabindex="0">
+        <!-- Aquí está el contenedor con scroll -->
+        <div class="table-container" id="tableWrap" tabindex="0">
           <table id="mainTable" aria-label="Visor">
             <thead>
               <tr id="hdrTop">
@@ -110,19 +119,19 @@
   </div>
 
 <script>
-/* CONFIGURACIÓN */
-const JSON_URL = 'status.json';    // ruta del JSON
-const REFRESH_SECONDS = 15;        // intervalo
-const ROWS = 60;                   // #01..#60
-const POZOS = 6;                   // número de pozos (cada uno = 2 columnas)
+/* CONFIG */
+const JSON_URL = 'status.json';
+const REFRESH_SECONDS = 15;
+const ROWS = 60;
+const POZOS = 6;
 
-/* ESTADO */
+/* STATE */
 let pozoNames = ["POZO #1 AAA","POZO #2 BBB","POZO #3 CCC","POZO #4 DDD","POZO #5 EEEE","POZO #6 FFF"];
 let paused = false;
-let prevMap = {};        // snapshot anterior por fila
-let latestDataMap = {};  // mapa actual por fila
+let prevMap = {};
+let latestDataMap = {};
 
-/* UI bindings */
+/* UI refs */
 document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
 document.getElementById('btnRefresh').addEventListener('click', ()=> loadAndRender(true));
 document.getElementById('btnPause').addEventListener('click', togglePause);
@@ -135,11 +144,10 @@ function togglePause(){
   document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
 }
 
-/* Construye los headers superior y subheaders */
+/* headers */
 function buildHeaders(){
   const hdrTop = document.getElementById('hdrTop');
   const hdrSub = document.getElementById('hdrSub');
-  // limpiar existentes
   hdrTop.querySelectorAll('th.pozoTop').forEach(n=>n.remove());
   hdrSub.querySelectorAll('th.pozoSub').forEach(n=>n.remove());
   for(let i=0;i<POZOS;i++){
@@ -162,7 +170,7 @@ function buildHeaders(){
   }
 }
 
-/* Convierte array de items a map por 'fila' */
+/* array -> map by fila */
 function itemsArrayToMap(items){
   const map = {};
   if(!Array.isArray(items)) return map;
@@ -173,7 +181,7 @@ function itemsArrayToMap(items){
   return map;
 }
 
-/* Comprueba si la fila tiene algún dato visible */
+/* tiene datos visibles */
 function tieneDatosVisibles(dataObj){
   if(!dataObj) return false;
   for(let i=1;i<=POZOS;i++){
@@ -184,7 +192,7 @@ function tieneDatosVisibles(dataObj){
   return false;
 }
 
-/* Renderiza TODAS las filas (#01..#60) en el tbody */
+/* render all fixed rows */
 function renderAllRows(){
   tbody.innerHTML = '';
   for(let i=1;i<=ROWS;i++){
@@ -206,12 +214,11 @@ function renderAllRows(){
       td2.innerText = data['Estado'+po] || '';
       tr.appendChild(td2);
     }
-
     tbody.appendChild(tr);
   }
 }
 
-/* Resalta filas que cambiaron */
+/* highlight changed */
 function applyChangeHighlights(changedIds){
   if(!changedIds || changedIds.length===0) return;
   const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -224,30 +231,30 @@ function applyChangeHighlights(changedIds){
   });
 }
 
-/* Hace scroll para que la primera fila de las últimas N esté visible */
+/* scroll to show first of last N rows that have data */
 function scrollToShowLastN(n){
   if(!autoScrollCheckbox.checked) return;
-  // buscar las filas con datos, ordenadas por número
+  // all ids in order
   const allIds = [];
   for(let i=1;i<=ROWS;i++) allIds.push('#'+String(i).padStart(2,'0'));
   const withData = allIds.filter(id => tieneDatosVisibles(latestDataMap[id]));
   if(withData.length===0) return;
-  const lastN = withData.slice(-n); // últimas N por índice
-  const firstToShow = lastN[0]; // mantener orden ascendente
+  const lastN = withData.slice(-n);
+  const firstToShow = lastN[0];
   const rows = Array.from(tbody.querySelectorAll('tr'));
   const tr = rows.find(r => r.querySelector('td.rowid')?.innerText === firstToShow);
   if(!tr) return;
-  // calcular desplazamiento relativo al contenedor
+  // compute offset relative to container
   const container = tableWrap;
   const containerRect = container.getBoundingClientRect();
   const trRect = tr.getBoundingClientRect();
   const offset = trRect.top - containerRect.top;
-  // desplazar suavemente para que la fila quede algo centrada (menos el encabezado sticky)
   const headerHeight = container.querySelector('thead').offsetHeight;
+  // scroll so the row appears below the sticky header
   container.scrollTop = container.scrollTop + offset - headerHeight - 8;
 }
 
-/* Actualiza contadores y llama al render */
+/* update counters */
 function updateCounters(){
   const totalConDatos = Object.keys(latestDataMap).filter(k => tieneDatosVisibles(latestDataMap[k])).length;
   let alertCount = 0;
@@ -261,14 +268,15 @@ function updateCounters(){
   document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
 }
 
-/* Carga JSON, actualiza latestDataMap, renderiza y hace scroll si corresponde */
+/* load & render */
 async function loadAndRender(force=false){
   if(paused && !force) return;
   try{
     const res = await fetch(JSON_URL + '?_=' + Date.now(), {cache:'no-store'});
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const json = await res.json();
-    // si JSON trae encabezados (fila == "" ), actualizamos nombres de pozo
+
+    // header row (fila == "") updates pozoNames if present
     if(Array.isArray(json.items)){
       const header = json.items.find(it => (it.fila||'').toString().trim()==='');
       if(header){
@@ -284,39 +292,41 @@ async function loadAndRender(force=false){
         }
       }
     }
-    // construir mapa
+
     const newMap = itemsArrayToMap(json.items || []);
     // detectar cambios
     const changed = [];
-    for(const i=1;i<=ROWS;i++){
+    for(let i=1;i<=ROWS;i++){
       const id = '#'+String(i).padStart(2,'0');
       const newObj = newMap[id] || {};
       const s = JSON.stringify(newObj);
-      if(prevMap[id] !== s && prevMap[id] !== undefined){ // si prevMap undefined = primer run -> no highlight
+      if(prevMap[id] !== s && prevMap[id] !== undefined){
         changed.push(id);
       }
       prevMap[id] = s;
     }
     latestDataMap = newMap;
-    // renderizamos todo
+
+    // render y contadores
     renderAllRows();
     updateCounters();
-    // aplicar highlight
     applyChangeHighlights(changed);
-    // si hay auto-scroll -> mostrar últimas 9 filas con datos
+
+    // auto-scroll a últimas 9 filas con datos
     if(autoScrollCheckbox.checked && !paused){
       scrollToShowLastN(9);
     }
-    // actualizar fecha
+
     const last = json.lastUpdate || new Date().toISOString();
     document.getElementById('lastUpdate').innerText = new Date(last).toLocaleString();
+
   }catch(err){
     console.error('Error cargando status.json:', err);
     document.getElementById('lastUpdate').innerHTML = `<span style="color:salmon">Error al cargar datos</span>`;
   }
 }
 
-/* Init */
+/* init */
 buildHeaders();
 renderAllRows();
 loadAndRender(true);
