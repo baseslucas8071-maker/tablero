@@ -394,29 +394,29 @@
       "Estado1": "",
       "Estado2": "",
       "Estado3": "",
-      "Estado4": "",
+      "Estado4": "adsad",
       "Estado5": "",
       "Estado6": "",
       "Pozo1": "sfsexcsc",
       "Pozo2": "",
       "Pozo3": "",
       "Pozo4": "",
-      "Pozo5": "",
+      "Pozo5": "das",
       "Pozo6": "",
       "fila": "#25"
     },
     {
       "Estado1": "",
       "Estado2": "rR3r",
-      "Estado3": "",
-      "Estado4": "",
+      "Estado3": "sdasd",
+      "Estado4": "asda",
       "Estado5": "",
       "Estado6": "",
       "Pozo1": "wrwerR",
       "Pozo2": "",
       "Pozo3": "",
-      "Pozo4": "",
-      "Pozo5": "",
+      "Pozo4": "asdad",
+      "Pozo5": "asdas",
       "Pozo6": "",
       "fila": "#26"
     },
@@ -931,5 +931,5 @@
       "fila": "#60"
     }
   ],
-  "lastUpdate": "2025-08-25T18:37:28.7801879Z"
+  "lastUpdate": "2025-08-25T18:57:20.2549447Z"
 }
