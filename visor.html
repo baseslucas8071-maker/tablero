@@ -49,7 +49,11 @@
   .ind { background: rgba(255, 255, 255, 0.03); padding: 6px 10px; border-radius: 8px; font-weight: 700; }
   .table-container::-webkit-scrollbar{height:10px;width:10px}
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:6px}
-  @media(max-width:900px){ header h1{font-size:18px} th,td{padding:6px 6px} }
+  .bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap; }
+  .stockbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .pill { background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px; font-size:12px; color:#e9f6ff; }
+  .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
+  @media(max-width:900px){ header h1{font-size:18px} th,td{padding:6px 6px} .pill{font-size:11px} }
 </style>
 </head>
 <body>
@@ -67,13 +71,18 @@
   </header>
   <main>
     <div class="board">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <div id="updateContainer" style="font-size:14px">Última actualización: <strong id="lastUpdate">-</strong></div>
+      <div class="bar">
+        <div id="updateContainer" style="font-size:14px">
+          Última actualización: <strong id="lastUpdate">-</strong>
+          <span id="delta" class="delta"></span>
+        </div>
+        <div id="stockBar" class="stockbar"></div>
         <div class="indicators">
           <div class="ind" id="totalCount">Total: 0</div>
           <div class="ind" id="alertCount">Alertas: 0</div>
         </div>
       </div>
+
       <div class="table-container" id="tableContainer">
         <table id="mainTable">
           <thead>
@@ -83,6 +92,7 @@
           <tbody id="tbody"></tbody>
         </table>
       </div>
+
       <footer>
         <div class="meta">Fuente: status.json (GitHub Pages)</div>
         <div class="meta">Actualiza cada <span id="refreshSec">15</span>s</div>
@@ -111,17 +121,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const tableContainer = document.getElementById('tableContainer');
   const autoScrollCheckbox = document.getElementById('autoScroll');
   const updateContainer = document.getElementById('updateContainer');
+  const lastUpdateEl = document.getElementById('lastUpdate');
+  const deltaEl = document.getElementById('delta');
+  const stockBar = document.getElementById('stockBar');
   const btnRefresh = document.getElementById('btnRefresh');
   const btnPause = document.getElementById('btnPause');
 
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   btnRefresh.addEventListener('click', handleForceRefresh);
   btnPause.addEventListener('click', togglePause);
+
   autoScrollCheckbox.addEventListener('change', () => {
-    if (autoScrollCheckbox.checked) {
-      userScrolledManually = false; // retomamos el seguimiento
-      requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
-    }
+    if (autoScrollCheckbox.checked) requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
   });
 
   function togglePause() {
@@ -175,25 +186,40 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.appendChild(frag);
   }
 
-  // ---------- funciones nuevas ----------
-  function itemsArrayToMap(items) {
+  // ====== Adaptadores para el NUEVO JSON ======
+  // Convierte items [{Fila, TPNPozoN, FechaFracPozoN, ...}] al esquema interno:
+  // fila, PozoN (desde TPNPozoN), EstadoN (desde FechaFracPozoN)
+  function transformItems(items) {
+    if (!Array.isArray(items)) return [];
+    return items.map((raw) => {
+      const out = {};
+      // Fila -> fila (minúscula)
+      out.fila = (raw.Fila ?? raw.fila ?? '').toString();
+      for (let i = 1; i <= POZOS; i++) {
+        out['Pozo' + i]   = (raw['TPNPozo' + i] ?? '').toString();
+        out['Estado' + i] = (raw['FechaFracPozo' + i] ?? '').toString();
+        // Nota: SecuenciaPozoN no se visualiza en la grilla actual
+      }
+      return out;
+    });
+  }
+
+  // Extrae las dos filas de encabezado (las que tienen Fila vacío) ya transformadas
+  function extractHeaderRows(converted) {
+    const headers = converted.filter(it => (it.fila || '').trim() === '');
+    return { top: headers[0] || null, sub: headers[1] || null };
+  }
+
+  function itemsArrayToMap(converted) {
     const map = {};
-    if (!Array.isArray(items)) return map;
-    for (const it of items) {
+    for (const it of converted) {
       const key = (it.fila || '').toString().trim();
-      if (!key) continue; // salta encabezados (fila == "")
+      if (!key) continue; // salta encabezados
       map[key] = it;
     }
     return map;
   }
-
-  function extractHeaderRows(items) {
-    const headers = (Array.isArray(items) ? items.filter(it => (it.fila || '').toString().trim() === '') : []);
-    return {
-      top: headers.length > 0 ? headers[0] : null,
-      sub: headers.length > 1 ? headers[1] : null
-    };
-  }
+  // ====== Fin adaptadores ======
 
   function updateHeaderNames(topRow, subRow) {
     if (!topRow && !subRow) return;
@@ -219,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
     }
 
-    // Actualiza sub-encabezados (respetando el primer th vacío de hdrSub)
+    // Sub-encabezados: respeta el primer th vacío de hdrSub
     if (subRow) {
       const subCells = hdrSub.querySelectorAll('th');
       for (let i = 1; i <= POZOS; i++) {
@@ -231,7 +257,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
-  // ---------- fin nuevas funciones ----------
 
   function hasVisibleData(dataObj) {
     if (!dataObj) return false;
@@ -244,23 +269,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateRowCells(rowId, newData) {
     const tr = tbody.querySelector(`tr[data-row-id="${rowId}"]`);
-    if (!tr) return false;
-    let changed = false;
+    if (!tr) return { changed: false, cells: 0 };
+    let changedAny = false;
+    let changedCells = 0;
     for (let p = 1; p <= POZOS; p++) {
       const td1 = tr.querySelector(`td[data-col="Pozo${p}"]`);
       const td2 = tr.querySelector(`td[data-col="Estado${p}"]`);
       const newVal1 = (newData && newData['Pozo' + p]) ? String(newData['Pozo' + p]) : '';
       const newVal2 = (newData && newData['Estado' + p]) ? String(newData['Estado' + p]) : '';
-      if (td1 && td1.innerText !== newVal1) { td1.innerText = newVal1; changed = true; }
-      if (td2 && td2.innerText !== newVal2) { td2.innerText = newVal2; changed = true; }
+      if (td1 && td1.innerText !== newVal1) { td1.innerText = newVal1; changedAny = true; changedCells++; }
+      if (td2 && td2.innerText !== newVal2) { td2.innerText = newVal2; changedAny = true; changedCells++; }
     }
-    return changed;
+    return { changed: changedAny, cells: changedCells };
   }
 
   function updateDOM(dataMap) {
     const changedRows = [];
     let totalWithData = 0;
     let alertCount = 0;
+    let changedCellsTotal = 0;
 
     for (let i = 1; i <= ROWS; i++) {
       const id = '#' + String(i).padStart(2, '0');
@@ -270,20 +297,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (hasVisibleData(newObj)) totalWithData++;
       for (let p = 1; p <= POZOS; p++) {
-        const v = String(newObj['Estado' + p] || '').toUpperCase();
-        if (v.includes('FRACT') || v.includes('ALERT') || v.includes('FAULT')) alertCount++;
+        const v1 = String(newObj['Estado' + p] || '').toUpperCase();
+        const v2 = String(newObj['Pozo' + p] || '').toUpperCase();
+        if (v1.includes('FRACT') || v1.includes('ALERT') || v1.includes('FAULT') ||
+            v2.includes('ALERT')) alertCount++;
       }
 
       if (prevString === undefined) {
         prevDataMap[id] = newString;
         latestDataMap[id] = newObj;
-        updateRowCells(id, newObj);
+        const { cells } = updateRowCells(id, newObj);
+        changedCellsTotal += cells;
         continue;
       }
 
       if (prevString !== newString) {
-        const changed = updateRowCells(id, newObj);
+        const { changed, cells } = updateRowCells(id, newObj);
         if (changed) changedRows.push(id);
+        changedCellsTotal += cells;
         prevDataMap[id] = newString;
         latestDataMap[id] = newObj;
       } else {
@@ -301,12 +332,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => tr.classList.remove('changed'), 1800);
       }
     });
+
+    return { changedRows, changedCellsTotal };
   }
 
   // === Auto-scroll: última fila con datos y 7 anteriores (ventana de 8) ===
-  let programmaticScroll = false;
-  let userScrolledManually = false;
-
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
     if (!autoScrollCheckbox.checked) return;
 
@@ -325,16 +355,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
     const targetTop = startRow.offsetTop - headerHeight - 8;
 
-    programmaticScroll = true;
     tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-    setTimeout(() => { programmaticScroll = false; }, 200);
   }
 
-  // Marca scroll manual solo cuando es del usuario (no programático)
-  tableContainer.addEventListener('scroll', () => {
-    if (programmaticScroll) return;
-    userScrolledManually = true;
-  });
+  function renderStock(stockArr = []) {
+    stockBar.innerHTML = '';
+    if (!Array.isArray(stockArr) || stockArr.length === 0) return;
+    for (const s of stockArr) {
+      const div = document.createElement('div');
+      div.className = 'pill';
+      const item = (s.ITEM ?? '').toString();
+      const qty  = (s.STOCK ?? '').toString();
+      div.textContent = `${item}: ${qty}`;
+      stockBar.appendChild(div);
+    }
+  }
 
   // Carga y render principal
   async function loadAndRender(isForced = false) {
@@ -348,28 +383,38 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
 
-      // Muestra fecha/hora de actualización
-      document.getElementById('lastUpdate').innerText =
-        new Date(json.lastUpdate || Date.now()).toLocaleString();
+      // Fecha/hora
+      const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
+      lastUpdateEl.innerText = lu.toLocaleString();
 
-      // Encabezados (dos filas) y datos
-      const { top, sub } = extractHeaderRows(json.items || []);
+      // Stock
+      renderStock(json.stock || []);
+
+      // Adaptar items al esquema interno
+      const converted = transformItems(json.items || []);
+
+      // Encabezados (dos filas)
+      const { top, sub } = extractHeaderRows(converted);
       updateHeaderNames(top, sub);
 
-      const dataMap = itemsArrayToMap(json.items || []);
+      // Mapa de filas
+      const dataMap = itemsArrayToMap(converted);
 
-      // Pinta la tabla
-      updateDOM(dataMap);
+      // Pinta cuerpo
+      const { changedRows, changedCellsTotal } = updateDOM(dataMap);
 
-      // Auto-scroll: si el usuario no lo “rompió” manualmente
-      if (!userScrolledManually) {
+      // Delta visual
+      deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
+
+      // Auto-scroll SIEMPRE al recibir datos nuevos o si se forzó
+      if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
         scrollToLastWithData(LAST_N_TO_SHOW);
       }
 
     } catch (err) {
       console.error('Error al cargar datos:', err);
-      document.getElementById('lastUpdate').innerHTML =
-        `<span style="color:salmon">Error de conexión</span>`;
+      lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
+      deltaEl.textContent = '';
     } finally {
       setTimeout(() => updateContainer.classList.remove('fetching-indicator'), 400);
       isFetching = false;
