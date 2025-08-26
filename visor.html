@@ -12,6 +12,8 @@
     --accent: #00a3ff;
     --header-h-1: 48px;
     --header-h-2: 44px;
+    --w-id: 64px;   /* ancho Fila (#01) */
+    --w-seq: 60px;  /* ancho Secuencia */
   }
   html, body { height: 100%; margin: 0; background: var(--bg); color: #fff; font-family: Inter, Segoe UI, Arial, sans-serif; }
   .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; }
@@ -25,15 +27,26 @@
   main { flex: 1; margin-top: 12px; display: flex; min-height: 0; }
   .board { flex: 1; background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)); border-radius: 10px; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; }
   .table-container { flex: 1; overflow: auto; border-radius: 8px; position: relative; min-height: 0; }
-  table { border-collapse: collapse; width: 100%; min-width: 1200px; }
+  table { border-collapse: collapse; width: 100%; min-width: 1280px; }
   th, td { border: 1px solid rgba(255, 255, 255, 0.06); padding: 8px 10px; text-align: center; white-space: nowrap; }
   thead th { background: var(--bg); }
   thead tr:first-child th { position: sticky; top: 0; z-index: 11; height: var(--header-h-1); }
   thead tr:nth-child(2) th { position: sticky; top: var(--header-h-1); z-index: 12; height: var(--header-h-2); }
   tbody td { height: 44px; background: transparent; color: #e6f7ff; }
   tbody tr.alt td { background: rgba(255, 255, 255, 0.01); }
-  td.rowid { position: sticky; left: 0; z-index: 15; font-weight: 800; color: #bfe8ff; background: #0c1833; }
-  thead th:first-child { position: sticky; left: 0; z-index: 20; }
+  /* Columna Fila (#01) angosta y sticky */
+  th.rowid, td.rowid { position: sticky; left: 0; z-index: 20; width: var(--w-id); min-width: var(--w-id); max-width: var(--w-id); }
+  td.rowid { font-weight: 800; color: #bfe8ff; background: #0c1833; }
+  /* Secuencia: verde “fosforescente” y angosta */
+  th.seq, td.seq { width: var(--w-seq); min-width: var(--w-seq); max-width: var(--w-seq); }
+  td.seq {
+    font-weight: 800;
+    color: #00ff9c;
+    letter-spacing: 0.4px;
+    text-shadow: 0 0 6px rgba(0,255,160,0.7), 0 0 12px rgba(0,255,160,0.35);
+    background: rgba(0,255,160,0.05);
+  }
+  thead th:first-child { position: sticky; left: 0; z-index: 21; }
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a); color:#002;}
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
   .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
@@ -86,8 +99,8 @@
       <div class="table-container" id="tableContainer">
         <table id="mainTable">
           <thead>
-            <tr id="hdrTop"><th style="width:90px">#</th></tr>
-            <tr id="hdrSub"><th>&nbsp;</th></tr>
+            <tr id="hdrTop"><th class="rowid">#</th></tr>
+            <tr id="hdrSub"><th class="rowid">&nbsp;</th></tr>
           </thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -120,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const hdrSub = document.getElementById('hdrSub');
   const tableContainer = document.getElementById('tableContainer');
   const autoScrollCheckbox = document.getElementById('autoScroll');
-  const updateContainer = document.getElementById('updateContainer');
   const lastUpdateEl = document.getElementById('lastUpdate');
   const deltaEl = document.getElementById('delta');
   const stockBar = document.getElementById('stockBar');
@@ -151,14 +163,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initializeDOM() {
-    // Encabezados por pozo
+    // Encabezados por pozo (ahora son 3 columnas por pozo: SEQ, TPN, FRACTURADO)
     for (let i = 1; i <= POZOS; i++) {
       const thTop = document.createElement('th');
       thTop.className = `pozo-${i} pozoTop`;
-      thTop.colSpan = 2;
+      thTop.colSpan = 3;
       thTop.innerText = `POZO #${i}`;
       hdrTop.appendChild(thTop);
 
+      const thSeq = document.createElement('th'); thSeq.className = 'seq'; thSeq.innerText = 'SEQ'; hdrSub.appendChild(thSeq);
       const thSub1 = document.createElement('th'); thSub1.innerText = 'TPN'; hdrSub.appendChild(thSub1);
       const thSub2 = document.createElement('th'); thSub2.innerText = 'FRACTURADO'; hdrSub.appendChild(thSub2);
     }
@@ -178,8 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tr.appendChild(tdId);
 
       for (let p = 1; p <= POZOS; p++) {
-        const td1 = document.createElement('td'); td1.dataset.col = `Pozo${p}`; tr.appendChild(td1);
-        const td2 = document.createElement('td'); td2.dataset.col = `Estado${p}`; tr.appendChild(td2);
+        const tdSeq = document.createElement('td'); tdSeq.dataset.col = `Seq${p}`; tdSeq.className = 'seq'; tr.appendChild(tdSeq);
+        const td1  = document.createElement('td'); td1.dataset.col  = `Pozo${p}`; tr.appendChild(td1);
+        const td2  = document.createElement('td'); td2.dataset.col  = `Estado${p}`; tr.appendChild(td2);
       }
       frag.appendChild(tr);
     }
@@ -187,24 +201,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ====== Adaptadores para el NUEVO JSON ======
-  // Convierte items [{Fila, TPNPozoN, FechaFracPozoN, ...}] al esquema interno:
-  // fila, PozoN (desde TPNPozoN), EstadoN (desde FechaFracPozoN)
   function transformItems(items) {
     if (!Array.isArray(items)) return [];
     return items.map((raw) => {
       const out = {};
-      // Fila -> fila (minúscula)
       out.fila = (raw.Fila ?? raw.fila ?? '').toString();
       for (let i = 1; i <= POZOS; i++) {
-        out['Pozo' + i]   = (raw['TPNPozo' + i] ?? '').toString();
-        out['Estado' + i] = (raw['FechaFracPozo' + i] ?? '').toString();
-        // Nota: SecuenciaPozoN no se visualiza en la grilla actual
+        out['Seq'   + i] = (raw['SecuenciaPozo'   + i] ?? '').toString();
+        out['Pozo'  + i] = (raw['TPNPozo'         + i] ?? '').toString();
+        out['Estado'+ i] = (raw['FechaFracPozo'   + i] ?? '').toString();
       }
       return out;
     });
   }
 
-  // Extrae las dos filas de encabezado (las que tienen Fila vacío) ya transformadas
   function extractHeaderRows(converted) {
     const headers = converted.filter(it => (it.fila || '').trim() === '');
     return { top: headers[0] || null, sub: headers[1] || null };
@@ -214,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const map = {};
     for (const it of converted) {
       const key = (it.fila || '').toString().trim();
-      if (!key) continue; // salta encabezados
+      if (!key) continue;
       map[key] = it;
     }
     return map;
@@ -223,6 +233,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateHeaderNames(topRow, subRow) {
     if (!topRow && !subRow) return;
+
+    // Encabezado superior (texto dentro de POZO #N)
     const newNames = [];
     for (let i = 1; i <= POZOS; i++) {
       const pTop = (topRow && topRow['Pozo' + i]) ? String(topRow['Pozo' + i]).trim() : '';
@@ -245,23 +257,23 @@ document.addEventListener('DOMContentLoaded', () => {
       ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
     }
 
-    // Sub-encabezados: respeta el primer th vacío de hdrSub
-    if (subRow) {
-      const subCells = hdrSub.querySelectorAll('th');
-      for (let i = 1; i <= POZOS; i++) {
-        const pSub = (subRow['Pozo' + i] || '').toString().trim() || 'TPN';
-        const eSub = (subRow['Estado' + i] || '').toString().trim() || 'FRACTURADO';
-        const idxCell = (i - 1) * 2 + 1; // +1 por la primera celda vacía
-        if (subCells[idxCell]) subCells[idxCell].innerText = pSub;
-        if (subCells[idxCell + 1]) subCells[idxCell + 1].innerText = eSub;
-      }
+    // Sub-encabezados: ahora son 3 por pozo (SEQ, TPN, FRACTURADO)
+    const subCells = hdrSub.querySelectorAll('th');
+    for (let i = 1; i <= POZOS; i++) {
+      const pSub = (subRow && subRow['Pozo' + i]) ? String(subRow['Pozo' + i]).trim() : 'TPN';
+      const eSub = (subRow && subRow['Estado' + i]) ? String(subRow['Estado' + i]).trim() : 'FRACTURADO';
+      const base = (i - 1) * 3 + 1; // +1 por la primera celda (#)
+      if (subCells[base])     subCells[base].innerText     = 'SEQ';
+      if (subCells[base + 1]) subCells[base + 1].innerText = pSub || 'TPN';
+      if (subCells[base + 2]) subCells[base + 2].innerText = eSub || 'FRACTURADO';
     }
   }
 
   function hasVisibleData(dataObj) {
     if (!dataObj) return false;
     for (let i = 1; i <= POZOS; i++) {
-      if ((dataObj['Pozo' + i] && String(dataObj['Pozo' + i]).trim() !== '') ||
+      if ((dataObj['Seq' + i] && String(dataObj['Seq' + i]).trim() !== '') ||
+          (dataObj['Pozo' + i] && String(dataObj['Pozo' + i]).trim() !== '') ||
           (dataObj['Estado' + i] && String(dataObj['Estado' + i]).trim() !== '')) return true;
     }
     return false;
@@ -273,12 +285,15 @@ document.addEventListener('DOMContentLoaded', () => {
     let changedAny = false;
     let changedCells = 0;
     for (let p = 1; p <= POZOS; p++) {
-      const td1 = tr.querySelector(`td[data-col="Pozo${p}"]`);
-      const td2 = tr.querySelector(`td[data-col="Estado${p}"]`);
-      const newVal1 = (newData && newData['Pozo' + p]) ? String(newData['Pozo' + p]) : '';
-      const newVal2 = (newData && newData['Estado' + p]) ? String(newData['Estado' + p]) : '';
-      if (td1 && td1.innerText !== newVal1) { td1.innerText = newVal1; changedAny = true; changedCells++; }
-      if (td2 && td2.innerText !== newVal2) { td2.innerText = newVal2; changedAny = true; changedCells++; }
+      const tdSeq = tr.querySelector(`td[data-col="Seq${p}"]`);
+      const td1   = tr.querySelector(`td[data-col="Pozo${p}"]`);
+      const td2   = tr.querySelector(`td[data-col="Estado${p}"]`);
+      const vSeq  = (newData && newData['Seq'    + p]) ? String(newData['Seq'    + p]) : '';
+      const v1    = (newData && newData['Pozo'   + p]) ? String(newData['Pozo'   + p]) : '';
+      const v2    = (newData && newData['Estado' + p]) ? String(newData['Estado' + p]) : '';
+      if (tdSeq && tdSeq.innerText !== vSeq) { tdSeq.innerText = vSeq; changedAny = true; changedCells++; }
+      if (td1   && td1.innerText   !== v1 ) { td1.innerText   = v1;  changedAny = true; changedCells++; }
+      if (td2   && td2.innerText   !== v2 ) { td2.innerText   = v2;  changedAny = true; changedCells++; }
     }
     return { changed: changedAny, cells: changedCells };
   }
@@ -298,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (hasVisibleData(newObj)) totalWithData++;
       for (let p = 1; p <= POZOS; p++) {
         const v1 = String(newObj['Estado' + p] || '').toUpperCase();
-        const v2 = String(newObj['Pozo' + p] || '').toUpperCase();
+        const v2 = String(newObj['Pozo' + p]   || '').toUpperCase();
         if (v1.includes('FRACT') || v1.includes('ALERT') || v1.includes('FAULT') ||
             v2.includes('ALERT')) alertCount++;
       }
@@ -339,7 +354,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // === Auto-scroll: última fila con datos y 7 anteriores (ventana de 8) ===
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
     if (!autoScrollCheckbox.checked) return;
-
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const idxWithData = [];
     rows.forEach((tr, idx) => {
@@ -354,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
     const targetTop = startRow.offsetTop - headerHeight - 8;
-
     tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
   }
 
@@ -371,42 +384,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Carga y render principal
   async function loadAndRender(isForced = false) {
     if (paused && !isForced) return;
     if (isFetching) return;
     isFetching = true;
-    updateContainer.classList.add('fetching-indicator');
+    document.getElementById('updateContainer').classList.add('fetching-indicator');
 
     try {
       const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const json = await res.json();
 
-      // Fecha/hora
       const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
       lastUpdateEl.innerText = lu.toLocaleString();
 
-      // Stock
       renderStock(json.stock || []);
 
-      // Adaptar items al esquema interno
       const converted = transformItems(json.items || []);
-
-      // Encabezados (dos filas)
       const { top, sub } = extractHeaderRows(converted);
       updateHeaderNames(top, sub);
-
-      // Mapa de filas
       const dataMap = itemsArrayToMap(converted);
 
-      // Pinta cuerpo
       const { changedRows, changedCellsTotal } = updateDOM(dataMap);
-
-      // Delta visual
       deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
 
-      // Auto-scroll SIEMPRE al recibir datos nuevos o si se forzó
       if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
         scrollToLastWithData(LAST_N_TO_SHOW);
       }
@@ -416,7 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
       deltaEl.textContent = '';
     } finally {
-      setTimeout(() => updateContainer.classList.remove('fetching-indicator'), 400);
+      setTimeout(() => document.getElementById('updateContainer').classList.remove('fetching-indicator'), 400);
       isFetching = false;
     }
   }
@@ -429,3 +430,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
