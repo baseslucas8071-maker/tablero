@@ -14,15 +14,18 @@
     --header-h-2: 44px;
 
     /* ===== AJUSTES ===== */
-    --w-id: 54px;      /* ancho columna Fila (#01) */
-    --w-seq: 50px;     /* ancho columnas Secuencia */
-    --pozo-font-size: 18px; /* tamaño “POZO #n” (encabezado superior) */
+    --w-id: 54px;            /* ancho columna Fila (#01) */
+    --w-seq: 50px;           /* ancho columnas Secuencia */
+    --pozo-font-size: 18px;  /* tamaño “POZO #n” (encabezado superior) */
     --stock-font-size: 14px; /* tamaño texto stock */
     --stock-pad-x: 12px;     /* padding horizontal stock */
     --stock-pad-y: 8px;      /* padding vertical stock */
-    --chart-height: 120px;   /* alto del gráfico */
-    --chart-bar-w: 34;       /* ancho de barra en px (SVG) */
-    --chart-gap: 12;         /* separación entre barras en px */
+
+    /* Mini-reel de fechas */
+    --reel-gap: 8px;
+    --reel-pad: 10px;
+    --reel-num-size: 20px;
+    --reel-date-size: 12px;
   }
 
   html, body { height: 100%; margin: 0; background: var(--bg); color: #fff; font-family: Inter, Segoe UI, Arial, sans-serif; }
@@ -75,8 +78,7 @@
   @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
   footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
-  .indicators { display: flex; gap: 12px; align-items: center; }
-  .ind { background: rgba(255, 255, 255, 0.03); padding: 6px 10px; border-radius: 8px; font-weight: 700; }
+  .indicators { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 
   /* Scrollbar */
   .table-container::-webkit-scrollbar{height:10px;width:10px}
@@ -99,24 +101,28 @@
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
 
-  /* Tarjeta del gráfico */
-  .chart-card{
-    margin: 6px 0 10px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
+  /* ===== Mini-reel de fechas ===== */
+  .reel { display:flex; align-items:center; gap: var(--reel-gap); }
+  .reel-btn {
+    width: 28px; height: 28px; border-radius: 8px;
+    border:1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    color:#cfe8ff; font-weight: 800; cursor: pointer;
+  }
+  .reel-btn:disabled { opacity:.4; cursor: default; }
+  .date-chip {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-width: 132px; padding: var(--reel-pad);
     border-radius: 10px;
-    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.08);
   }
-  .chart-title{ font-size:13px; color:var(--muted); margin-bottom:6px; }
-  svg.mini-chart{ width:100%; height: var(--chart-height); display:block; }
-  .chart-label{ font-size:11px; fill:#bfe8ff; opacity:0.9; }
-  .chart-count{ font-size:12px; fill:#e6f7ff; font-weight:700; }
-
-  @media(max-width:900px){
-    header h1{font-size:18px}
-    th,td{padding:6px 6px}
-    .pill{font-size: calc(var(--stock-font-size) - 1px)}
+  .date-chip.latest {
+    background: linear-gradient(180deg, rgba(0,163,255,0.18), rgba(0,163,255,0.08));
+    border-color: rgba(0,163,255,0.35);
   }
+  .date-chip .date { font-size: var(--reel-date-size); color:#bfe8ff; }
+  .date-chip .num  { font-size: var(--reel-num-size); font-weight: 900; line-height: 1.1; }
 </style>
 </head>
 <body>
@@ -142,13 +148,8 @@
         <div id="stockBar" class="stockbar"></div>
         <div class="indicators">
           <div class="ind" id="fractureTotal">Total fracturas: 0</div>
+          <div id="datesReel" class="reel" aria-label="Fracturas por fecha (reel)"></div>
         </div>
-      </div>
-
-      <!-- Gráfico de fracturas por fecha -->
-      <div class="chart-card" id="chartCard" aria-label="Fracturas por fecha">
-        <div class="chart-title">Fracturas (últimas fechas)</div>
-        <svg id="fractureChart" class="mini-chart" viewBox="0 0 600 120" preserveAspectRatio="none"></svg>
       </div>
 
       <div class="table-container" id="tableContainer">
@@ -177,6 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const POZOS = 6;
   const LAST_N_TO_SHOW = 8;
 
+  const REEL_SIZE = 2; // ⬅️ cantidad de fechas visibles en el mini-reel
+
   let paused = false;
   let prevDataMap = {};
   let latestDataMap = {};
@@ -193,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnRefresh = document.getElementById('btnRefresh');
   const btnPause = document.getElementById('btnPause');
   const fractureTotalEl = document.getElementById('fractureTotal');
-  const chartSvg = document.getElementById('fractureChart');
+  const datesReel = document.getElementById('datesReel');
 
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   btnRefresh.addEventListener('click', handleForceRefresh);
@@ -284,43 +287,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= Fechas ========= */
-  function excelSerialToYMD(num){ // -> {y,m,d}
-    const base = Date.UTC(1899, 11, 30);
-    const ms = base + Math.round(num) * 86400000;
-    const d = new Date(ms);
-    return { y: d.getUTCFullYear(), m: d.getUTCMonth()+1, d: d.getUTCDate() };
-  }
+  function excelSerialToYMD(num){ const base = Date.UTC(1899, 11, 30); const ms = base + Math.round(num)*86400000; const d=new Date(ms); return { y:d.getUTCFullYear(), m:d.getUTCMonth()+1, d:d.getUTCDate() }; }
   function pad2(n){return String(n).padStart(2,'0');}
   function parseDateValue(val){
     const s = (val ?? '').toString().trim();
     if (!s) return null;
-
-    // ISO yyyy-mm-dd
     let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (m){
-      const y=+m[1], mo=+m[2], d=+m[3];
-      return { display: `${d}/${mo}/${y}`, normalized: `${y}-${pad2(mo)}-${pad2(d)}` };
-    }
-    // dd/mm/yyyy
+    if (m){ const y=+m[1], mo=+m[2], d=+m[3]; return { display:`${d}/${mo}/${y}`, normalized:`${y}-${pad2(mo)}-${pad2(d)}` }; }
     m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-    if (m){
-      const d=+m[1], mo=+m[2], y=+m[3];
-      return { display: `${d}/${mo}/${y}`, normalized: `${y}-${pad2(mo)}-${pad2(d)}` };
-    }
-    // Excel serial
-    if (/^-?\d+(\.\d+)?$/.test(s)){
-      const n = Number(s.replace(',', '.'));
-      if (Number.isFinite(n) && n >= 30000 && n <= 70000){
-        const {y, m:mo, d} = excelSerialToYMD(n);
-        return { display: `${d}/${mo}/${y}`, normalized: `${y}-${pad2(mo)}-${pad2(d)}` };
-      }
-    }
+    if (m){ const d=+m[1], mo=+m[2], y=+m[3]; return { display:`${d}/${mo}/${y}`, normalized:`${y}-${pad2(mo)}-${pad2(d)}` }; }
+    if (/^-?\d+(\.\d+)?$/.test(s)){ const n = Number(s.replace(',', '.')); if (Number.isFinite(n) && n >= 30000 && n <= 70000){ const {y,m:mo,d}=excelSerialToYMD(n); return { display:`${d}/${mo}/${y}`, normalized:`${y}-${pad2(mo)}-${pad2(d)}` }; } }
     return null;
   }
-  function maybeFormatDate(val){
-    const p = parseDateValue(val);
-    return p ? p.display : (val ?? '');
-  }
+  function maybeFormatDate(val){ const p = parseDateValue(val); return p ? p.display : (val ?? ''); }
 
   /* ========= Encabezados ========= */
   function updateHeaderNames(topRow, subRow) {
@@ -388,7 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function updateDOM(dataMap) {
     const changedRows = [];
-    let totalWithData = 0;
     let changedCellsTotal = 0;
 
     for (let i = 1; i <= ROWS; i++) {
@@ -396,8 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const newObj = dataMap[id] || {};
       const newString = JSON.stringify(newObj);
       const prevString = prevDataMap[id];
-
-      if (hasVisibleData(newObj)) totalWithData++;
 
       if (prevString === undefined) {
         prevDataMap[id] = newString;
@@ -417,14 +393,16 @@ document.addEventListener('DOMContentLoaded', () => {
         latestDataMap[id] = newObj;
       }
     }
-
-    // totalWithData sigue disponible si lo querés usar para otra métrica
     return { changedRows, changedCellsTotal };
   }
 
-  /* ========= Métricas de fracturas (fechas) ========= */
+  /* ========= Métricas de fracturas por fecha ========= */
+  let datesArr = [];      // [{display, normalized, count}, ...] orden asc.
+  let reelStart = 0;      // índice inicial visible en el reel
+  let userMovedReel = false;
+
   function computeFractureStats(converted){
-    const freq = new Map(); // normalized -> {display,count}
+    const freq = new Map(); // normalized -> {display, count, normalized}
     let total = 0;
 
     for (const it of converted){
@@ -446,69 +424,58 @@ document.addEventListener('DOMContentLoaded', () => {
     fractureTotalEl.textContent = `Total fracturas: ${total}`;
   }
 
-  function renderFractureChartFromFreq(freq){
-    // Pasar a array y ordenar por fecha (normalized yyyy-mm-dd)
+  function updateDatesArray(freq){
     const arr = Array.from(freq.values()).sort((a,b)=> a.normalized.localeCompare(b.normalized));
-    // Tomar solo las últimas 10 fechas
-    const data = arr.slice(-10);
+    datesArr = arr;
+    const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
+    if (!userMovedReel) {
+      reelStart = maxStart; // por defecto, últimas 2 fechas
+    } else {
+      reelStart = Math.min(reelStart, maxStart); // mantiene posición si no queda fuera
+    }
+    renderDatesReel();
+  }
 
-    // Dimensiones
-    const barW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chart-bar-w')) || 34;
-    const gap  = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chart-gap')) || 12;
-    const H    = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chart-height')) || 120;
-    const labelH = 22;
-    const max = Math.max(1, ...data.map(d => d.count));
-    const W = data.length * barW + (Math.max(0, data.length - 1) * gap) + 16;
+  function renderDatesReel(){
+    datesReel.innerHTML = '';
+    if (!datesArr.length){
+      const empty = document.createElement('div');
+      empty.className = 'pill';
+      empty.textContent = 'Sin fechas';
+      datesReel.appendChild(empty);
+      return;
+    }
+    const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
 
-    chartSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    chartSvg.innerHTML = ''; // limpiar
+    // Botón prev
+    const btnPrev = document.createElement('button');
+    btnPrev.className = 'reel-btn';
+    btnPrev.textContent = '‹';
+    btnPrev.disabled = (reelStart === 0);
+    btnPrev.onclick = () => { reelStart = Math.max(0, reelStart - REEL_SIZE); userMovedReel = true; renderDatesReel(); };
+    datesReel.appendChild(btnPrev);
 
-    // Línea base
-    const base = document.createElementNS('http://www.w3.org/2000/svg','line');
-    base.setAttribute('x1','0'); base.setAttribute('x2', String(W));
-    base.setAttribute('y1', String(H - labelH)); base.setAttribute('y2', String(H - labelH));
-    base.setAttribute('stroke','rgba(255,255,255,0.15)'); base.setAttribute('stroke-width','1');
-    chartSvg.appendChild(base);
+    // Ventana de REEL_SIZE elementos
+    for (let k = 0; k < REEL_SIZE; k++){
+      const idx = reelStart + k;
+      if (idx >= datesArr.length) break;
+      const d = datesArr[idx];
+      const chip = document.createElement('div');
+      const isLatest = (idx === datesArr.length - 1);
+      chip.className = 'date-chip' + (isLatest ? ' latest' : '');
+      const dd = document.createElement('div'); dd.className = 'date'; dd.textContent = d.display;
+      const nn = document.createElement('div'); nn.className = 'num';  nn.textContent = d.count;
+      chip.append(dd, nn);
+      datesReel.appendChild(chip);
+    }
 
-    data.forEach((d, idx) => {
-      const x = idx * (barW + gap);
-      const h = Math.round(((H - labelH - 8) * d.count) / max);
-      const y = (H - labelH) - h;
-
-      // Barra
-      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      rect.setAttribute('x', String(x));
-      rect.setAttribute('y', String(y));
-      rect.setAttribute('width', String(barW));
-      rect.setAttribute('height', String(h));
-      rect.setAttribute('rx','6');
-      rect.setAttribute('fill','rgba(0,163,255,0.85)');
-      rect.setAttribute('stroke','rgba(0,163,255,0.25)');
-      rect.setAttribute('stroke-width','1');
-      rect.setAttribute('opacity','0.95');
-      const title = document.createElementNS('http://www.w3.org/2000/svg','title');
-      title.textContent = `${d.display}: ${d.count}`;
-      rect.appendChild(title);
-      chartSvg.appendChild(rect);
-
-      // Etiqueta cantidad
-      const tCount = document.createElementNS('http://www.w3.org/2000/svg','text');
-      tCount.setAttribute('x', String(x + barW/2));
-      tCount.setAttribute('y', String(y - 4));
-      tCount.setAttribute('text-anchor','middle');
-      tCount.setAttribute('class','chart-count');
-      tCount.textContent = d.count;
-      chartSvg.appendChild(tCount);
-
-      // Etiqueta fecha
-      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
-      t.setAttribute('x', String(x + barW/2));
-      t.setAttribute('y', String(H - 6));
-      t.setAttribute('text-anchor','middle');
-      t.setAttribute('class','chart-label');
-      t.textContent = d.display;
-      chartSvg.appendChild(t);
-    });
+    // Botón next
+    const btnNext = document.createElement('button');
+    btnNext.className = 'reel-btn';
+    btnNext.textContent = '›';
+    btnNext.disabled = (reelStart >= maxStart);
+    btnNext.onclick = () => { reelStart = Math.min(maxStart, reelStart + REEL_SIZE); userMovedReel = true; renderDatesReel(); };
+    datesReel.appendChild(btnNext);
   }
 
   /* ========= Stock ========= */
@@ -551,10 +518,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const { changedRows, changedCellsTotal } = updateDOM(dataMap);
       deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
 
-      // Métricas de fracturas + gráfico
+      // Métricas y reel
       const stats = computeFractureStats(converted);
       renderFractureTotal(stats.total);
-      renderFractureChartFromFreq(stats.freq);
+      updateDatesArray(stats.freq);
 
       if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
         scrollToLastWithData(LAST_N_TO_SHOW);
