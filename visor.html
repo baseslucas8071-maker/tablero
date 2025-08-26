@@ -12,9 +12,16 @@
     --accent: #00a3ff;
     --header-h-1: 48px;
     --header-h-2: 44px;
-    --w-id: 54px;   /* ancho Fila (#01) */
-    --w-seq: 50px;  /* ancho Secuencia */
+
+    /* ===== AJUSTES SOLICITADOS ===== */
+    --w-id: 54px;   /* ancho columna Fila (#01) */
+    --w-seq: 50px;  /* ancho columnas Secuencia */
+    --pozo-font-size: 18px; /* tamaño del texto "POZO #n" (encabezado superior) */
+    --stock-font-size: 14px; /* tamaño de texto de las píldoras de stock */
+    --stock-pad-x: 12px;     /* padding horizontal de las píldoras de stock */
+    --stock-pad-y: 8px;      /* padding vertical de las píldoras de stock */
   }
+
   html, body { height: 100%; margin: 0; background: var(--bg); color: #fff; font-family: Inter, Segoe UI, Arial, sans-serif; }
   .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -34,9 +41,11 @@
   thead tr:nth-child(2) th { position: sticky; top: var(--header-h-1); z-index: 12; height: var(--header-h-2); }
   tbody td { height: 44px; background: transparent; color: #e6f7ff; }
   tbody tr.alt td { background: rgba(255, 255, 255, 0.01); }
+
   /* Columna Fila (#01) angosta y sticky */
   th.rowid, td.rowid { position: sticky; left: 0; z-index: 20; width: var(--w-id); min-width: var(--w-id); max-width: var(--w-id); }
   td.rowid { font-weight: 800; color: #bfe8ff; background: #0c1833; }
+
   /* Secuencia: verde “fosforescente” y angosta */
   th.seq, td.seq { width: var(--w-seq); min-width: var(--w-seq); max-width: var(--w-seq); }
   td.seq {
@@ -46,27 +55,54 @@
     text-shadow: 0 0 6px rgba(0,255,160,0.7), 0 0 12px rgba(0,255,160,0.35);
     background: rgba(0,255,160,0.05);
   }
+
   thead th:first-child { position: sticky; left: 0; z-index: 21; }
+
+  /* Colores de cabecera por pozo */
+  .pozoTop { font-size: var(--pozo-font-size); font-weight: 800; letter-spacing: .6px; }
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a); color:#002;}
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
   .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
   .pozo-4{background:linear-gradient(90deg,#ff7b7b,#ff4c4c); color:#002;}
   .pozo-5{background:linear-gradient(90deg,#dfe6ea,#cfd9de); color:#002;}
   .pozo-6{background:linear-gradient(90deg,#e6f7ff,#d2efff); color:#002;}
+
   .changed { animation: highlight 1.6s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.10) inset; }
   @keyframes highlight { 0% { background: rgba(0,163,255,0.35);} 100% { background: none; } }
+
   .fetching-indicator { animation: pulse 1s infinite; }
   @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
   footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
   .indicators { display: flex; gap: 12px; align-items: center; }
   .ind { background: rgba(255, 255, 255, 0.03); padding: 6px 10px; border-radius: 8px; font-weight: 700; }
+
+  /* Scrollbar */
   .table-container::-webkit-scrollbar{height:10px;width:10px}
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:6px}
+
+  /* Barra superior */
   .bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap; }
+
+  /* Stock más grande (editá variables de arriba) */
   .stockbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .pill { background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); padding:6px 10px; border-radius:999px; font-size:12px; color:#e9f6ff; }
+  .pill {
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.08);
+    padding: var(--stock-pad-y) var(--stock-pad-x);
+    border-radius:999px;
+    font-size: var(--stock-font-size);
+    color:#e9f6ff;
+    font-weight: 700;
+  }
+
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
-  @media(max-width:900px){ header h1{font-size:18px} th,td{padding:6px 6px} .pill{font-size:11px} }
+
+  @media(max-width:900px){
+    header h1{font-size:18px}
+    th,td{padding:6px 6px}
+    .pill{font-size: calc(var(--stock-font-size) - 1px)}
+  }
 </style>
 </head>
 <body>
@@ -120,9 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const REFRESH_SECONDS = 15;
   const ROWS = 60;
   const POZOS = 6;
-  const LAST_N_TO_SHOW = 8; // última + 7 anteriores
+  const LAST_N_TO_SHOW = 8;
 
-  let pozoNames = Array.from({ length: POZOS }, (_, i) => `POZO #${i + 1}`);
   let paused = false;
   let prevDataMap = {};
   let latestDataMap = {};
@@ -142,14 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   btnRefresh.addEventListener('click', handleForceRefresh);
   btnPause.addEventListener('click', togglePause);
-
   autoScrollCheckbox.addEventListener('change', () => {
     if (autoScrollCheckbox.checked) requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
   });
 
   function togglePause() {
     paused = !paused;
-    document.getElementById('btnPause').innerText = paused ? 'Reanudar' : 'Pausar';
+    btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
   }
 
   async function handleForceRefresh() {
@@ -163,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initializeDOM() {
-    // Encabezados por pozo (ahora son 3 columnas por pozo: SEQ, TPN, FRACTURADO)
+    // Encabezados por pozo (SEQ, TPN, FRACTURADO)
     for (let i = 1; i <= POZOS; i++) {
       const thTop = document.createElement('th');
       thTop.className = `pozo-${i} pozoTop`;
@@ -176,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const thSub2 = document.createElement('th'); thSub2.innerText = 'FRACTURADO'; hdrSub.appendChild(thSub2);
     }
 
-    // Filas fijas
+    // Filas
     tbody.innerHTML = '';
     const frag = document.createDocumentFragment();
     for (let i = 1; i <= ROWS; i++) {
@@ -200,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.appendChild(frag);
   }
 
-  // ====== Adaptadores para el NUEVO JSON ======
+  /* ===== Adaptadores de JSON ===== */
   function transformItems(items) {
     if (!Array.isArray(items)) return [];
     return items.map((raw) => {
@@ -214,12 +248,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return out;
     });
   }
-
   function extractHeaderRows(converted) {
     const headers = converted.filter(it => (it.fila || '').trim() === '');
     return { top: headers[0] || null, sub: headers[1] || null };
   }
-
   function itemsArrayToMap(converted) {
     const map = {};
     for (const it of converted) {
@@ -229,12 +261,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return map;
   }
-  // ====== Fin adaptadores ======
+
+  /* ===== Formateo de fecha en FRACTURADO (número Excel → d/m/yyyy) ===== */
+  function formatExcelSerialToDMY(num) {
+    // Base 1899-12-30 para corregir bug de Excel 1900
+    const base = Date.UTC(1899, 11, 30);
+    const ms = base + Math.round(num) * 86400000;
+    const d = new Date(ms);
+    // Usamos UTC para evitar desfasajes por timezone
+    const day = d.getUTCDate();
+    const month = d.getUTCMonth() + 1;
+    const year = d.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  function maybeFormatDate(val) {
+    const s = (val ?? '').toString().trim();
+    if (!s) return '';
+    // Si es ISO (2025-08-26)
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+      const d = new Date(s);
+      return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    }
+    // Si es número tipo Excel (45895…)
+    if (/^-?\d+(\.\d+)?$/.test(s)) {
+      const n = Number(s.replace(',', '.'));
+      // rango típico de fechas modernas en Excel
+      if (Number.isFinite(n) && n >= 40000 && n <= 60000) {
+        return formatExcelSerialToDMY(n);
+      }
+    }
+    return s; // texto normal ("FRACTURADO", "ALERT", etc.)
+  }
 
   function updateHeaderNames(topRow, subRow) {
     if (!topRow && !subRow) return;
 
-    // Encabezado superior (texto dentro de POZO #N)
     const newNames = [];
     for (let i = 1; i <= POZOS; i++) {
       const pTop = (topRow && topRow['Pozo' + i]) ? String(topRow['Pozo' + i]).trim() : '';
@@ -252,12 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const current = Array.from(hdrTop.querySelectorAll('th.pozoTop')).map(th => th.innerText);
     if (JSON.stringify(current) !== JSON.stringify(newNames)) {
-      pozoNames = newNames;
       const ths = hdrTop.querySelectorAll('th.pozoTop');
       ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
     }
 
-    // Sub-encabezados: ahora son 3 por pozo (SEQ, TPN, FRACTURADO)
+    // Sub-encabezados: 3 por pozo (SEQ, TPN, FRACTURADO)
     const subCells = hdrSub.querySelectorAll('th');
     for (let i = 1; i <= POZOS; i++) {
       const pSub = (subRow && subRow['Pozo' + i]) ? String(subRow['Pozo' + i]).trim() : 'TPN';
@@ -286,11 +346,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let changedCells = 0;
     for (let p = 1; p <= POZOS; p++) {
       const tdSeq = tr.querySelector(`td[data-col="Seq${p}"]`);
-      const td1   = tr.querySelector(`td[data-col="Pozo${p}"]`);
-      const td2   = tr.querySelector(`td[data-col="Estado${p}"]`);
-      const vSeq  = (newData && newData['Seq'    + p]) ? String(newData['Seq'    + p]) : '';
-      const v1    = (newData && newData['Pozo'   + p]) ? String(newData['Pozo'   + p]) : '';
-      const v2    = (newData && newData['Estado' + p]) ? String(newData['Estado' + p]) : '';
+      const td1  = tr.querySelector(`td[data-col="Pozo${p}"]`);
+      const td2  = tr.querySelector(`td[data-col="Estado${p}"]`);
+
+      const vSeq = (newData && newData['Seq' + p]) ? String(newData['Seq' + p]) : '';
+      const v1   = (newData && newData['Pozo' + p]) ? String(newData['Pozo' + p]) : '';
+      const v2   = (newData && newData['Estado' + p]) ? maybeFormatDate(newData['Estado' + p]) : '';
+
       if (tdSeq && tdSeq.innerText !== vSeq) { tdSeq.innerText = vSeq; changedAny = true; changedCells++; }
       if (td1   && td1.innerText   !== v1 ) { td1.innerText   = v1;  changedAny = true; changedCells++; }
       if (td2   && td2.innerText   !== v2 ) { td2.innerText   = v2;  changedAny = true; changedCells++; }
@@ -351,7 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return { changedRows, changedCellsTotal };
   }
 
-  // === Auto-scroll: última fila con datos y 7 anteriores (ventana de 8) ===
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
     if (!autoScrollCheckbox.checked) return;
     const rows = Array.from(tbody.querySelectorAll('tr'));
@@ -430,4 +491,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
