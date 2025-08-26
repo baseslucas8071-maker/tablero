@@ -13,13 +13,16 @@
     --header-h-1: 48px;
     --header-h-2: 44px;
 
-    /* ===== AJUSTES SOLICITADOS ===== */
-    --w-id: 54px;   /* ancho columna Fila (#01) */
-    --w-seq: 50px;  /* ancho columnas Secuencia */
-    --pozo-font-size: 18px; /* tamaño del texto "POZO #n" (encabezado superior) */
-    --stock-font-size: 14px; /* tamaño de texto de las píldoras de stock */
-    --stock-pad-x: 12px;     /* padding horizontal de las píldoras de stock */
-    --stock-pad-y: 8px;      /* padding vertical de las píldoras de stock */
+    /* ===== AJUSTES ===== */
+    --w-id: 54px;      /* ancho columna Fila (#01) */
+    --w-seq: 50px;     /* ancho columnas Secuencia */
+    --pozo-font-size: 18px; /* tamaño “POZO #n” (encabezado superior) */
+    --stock-font-size: 14px; /* tamaño texto stock */
+    --stock-pad-x: 12px;     /* padding horizontal stock */
+    --stock-pad-y: 8px;      /* padding vertical stock */
+    --chart-height: 120px;   /* alto del gráfico */
+    --chart-bar-w: 34;       /* ancho de barra en px (SVG) */
+    --chart-gap: 12;         /* separación entre barras en px */
   }
 
   html, body { height: 100%; margin: 0; background: var(--bg); color: #fff; font-family: Inter, Segoe UI, Arial, sans-serif; }
@@ -42,11 +45,11 @@
   tbody td { height: 44px; background: transparent; color: #e6f7ff; }
   tbody tr.alt td { background: rgba(255, 255, 255, 0.01); }
 
-  /* Columna Fila (#01) angosta y sticky */
+  /* Fila (#01) */
   th.rowid, td.rowid { position: sticky; left: 0; z-index: 20; width: var(--w-id); min-width: var(--w-id); max-width: var(--w-id); }
   td.rowid { font-weight: 800; color: #bfe8ff; background: #0c1833; }
 
-  /* Secuencia: verde “fosforescente” y angosta */
+  /* Secuencia (verde fosforescente) */
   th.seq, td.seq { width: var(--w-seq); min-width: var(--w-seq); max-width: var(--w-seq); }
   td.seq {
     font-weight: 800;
@@ -55,10 +58,9 @@
     text-shadow: 0 0 6px rgba(0,255,160,0.7), 0 0 12px rgba(0,255,160,0.35);
     background: rgba(0,255,160,0.05);
   }
-
   thead th:first-child { position: sticky; left: 0; z-index: 21; }
 
-  /* Colores de cabecera por pozo */
+  /* Cabeceras por pozo */
   .pozoTop { font-size: var(--pozo-font-size); font-weight: 800; letter-spacing: .6px; }
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a); color:#002;}
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
@@ -69,7 +71,6 @@
 
   .changed { animation: highlight 1.6s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.10) inset; }
   @keyframes highlight { 0% { background: rgba(0,163,255,0.35);} 100% { background: none; } }
-
   .fetching-indicator { animation: pulse 1s infinite; }
   @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
@@ -84,7 +85,7 @@
   /* Barra superior */
   .bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap; }
 
-  /* Stock más grande (editá variables de arriba) */
+  /* Stock (píldoras) */
   .stockbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .pill {
     background: rgba(255,255,255,0.06);
@@ -97,6 +98,19 @@
   }
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
+
+  /* Tarjeta del gráfico */
+  .chart-card{
+    margin: 6px 0 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 10px;
+  }
+  .chart-title{ font-size:13px; color:var(--muted); margin-bottom:6px; }
+  svg.mini-chart{ width:100%; height: var(--chart-height); display:block; }
+  .chart-label{ font-size:11px; fill:#bfe8ff; opacity:0.9; }
+  .chart-count{ font-size:12px; fill:#e6f7ff; font-weight:700; }
 
   @media(max-width:900px){
     header h1{font-size:18px}
@@ -127,9 +141,14 @@
         </div>
         <div id="stockBar" class="stockbar"></div>
         <div class="indicators">
-          <div class="ind" id="totalCount">Total: 0</div>
-          <div class="ind" id="alertCount">Alertas: 0</div>
+          <div class="ind" id="fractureTotal">Total fracturas: 0</div>
         </div>
+      </div>
+
+      <!-- Gráfico de fracturas por fecha -->
+      <div class="chart-card" id="chartCard" aria-label="Fracturas por fecha">
+        <div class="chart-title">Fracturas (últimas fechas)</div>
+        <svg id="fractureChart" class="mini-chart" viewBox="0 0 600 120" preserveAspectRatio="none"></svg>
       </div>
 
       <div class="table-container" id="tableContainer">
@@ -173,6 +192,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const stockBar = document.getElementById('stockBar');
   const btnRefresh = document.getElementById('btnRefresh');
   const btnPause = document.getElementById('btnPause');
+  const fractureTotalEl = document.getElementById('fractureTotal');
+  const chartSvg = document.getElementById('fractureChart');
 
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   btnRefresh.addEventListener('click', handleForceRefresh);
@@ -197,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initializeDOM() {
-    // Encabezados por pozo (SEQ, TPN, FRACTURADO)
+    // Encabezados (SEQ, TPN, FRACTURADO)
     for (let i = 1; i <= POZOS; i++) {
       const thTop = document.createElement('th');
       thTop.className = `pozo-${i} pozoTop`;
@@ -234,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.appendChild(frag);
   }
 
-  /* ===== Adaptadores de JSON ===== */
+  /* ========= Adaptadores JSON ========= */
   function transformItems(items) {
     if (!Array.isArray(items)) return [];
     return items.map((raw) => {
@@ -262,37 +283,46 @@ document.addEventListener('DOMContentLoaded', () => {
     return map;
   }
 
-  /* ===== Formateo de fecha en FRACTURADO (número Excel → d/m/yyyy) ===== */
-  function formatExcelSerialToDMY(num) {
-    // Base 1899-12-30 para corregir bug de Excel 1900
+  /* ========= Fechas ========= */
+  function excelSerialToYMD(num){ // -> {y,m,d}
     const base = Date.UTC(1899, 11, 30);
     const ms = base + Math.round(num) * 86400000;
     const d = new Date(ms);
-    // Usamos UTC para evitar desfasajes por timezone
-    const day = d.getUTCDate();
-    const month = d.getUTCMonth() + 1;
-    const year = d.getUTCFullYear();
-    return `${day}/${month}/${year}`;
+    return { y: d.getUTCFullYear(), m: d.getUTCMonth()+1, d: d.getUTCDate() };
   }
-  function maybeFormatDate(val) {
+  function pad2(n){return String(n).padStart(2,'0');}
+  function parseDateValue(val){
     const s = (val ?? '').toString().trim();
-    if (!s) return '';
-    // Si es ISO (2025-08-26)
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-      const d = new Date(s);
-      return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    if (!s) return null;
+
+    // ISO yyyy-mm-dd
+    let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m){
+      const y=+m[1], mo=+m[2], d=+m[3];
+      return { display: `${d}/${mo}/${y}`, normalized: `${y}-${pad2(mo)}-${pad2(d)}` };
     }
-    // Si es número tipo Excel (45895…)
-    if (/^-?\d+(\.\d+)?$/.test(s)) {
+    // dd/mm/yyyy
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m){
+      const d=+m[1], mo=+m[2], y=+m[3];
+      return { display: `${d}/${mo}/${y}`, normalized: `${y}-${pad2(mo)}-${pad2(d)}` };
+    }
+    // Excel serial
+    if (/^-?\d+(\.\d+)?$/.test(s)){
       const n = Number(s.replace(',', '.'));
-      // rango típico de fechas modernas en Excel
-      if (Number.isFinite(n) && n >= 40000 && n <= 60000) {
-        return formatExcelSerialToDMY(n);
+      if (Number.isFinite(n) && n >= 30000 && n <= 70000){
+        const {y, m:mo, d} = excelSerialToYMD(n);
+        return { display: `${d}/${mo}/${y}`, normalized: `${y}-${pad2(mo)}-${pad2(d)}` };
       }
     }
-    return s; // texto normal ("FRACTURADO", "ALERT", etc.)
+    return null;
+  }
+  function maybeFormatDate(val){
+    const p = parseDateValue(val);
+    return p ? p.display : (val ?? '');
   }
 
+  /* ========= Encabezados ========= */
   function updateHeaderNames(topRow, subRow) {
     if (!topRow && !subRow) return;
 
@@ -311,11 +341,8 @@ document.addEventListener('DOMContentLoaded', () => {
       newNames.push(headerText);
     }
 
-    const current = Array.from(hdrTop.querySelectorAll('th.pozoTop')).map(th => th.innerText);
-    if (JSON.stringify(current) !== JSON.stringify(newNames)) {
-      const ths = hdrTop.querySelectorAll('th.pozoTop');
-      ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
-    }
+    const ths = hdrTop.querySelectorAll('th.pozoTop');
+    ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
 
     // Sub-encabezados: 3 por pozo (SEQ, TPN, FRACTURADO)
     const subCells = hdrSub.querySelectorAll('th');
@@ -329,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ========= Tabla ========= */
   function hasVisibleData(dataObj) {
     if (!dataObj) return false;
     for (let i = 1; i <= POZOS; i++) {
@@ -338,7 +366,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return false;
   }
-
   function updateRowCells(rowId, newData) {
     const tr = tbody.querySelector(`tr[data-row-id="${rowId}"]`);
     if (!tr) return { changed: false, cells: 0 };
@@ -359,11 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return { changed: changedAny, cells: changedCells };
   }
-
   function updateDOM(dataMap) {
     const changedRows = [];
     let totalWithData = 0;
-    let alertCount = 0;
     let changedCellsTotal = 0;
 
     for (let i = 1; i <= ROWS; i++) {
@@ -373,12 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const prevString = prevDataMap[id];
 
       if (hasVisibleData(newObj)) totalWithData++;
-      for (let p = 1; p <= POZOS; p++) {
-        const v1 = String(newObj['Estado' + p] || '').toUpperCase();
-        const v2 = String(newObj['Pozo' + p]   || '').toUpperCase();
-        if (v1.includes('FRACT') || v1.includes('ALERT') || v1.includes('FAULT') ||
-            v2.includes('ALERT')) alertCount++;
-      }
 
       if (prevString === undefined) {
         prevDataMap[id] = newString;
@@ -399,39 +418,100 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    document.getElementById('totalCount').innerText = `Total: ${totalWithData}`;
-    document.getElementById('alertCount').innerText = `Alertas: ${alertCount}`;
-
-    changedRows.forEach(id => {
-      const tr = tbody.querySelector(`tr[data-row-id="${id}"]`);
-      if (tr) {
-        tr.classList.add('changed');
-        setTimeout(() => tr.classList.remove('changed'), 1800);
-      }
-    });
-
+    // totalWithData sigue disponible si lo querés usar para otra métrica
     return { changedRows, changedCellsTotal };
   }
 
-  function scrollToLastWithData(n = LAST_N_TO_SHOW) {
-    if (!autoScrollCheckbox.checked) return;
-    const rows = Array.from(tbody.querySelectorAll('tr'));
-    const idxWithData = [];
-    rows.forEach((tr, idx) => {
-      const id = tr.dataset.rowId;
-      if (hasVisibleData(latestDataMap[id])) idxWithData.push(idx);
-    });
-    if (idxWithData.length === 0) return;
+  /* ========= Métricas de fracturas (fechas) ========= */
+  function computeFractureStats(converted){
+    const freq = new Map(); // normalized -> {display,count}
+    let total = 0;
 
-    const startIdx = idxWithData[Math.max(0, idxWithData.length - n)];
-    const startRow = rows[startIdx];
-    if (!startRow) return;
-
-    const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
-    const targetTop = startRow.offsetTop - headerHeight - 8;
-    tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+    for (const it of converted){
+      if (!it.fila || !it.fila.trim()) continue; // salteo encabezados
+      for (let i = 1; i <= POZOS; i++){
+        const p = parseDateValue(it['Estado'+i]);
+        if (p){
+          total++;
+          const cur = freq.get(p.normalized);
+          if (cur) cur.count++;
+          else freq.set(p.normalized, { display: p.display, count: 1, normalized: p.normalized });
+        }
+      }
+    }
+    return { total, freq };
   }
 
+  function renderFractureTotal(total){
+    fractureTotalEl.textContent = `Total fracturas: ${total}`;
+  }
+
+  function renderFractureChartFromFreq(freq){
+    // Pasar a array y ordenar por fecha (normalized yyyy-mm-dd)
+    const arr = Array.from(freq.values()).sort((a,b)=> a.normalized.localeCompare(b.normalized));
+    // Tomar solo las últimas 10 fechas
+    const data = arr.slice(-10);
+
+    // Dimensiones
+    const barW = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chart-bar-w')) || 34;
+    const gap  = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chart-gap')) || 12;
+    const H    = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--chart-height')) || 120;
+    const labelH = 22;
+    const max = Math.max(1, ...data.map(d => d.count));
+    const W = data.length * barW + (Math.max(0, data.length - 1) * gap) + 16;
+
+    chartSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    chartSvg.innerHTML = ''; // limpiar
+
+    // Línea base
+    const base = document.createElementNS('http://www.w3.org/2000/svg','line');
+    base.setAttribute('x1','0'); base.setAttribute('x2', String(W));
+    base.setAttribute('y1', String(H - labelH)); base.setAttribute('y2', String(H - labelH));
+    base.setAttribute('stroke','rgba(255,255,255,0.15)'); base.setAttribute('stroke-width','1');
+    chartSvg.appendChild(base);
+
+    data.forEach((d, idx) => {
+      const x = idx * (barW + gap);
+      const h = Math.round(((H - labelH - 8) * d.count) / max);
+      const y = (H - labelH) - h;
+
+      // Barra
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x', String(x));
+      rect.setAttribute('y', String(y));
+      rect.setAttribute('width', String(barW));
+      rect.setAttribute('height', String(h));
+      rect.setAttribute('rx','6');
+      rect.setAttribute('fill','rgba(0,163,255,0.85)');
+      rect.setAttribute('stroke','rgba(0,163,255,0.25)');
+      rect.setAttribute('stroke-width','1');
+      rect.setAttribute('opacity','0.95');
+      const title = document.createElementNS('http://www.w3.org/2000/svg','title');
+      title.textContent = `${d.display}: ${d.count}`;
+      rect.appendChild(title);
+      chartSvg.appendChild(rect);
+
+      // Etiqueta cantidad
+      const tCount = document.createElementNS('http://www.w3.org/2000/svg','text');
+      tCount.setAttribute('x', String(x + barW/2));
+      tCount.setAttribute('y', String(y - 4));
+      tCount.setAttribute('text-anchor','middle');
+      tCount.setAttribute('class','chart-count');
+      tCount.textContent = d.count;
+      chartSvg.appendChild(tCount);
+
+      // Etiqueta fecha
+      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x', String(x + barW/2));
+      t.setAttribute('y', String(H - 6));
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('class','chart-label');
+      t.textContent = d.display;
+      chartSvg.appendChild(t);
+    });
+  }
+
+  /* ========= Stock ========= */
   function renderStock(stockArr = []) {
     stockBar.innerHTML = '';
     if (!Array.isArray(stockArr) || stockArr.length === 0) return;
@@ -445,6 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /* ========= Carga ========= */
   async function loadAndRender(isForced = false) {
     if (paused && !isForced) return;
     if (isFetching) return;
@@ -466,8 +547,14 @@ document.addEventListener('DOMContentLoaded', () => {
       updateHeaderNames(top, sub);
       const dataMap = itemsArrayToMap(converted);
 
+      // Tabla
       const { changedRows, changedCellsTotal } = updateDOM(dataMap);
       deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
+
+      // Métricas de fracturas + gráfico
+      const stats = computeFractureStats(converted);
+      renderFractureTotal(stats.total);
+      renderFractureChartFromFreq(stats.freq);
 
       if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
         scrollToLastWithData(LAST_N_TO_SHOW);
@@ -481,6 +568,26 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => document.getElementById('updateContainer').classList.remove('fetching-indicator'), 400);
       isFetching = false;
     }
+  }
+
+  // Auto-scroll
+  function scrollToLastWithData(n = LAST_N_TO_SHOW) {
+    if (!autoScrollCheckbox.checked) return;
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const idxWithData = [];
+    rows.forEach((tr, idx) => {
+      const id = tr.dataset.rowId;
+      if (hasVisibleData(latestDataMap[id])) idxWithData.push(idx);
+    });
+    if (idxWithData.length === 0) return;
+
+    const startIdx = idxWithData[Math.max(0, idxWithData.length - n)];
+    const startRow = rows[startIdx];
+    if (!startRow) return;
+
+    const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
+    const targetTop = startRow.offsetTop - headerHeight - 8;
+    tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
   }
 
   // Init
