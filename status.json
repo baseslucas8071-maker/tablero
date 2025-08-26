@@ -99,7 +99,7 @@
       "Prof.TPN.Pozo5": "",
       "Prof.TPN.Pozo6": "",
       "SecuenciaPozo1": "2",
-      "SecuenciaPozo2": "",
+      "SecuenciaPozo2": "4",
       "SecuenciaPozo3": "",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
@@ -1303,7 +1303,7 @@
       "SecuenciaPozo6": ""
     }
   ],
-  "lastUpdate": "2025-08-26T03:32:56.5246677Z",
+  "lastUpdate": "2025-08-26T03:33:30.7325877Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
