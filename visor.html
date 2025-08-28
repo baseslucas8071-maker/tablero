@@ -13,7 +13,7 @@
     --header-h-1: 48px;
     --header-h-2: 44px;
 
-    /* ===== AJUSTES ===== */
+    /* ===== AJUSTES RÁPIDOS ===== */
     --w-id: 54px;            /* ancho columna Fila (#01) */
     --w-seq: 50px;           /* ancho columnas Secuencia */
     --pozo-font-size: 18px;  /* tamaño “POZO #n” (encabezado superior) */
@@ -32,8 +32,8 @@
   .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   header h1 { margin: 0; font-size: 28px; letter-spacing: 0.6px; }
-  header .meta { opacity: 0.9; font-size: 13px; color: var(--muted); }
-  .controls { display: flex; gap: 8px; align-items: center; }
+  header .meta { opacity: 0.9; font-size: 13px; color: #9fd7ff; }
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .btn { background: #0b61a8; border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
   .btn.secondary { background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); }
   .switch { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); cursor: pointer; }
@@ -42,13 +42,14 @@
   .table-container { flex: 1; overflow: auto; border-radius: 8px; position: relative; min-height: 0; }
   table { border-collapse: collapse; width: 100%; min-width: 1280px; }
   th, td { border: 1px solid rgba(255, 255, 255, 0.06); padding: 8px 10px; text-align: center; white-space: nowrap; }
-  thead th { background: var(--bg); }
+  thead th { background: var(--bg); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
   thead tr:first-child th { position: sticky; top: 0; z-index: 11; height: var(--header-h-1); }
   thead tr:nth-child(2) th { position: sticky; top: var(--header-h-1); z-index: 12; height: var(--header-h-2); }
-  tbody td { height: 44px; background: transparent; color: #e6f7ff; }
+  tbody td { height: 44px; background: transparent; color: #e6f7ff; transition: background .15s ease; }
   tbody tr.alt td { background: rgba(255, 255, 255, 0.01); }
+  tbody tr:hover td { background: rgba(255,255,255,.03); }
 
-  /* Fila (#01) */
+  /* Columna Fila (#01) angosta y sticky */
   th.rowid, td.rowid { position: sticky; left: 0; z-index: 20; width: var(--w-id); min-width: var(--w-id); max-width: var(--w-id); }
   td.rowid { font-weight: 800; color: #bfe8ff; background: #0c1833; }
 
@@ -69,8 +70,30 @@
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
   .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
   .pozo-4{background:linear-gradient(90deg,#ff7b7b,#ff4c4c); color:#002;}
-  .pozo-5{background:linear-gradient(90deg,#dfe6ea,#cfd9de); color:#002;}  /* si querés blanco puro: background:#fff; */
+  .pozo-5{background:linear-gradient(90deg,#ffffff,#f2f6f9); color:#002;}  /* blanco */
   .pozo-6{background:linear-gradient(90deg,#e8c3ff,#d79bf6); color:#201;}  /* lila */
+
+  /* Badge por pozo (etapas restantes por columna) */
+  .pozoTop .badge {
+    margin-left: 8px;
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.2);
+    padding: 2px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    vertical-align: middle;
+    color: #eaf7ff;
+  }
+
+  /* STOP resaltado */
+  td.stop {
+    background: rgba(255, 60, 60, .14) !important;
+    color: #ffb3b3 !important;
+    font-weight: 900;
+    letter-spacing: .4px;
+    text-shadow: 0 0 6px rgba(255,60,60,.4);
+  }
 
   .changed { animation: highlight 1.6s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.10) inset; }
   @keyframes highlight { 0% { background: rgba(0,163,255,0.35);} 100% { background: none; } }
@@ -98,6 +121,10 @@
     color:#e9f6ff;
     font-weight: 700;
   }
+  /* Semáforo de stock */
+  .stock-low  { background: rgba(220,60,60,.18) !important; border-color: rgba(220,60,60,.35) !important; color:#ffd6d6 !important; }
+  .stock-mid  { background: rgba(255,180,0,.18) !important; border-color: rgba(255,180,0,.35) !important; color:#fff3cc !important; }
+  .stock-high { background: rgba(40,200,120,.18) !important; border-color: rgba(40,200,120,.35) !important; color:#d6ffea !important; }
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
 
@@ -142,9 +169,10 @@
       <div class="meta">Kiosk / TV • Actualiza automáticamente</div>
     </div>
     <div class="controls">
-      <label class="switch"><input id="autoScroll" type="checkbox" checked /> Auto-scroll (últimas 7)</label>
+      <label class="switch"><input id="autoScroll" type="checkbox" /> Auto-scroll (últimas 7)</label>
       <button class="btn" id="btnRefresh">Forzar actualización</button>
       <button class="btn secondary" id="btnPause">Pausar</button>
+      <button class="btn secondary" id="btnFull">Pantalla completa</button>
     </div>
   </header>
   <main>
@@ -153,8 +181,11 @@
         <div id="updateContainer" style="font-size:14px">
           Última actualización: <strong id="lastUpdate">-</strong>
           <span id="delta" class="delta"></span>
+          <span id="netStatus" class="pill" style="margin-left:8px">Conectando…</span>
         </div>
+
         <div id="stockBar" class="stockbar"></div>
+
         <div class="indicators">
           <div class="ind" id="fractureBox">
             <div id="fractureTotal">Total fracturas: 0</div>
@@ -189,10 +220,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const ROWS = 60;
   const POZOS = 6;
   const LAST_N_TO_SHOW = 8;
+  const REEL_SIZE = 2; // cantidad de fechas visibles en el mini-reel
 
-  const REEL_SIZE = 2; // ⬅️ cantidad de fechas visibles en el mini-reel
+  // ===== Umbrales del semáforo de stock (editables) =====
+  // thresholds: [bajo, medio]  -> <bajo = low, entre = mid, >medio = high
+  const STOCK_RULES = {
+    'GAS OIL':             { unit: 'M3', thresholds: [50, 150] },
+    'ARENA MALLA #100':    { unit: 'Tn', thresholds: [100, 300] },
+    'ARENA MALLA #30/70':  { unit: 'Tn', thresholds: [300, 800] },
+    'GEL BOLSONES':        { unit: 'ud', thresholds: [10, 25] },
+    'GEL TOTE':            { unit: 'ud', thresholds: [5, 15] },
+  };
 
-  let paused = false;
+  // ===== Preferencias (localStorage) =====
+  const prefs = {
+    get(k, def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; } catch{ return def; } },
+    set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+  };
+
+  let paused = prefs.get('ui:paused', false);
   let prevDataMap = {};
   let latestDataMap = {};
   let isFetching = false;
@@ -204,22 +250,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const autoScrollCheckbox = document.getElementById('autoScroll');
   const lastUpdateEl = document.getElementById('lastUpdate');
   const deltaEl = document.getElementById('delta');
+  const net = document.getElementById('netStatus');
   const stockBar = document.getElementById('stockBar');
   const btnRefresh = document.getElementById('btnRefresh');
   const btnPause = document.getElementById('btnPause');
+  const btnFull = document.getElementById('btnFull');
   const fractureTotalEl = document.getElementById('fractureTotal');
   const datesReel = document.getElementById('datesReel');
   const remainingEl = document.getElementById('remainingStages');
+
+  // Estado inicial de preferencias
+  autoScrollCheckbox.checked = prefs.get('ui:autoScroll', true);
+  btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
 
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   btnRefresh.addEventListener('click', handleForceRefresh);
   btnPause.addEventListener('click', togglePause);
   autoScrollCheckbox.addEventListener('change', () => {
+    prefs.set('ui:autoScroll', autoScrollCheckbox.checked);
     if (autoScrollCheckbox.checked) requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
+  });
+  btnFull.addEventListener('click', () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  });
+
+  // Atajos
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'r') btnRefresh.click();
+    if (k === 'p') btnPause.click();
+    if (e.key === 'ArrowLeft')  datesReel.querySelector('.reel-btn:not(:disabled)')?.click();
+    if (e.key === 'ArrowRight') datesReel.querySelectorAll('.reel-btn')?.[1]?.click();
   });
 
   function togglePause() {
     paused = !paused;
+    prefs.set('ui:paused', paused);
     btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
   }
 
@@ -358,11 +425,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return false;
   }
+
   function updateRowCells(rowId, newData) {
     const tr = tbody.querySelector(`tr[data-row-id="${rowId}"]`);
     if (!tr) return { changed: false, cells: 0 };
     let changedAny = false;
     let changedCells = 0;
+
     for (let p = 1; p <= POZOS; p++) {
       const tdSeq = tr.querySelector(`td[data-col="Seq${p}"]`);
       const td1  = tr.querySelector(`td[data-col="Pozo${p}"]`);
@@ -370,14 +439,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const vSeq = (newData && newData['Seq' + p]) ? String(newData['Seq' + p]) : '';
       const v1   = (newData && newData['Pozo' + p]) ? String(newData['Pozo' + p]) : '';
-      const v2   = (newData && newData['Estado' + p]) ? maybeFormatDate(newData['Estado' + p]) : '';
+      const v2raw= (newData && newData['Estado' + p]) ? newData['Estado' + p] : '';
+      const v2   = maybeFormatDate(v2raw);
 
       if (tdSeq && tdSeq.innerText !== vSeq) { tdSeq.innerText = vSeq; changedAny = true; changedCells++; }
       if (td1   && td1.innerText   !== v1 ) { td1.innerText   = v1;  changedAny = true; changedCells++; }
       if (td2   && td2.innerText   !== v2 ) { td2.innerText   = v2;  changedAny = true; changedCells++; }
+
+      if (td2){ // resaltar STOP
+        const isStop = (String(v2raw).trim().toUpperCase() === 'STOP') || (String(v2).trim().toUpperCase() === 'STOP');
+        td2.classList.toggle('stop', isStop);
+      }
     }
     return { changed: changedAny, cells: changedCells };
   }
+
   function updateDOM(dataMap) {
     const changedRows = [];
     let changedCellsTotal = 0;
@@ -411,8 +487,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ========= Métricas de fracturas por fecha ========= */
   let datesArr = [];      // [{display, normalized, count}, ...] orden asc.
-  let reelStart = 0;      // índice inicial visible en el reel
-  let userMovedReel = false;
+  let reelStart = prefs.get('reel:start', 0); // índice inicial visible en el reel
+  let userMovedReel = prefs.get('reel:moved', false);
 
   function computeFractureStats(converted){
     const freq = new Map(); // normalized -> {display, count, normalized}
@@ -446,6 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       reelStart = Math.min(reelStart, maxStart); // mantiene posición si no queda fuera
     }
+    prefs.set('reel:start', reelStart);
     renderDatesReel();
   }
 
@@ -465,7 +542,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnPrev.className = 'reel-btn';
     btnPrev.textContent = '‹';
     btnPrev.disabled = (reelStart === 0);
-    btnPrev.onclick = () => { reelStart = Math.max(0, reelStart - REEL_SIZE); userMovedReel = true; renderDatesReel(); };
+    btnPrev.onclick = () => {
+      reelStart = Math.max(0, reelStart - REEL_SIZE);
+      userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart);
+      renderDatesReel();
+    };
     datesReel.appendChild(btnPrev);
 
     // Ventana de REEL_SIZE elementos
@@ -487,7 +568,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnNext.className = 'reel-btn';
     btnNext.textContent = '›';
     btnNext.disabled = (reelStart >= maxStart);
-    btnNext.onclick = () => { reelStart = Math.min(maxStart, reelStart + REEL_SIZE); userMovedReel = true; renderDatesReel(); };
+    btnNext.onclick = () => {
+      reelStart = Math.min(maxStart, reelStart + REEL_SIZE);
+      userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart);
+      renderDatesReel();
+    };
     datesReel.appendChild(btnNext);
   }
 
@@ -527,18 +612,73 @@ document.addEventListener('DOMContentLoaded', () => {
     remainingEl.textContent = `Etapas restantes: ${n}`;
   }
 
-  /* ========= Stock ========= */
+  /* ========= Stock + semáforo ========= */
+  function parseNumberFromStock(s) {
+    if (!s) return NaN;
+    const m = s.toString().replace(',', '.').match(/-?\d+(\.\d+)?/);
+    return m ? parseFloat(m[0]) : NaN;
+  }
+  function getStockClass(item, value) {
+    const rule = STOCK_RULES[item.toUpperCase()];
+    if (!rule || !Number.isFinite(value)) return '';
+    const [low, mid] = rule.thresholds;
+    if (value < low) return 'stock-low';
+    if (value <= mid) return 'stock-mid';
+    return 'stock-high';
+  }
   function renderStock(stockArr = []) {
     stockBar.innerHTML = '';
     if (!Array.isArray(stockArr) || stockArr.length === 0) return;
     for (const s of stockArr) {
+      const itemName = (s.ITEM ?? '').toString();
+      const qtyStr   = (s.STOCK ?? '').toString();
+      const value    = parseNumberFromStock(qtyStr);
       const div = document.createElement('div');
-      div.className = 'pill';
-      const item = (s.ITEM ?? '').toString();
-      const qty  = (s.STOCK ?? '').toString();
-      div.textContent = `${item}: ${qty}`;
+      const cls = getStockClass(itemName, value);
+      div.className = `pill ${cls}`;
+      div.textContent = `${itemName}: ${qtyStr}`;
       stockBar.appendChild(div);
     }
+  }
+
+  /* ========= Cálculo “etapas restantes” por pozo y badges ========= */
+  function remainingPerPozo(converted){
+    const rows = converted
+      .filter(it => (it.fila || '').trim())
+      .map(it => {
+        const m = (it.fila || '').trim().match(/^#?(\d+)/);
+        return { ...it, _row: m ? parseInt(m[1], 10) : NaN };
+      })
+      .filter(it => Number.isFinite(it._row))
+      .sort((a,b) => a._row - b._row);
+
+    const result = Array(POZOS).fill(0);
+    for (let p = 1; p <= POZOS; p++){
+      let stopRow = null;
+      for (const r of rows){
+        const v = (r['Estado' + p] || '').toString().trim().toUpperCase();
+        if (v === 'STOP'){ stopRow = r._row; break; }
+      }
+      if (!stopRow) continue;
+      for (const r of rows){
+        if (r._row >= stopRow) break;
+        if ((r['Estado' + p] || '').toString().trim() === '') result[p-1]++;
+      }
+    }
+    return result;
+  }
+  function paintBadgesPerPozo(arr){
+    const ths = document.querySelectorAll('#hdrTop th.pozoTop');
+    ths.forEach((th, i) => {
+      th.querySelectorAll('.badge').forEach(b => b.remove());
+      const val = arr[i] ?? 0;
+      if (val > 0){
+        const b = document.createElement('span');
+        b.className = 'badge';
+        b.textContent = val;
+        th.appendChild(b);
+      }
+    });
   }
 
   /* ========= Carga ========= */
@@ -548,9 +688,15 @@ document.addEventListener('DOMContentLoaded', () => {
     isFetching = true;
     document.getElementById('updateContainer').classList.add('fetching-indicator');
 
+    const t0 = performance.now();
     try {
       const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
+      const t1 = performance.now();
       if (!res.ok) throw new Error('HTTP ' + res.status);
+      net.textContent = `OK ${Math.round(t1 - t0)}ms`;
+      net.style.background = 'rgba(0,180,60,.2)';
+      net.style.borderColor = 'rgba(0,180,60,.35)';
+
       const json = await res.json();
 
       const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
@@ -572,9 +718,11 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFractureTotal(stats.total);
       updateDatesArray(stats.freq);
 
-      // Etapas restantes
+      // Etapas restantes (global y por pozo)
       const remaining = computeRemainingStages(converted);
       renderRemaining(remaining);
+      const perPozo = remainingPerPozo(converted);
+      paintBadgesPerPozo(perPozo);
 
       if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
         scrollToLastWithData(LAST_N_TO_SHOW);
@@ -584,6 +732,9 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error al cargar datos:', err);
       lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
       deltaEl.textContent = '';
+      net.textContent = 'ERROR';
+      net.style.background = 'rgba(220,60,60,.25)';
+      net.style.borderColor = 'rgba(220,60,60,.4)';
     } finally {
       setTimeout(() => document.getElementById('updateContainer').classList.remove('fetching-indicator'), 400);
       isFetching = false;
