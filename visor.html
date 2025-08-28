@@ -69,8 +69,8 @@
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
   .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
   .pozo-4{background:linear-gradient(90deg,#ff7b7b,#ff4c4c); color:#002;}
-  .pozo-5{background:linear-gradient(90deg,#dfe6ea,#cfd9de); color:#002;}
-  .pozo-6{background:linear-gradient(90deg,#e8c3ff,#d79bf6); color:#201;}
+  .pozo-5{background:linear-gradient(90deg,#dfe6ea,#cfd9de); color:#002;}  /* si querés blanco puro: background:#fff; */
+  .pozo-6{background:linear-gradient(90deg,#e8c3ff,#d79bf6); color:#201;}  /* lila */
 
   .changed { animation: highlight 1.6s ease; box-shadow: 0 6px 18px rgba(0,160,220,0.10) inset; }
   @keyframes highlight { 0% { background: rgba(0,163,255,0.35);} 100% { background: none; } }
@@ -101,7 +101,7 @@
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
 
-  /* ===== Mini-reel de fechas ===== */
+  /* Mini-reel de fechas */
   .reel { display:flex; align-items:center; gap: var(--reel-gap); }
   .reel-btn {
     width: 28px; height: 28px; border-radius: 8px;
@@ -123,14 +123,23 @@
   }
   .date-chip .date { font-size: var(--reel-date-size); color:#bfe8ff; }
   .date-chip .num  { font-size: var(--reel-num-size); font-weight: 900; line-height: 1.1; }
+
+  /* Línea secundaria (Etapas restantes) */
+  .subind{
+    font-size: 12px;
+    color: #bfe8ff;
+    margin-top: 4px;
+    font-weight: 600;
+    opacity: .95;
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div>
-      <h1>Visor de Estado — PAD PCN</h1>
-      <div class="meta">• Actualiza automáticamente</div>
+      <h1>Visor de Estado — Pozos</h1>
+      <div class="meta">Kiosk / TV • Actualiza automáticamente</div>
     </div>
     <div class="controls">
       <label class="switch"><input id="autoScroll" type="checkbox" checked /> Auto-scroll (últimas 7)</label>
@@ -147,7 +156,10 @@
         </div>
         <div id="stockBar" class="stockbar"></div>
         <div class="indicators">
-          <div class="ind" id="fractureTotal">Total fracturas: 0</div>
+          <div class="ind" id="fractureBox">
+            <div id="fractureTotal">Total fracturas: 0</div>
+            <div id="remainingStages" class="subind">Etapas restantes: 0</div>
+          </div>
           <div id="datesReel" class="reel" aria-label="Fracturas por fecha (reel)"></div>
         </div>
       </div>
@@ -197,6 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnPause = document.getElementById('btnPause');
   const fractureTotalEl = document.getElementById('fractureTotal');
   const datesReel = document.getElementById('datesReel');
+  const remainingEl = document.getElementById('remainingStages');
 
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
   btnRefresh.addEventListener('click', handleForceRefresh);
@@ -429,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
     datesArr = arr;
     const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
     if (!userMovedReel) {
-      reelStart = maxStart; // por defecto, últimas 2 fechas
+      reelStart = maxStart; // por defecto, últimas REEL_SIZE fechas
     } else {
       reelStart = Math.min(reelStart, maxStart); // mantiene posición si no queda fuera
     }
@@ -478,6 +491,42 @@ document.addEventListener('DOMContentLoaded', () => {
     datesReel.appendChild(btnNext);
   }
 
+  /* ========= Etapas restantes (vacías hasta STOP) ========= */
+  function computeRemainingStages(converted){
+    // Filas de datos (#01..#60), ordenadas por número
+    const rows = converted
+      .filter(it => (it.fila || '').trim())
+      .map(it => {
+        const m = (it.fila || '').trim().match(/^#?(\d+)/);
+        return { ...it, _row: m ? parseInt(m[1], 10) : NaN };
+      })
+      .filter(it => Number.isFinite(it._row))
+      .sort((a,b) => a._row - b._row);
+
+    let total = 0;
+
+    for (let p = 1; p <= POZOS; p++){
+      // Buscar PRIMER "STOP" en FRACTURADO del pozo p
+      let stopRow = null;
+      for (const r of rows){
+        const v = (r['Estado' + p] || '').toString().trim().toUpperCase();
+        if (v === 'STOP'){ stopRow = r._row; break; }
+      }
+      if (!stopRow) continue; // solo columnas con STOP
+
+      // Contar vacíos desde #01 hasta la fila anterior a STOP
+      for (const r of rows){
+        if (r._row >= stopRow) break;
+        const raw = (r['Estado' + p] || '').toString().trim();
+        if (raw === '') total++;
+      }
+    }
+    return total;
+  }
+  function renderRemaining(n){
+    remainingEl.textContent = `Etapas restantes: ${n}`;
+  }
+
   /* ========= Stock ========= */
   function renderStock(stockArr = []) {
     stockBar.innerHTML = '';
@@ -522,6 +571,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const stats = computeFractureStats(converted);
       renderFractureTotal(stats.total);
       updateDatesArray(stats.freq);
+
+      // Etapas restantes
+      const remaining = computeRemainingStages(converted);
+      renderRemaining(remaining);
 
       if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
         scrollToLastWithData(LAST_N_TO_SHOW);
