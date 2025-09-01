@@ -732,56 +732,62 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= Carga ========= */
-  async function loadAndRender(isForced = false) {
-    if (paused && !isForced) return;
-    if (isFetching) return;
-    isFetching = true;
+ async function loadAndRender(isForced = false) {
+  if (paused && !isForced) return;
+  if (isFetching) return;
+  isFetching = true;
 
-    try {
-      const t0 = performance.now();
-      const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
-      const t1 = performance.now();
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      net.textContent = `OK ${Math.round(t1 - t0)}ms`;
-      net.style.background = 'rgba(0,180,60,.2)';
-      net.style.borderColor = 'rgba(0,180,60,.35)';
+  try {
+    const t0 = performance.now();
+    const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
+    const t1 = performance.now();
+    if (!res.ok) throw new Error('HTTP ' + res.status);
 
-      const json = await res.json();
-      const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
-      lastUpdateEl.innerText = lu.toLocaleString();
+    net.textContent = `OK ${Math.round(t1 - t0)}ms`;
+    net.style.background = 'rgba(0,180,60,.2)';
+    net.style.borderColor = 'rgba(0,180,60,.35)';
 
-      renderStock(json.stock || []);
+    const json = await res.json();
+    const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
+    lastUpdateEl.innerText = lu.toLocaleString();
 
-      const converted = transformItems(json.items || []);
-      const { top, sub } = extractHeaderRows(converted);
-      updateHeaderNames(top, sub);
-      const dataMap = itemsArrayToMap(converted);
+    renderStock(json.stock || []);
 
-      const { changedRows, changedCellsTotal } = updateDOM(dataMap);
-      deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
+    const converted = transformItems(json.items || []);
+    const { top, sub } = extractHeaderRows(converted);
+    updateHeaderNames(top, sub);
+    const dataMap = itemsArrayToMap(converted);
 
-      const stats = computeFractureStats(converted);
-      renderFractureTotal(stats.total);
-      updateDatesArray(stats.freq);
+    const { changedRows, changedCellsTotal } = updateDOM(dataMap);
+    deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
 
-      const remaining = computeRemainingStages(converted);
-      renderRemaining(remaining);
-      const perPozo = remainingPerPozo(converted);
-      paintBadgesPerPozo(perPozo);
+    const stats = computeFractureStats(converted);
+    renderFractureTotal(stats.total);
+    updateDatesArray(stats.freq);
 
-      if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
-        scrollToLastWithData(LAST_N_TO_SHOW);
-      }
+    const remaining = computeRemainingStages(converted);
+    renderRemaining(remaining);
+    const perPozo = remainingPerPozo(converted);
+    paintBadgesPerPozo(perPozo);
 
-    } catch (err) {
-      console.error('Error al cargar datos:', err);
-      lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
-      deltaEl.textContent = '';
-      net.textContent = 'ERROR';
-      net.style.background = 'rgba(220,60,60,.25)';
-      net.style.borderColor = 'rgba(220,60,60,.4)';
+    // Forzar auto-scroll al presionar el botón, aunque no haya cambios
+    if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
+      scrollToLastWithData(LAST_N_TO_SHOW);
     }
+
+  } catch (err) {
+    console.error('Error al cargar datos:', err);
+    lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
+    deltaEl.textContent = '';
+    net.textContent = 'ERROR';
+    net.style.background = 'rgba(220,60,60,.25)';
+    net.style.borderColor = 'rgba(220,60,60,.4)';
+  } finally {
+    // 🔧 Esto es lo que faltaba
+    isFetching = false;
   }
+}
+
 
   // Auto-scroll
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
