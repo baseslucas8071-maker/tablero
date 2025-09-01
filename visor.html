@@ -770,9 +770,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const perPozo = remainingPerPozo(converted);
     paintBadgesPerPozo(perPozo);
 
-    // Forzar auto-scroll al presionar el botón, aunque no haya cambios
-    if (autoScrollCheckbox.checked && (changedRows.length > 0 || isForced)) {
-      scrollToLastWithData(LAST_N_TO_SHOW);
+    // 🔁 AUTO-SCROLL SIEMPRE que esté tildado (aunque no haya cambios)
+    if (autoScrollCheckbox.checked) {
+      // usar RAF para que el DOM ya esté pintado antes de desplazar
+      requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
     }
 
   } catch (err) {
@@ -783,11 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
     net.style.background = 'rgba(220,60,60,.25)';
     net.style.borderColor = 'rgba(220,60,60,.4)';
   } finally {
-    // 🔧 Esto es lo que faltaba
-    isFetching = false;
+    isFetching = false; // ✅ imprescindible para que el intervalo siga funcionando
   }
 }
-
 
   // Auto-scroll
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
