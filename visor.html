@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Visor de Estado - TV</title>
+<title>Visor de Estado PAD</title>
 <style>
   :root {
     --bg: #071027;
@@ -100,8 +100,8 @@
   .fetching-indicator { animation: pulse 1s infinite; }
   @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-  footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); }
-  .indicators { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13px; color: var(--muted); gap: 10px; }
+  #footerLeft { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 
   /* Scrollbar */
   .table-container::-webkit-scrollbar{height:10px;width:10px}
@@ -110,9 +110,12 @@
   /* Barra superior */
   .bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap; }
 
-  /* Stock (píldoras) */
-  .stockbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  /* STOCK ACTUAL (no se parte; scrollea horizontal) */
+  .stockwrap { display:flex; align-items:center; gap:10px; width:100%; }
+  .stocklabel { font-weight:800; color:#cfe8ff; opacity:.9; }
+  .stockbar { display:block; overflow-x:auto; overflow-y:hidden; white-space:nowrap; flex:1 1 auto; }
   .pill {
+    display:inline-flex; align-items:center; gap:8px;
     background: rgba(255,255,255,0.06);
     border:1px solid rgba(255,255,255,0.08);
     padding: var(--stock-pad-y) var(--stock-pad-x);
@@ -120,11 +123,27 @@
     font-size: var(--stock-font-size);
     color:#e9f6ff;
     font-weight: 700;
+    margin-right:8px;
   }
-  /* Semáforo de stock */
-  .stock-low  { background: rgba(220,60,60,.18) !important; border-color: rgba(220,60,60,.35) !important; color:#ffd6d6 !important; }
-  .stock-mid  { background: rgba(255,180,0,.18) !important; border-color: rgba(255,180,0,.35) !important; color:#fff3cc !important; }
-  .stock-high { background: rgba(40,200,120,.18) !important; border-color: rgba(40,200,120,.35) !important; color:#d6ffea !important; }
+  .pill .dot { width:8px; height:8px; border-radius:50%; box-shadow: 0 0 8px rgba(255,255,255,.25); }
+
+  /* Paleta de fondo por ítem (distinción visual) */
+  .stock-theme-0 { background: rgba(40,120,255,.18);  border-color: rgba(40,120,255,.35); }
+  .stock-theme-1 { background: rgba(255,160,40,.18);  border-color: rgba(255,160,40,.35); }
+  .stock-theme-2 { background: rgba(60,200,140,.18);  border-color: rgba(60,200,140,.35); }
+  .stock-theme-3 { background: rgba(180,70,255,.18);  border-color: rgba(180,70,255,.35); }
+  .stock-theme-4 { background: rgba(255,80,120,.18);  border-color: rgba(255,80,120,.35); }
+  .stock-theme-5 { background: rgba(0,200,220,.18);   border-color: rgba(0,200,220,.35);  }
+  .stock-theme-6 { background: rgba(200,220,60,.18);  border-color: rgba(200,220,60,.35); }
+  .stock-theme-7 { background: rgba(255,120,40,.18);  border-color: rgba(255,120,40,.35); }
+
+  /* Semáforo: anillo + punto (no cambia el fondo temático) */
+  .stock-low  { box-shadow: inset 0 0 0 2px rgba(220,60,60,.65);  }
+  .stock-mid  { box-shadow: inset 0 0 0 2px rgba(255,180,0,.65); }
+  .stock-high { box-shadow: inset 0 0 0 2px rgba(40,200,120,.65); }
+  .stock-low  .dot{ background:#ff6b6b; }
+  .stock-mid  .dot{ background:#ffcc66; }
+  .stock-high .dot{ background:#4dffb3; }
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
 
@@ -159,14 +178,17 @@
     font-weight: 600;
     opacity: .95;
   }
+
+  /* Estado de red como pill */
+  .status { padding:6px 12px; border-radius:999px; font-weight:800; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div>
-      <h1>Visor de Estado — Pozos</h1>
-      <div class="meta">Kiosk / TV • Actualiza automáticamente</div>
+      <h1>Visor de Estado PAD</h1>
+      <div class="meta">Actualiza automáticamente</div>
     </div>
     <div class="controls">
       <label class="switch"><input id="autoScroll" type="checkbox" /> Auto-scroll (últimas 7)</label>
@@ -175,16 +197,15 @@
       <button class="btn secondary" id="btnFull">Pantalla completa</button>
     </div>
   </header>
+
   <main>
     <div class="board">
       <div class="bar">
-        <div id="updateContainer" style="font-size:14px">
-          Última actualización: <strong id="lastUpdate">-</strong>
-          <span id="delta" class="delta"></span>
-          <span id="netStatus" class="pill" style="margin-left:8px">Conectando…</span>
+        <!-- STOCK ACTUAL + Indicadores -->
+        <div class="stockwrap">
+          <div class="stocklabel">STOCK ACTUAL:</div>
+          <div id="stockBar" class="stockbar"></div>
         </div>
-
-        <div id="stockBar" class="stockbar"></div>
 
         <div class="indicators">
           <div class="ind" id="fractureBox">
@@ -206,7 +227,11 @@
       </div>
 
       <footer>
-        <div class="meta">Fuente: status.json (GitHub Pages)</div>
+        <div id="footerLeft">
+          <span>Última actualización: <strong id="lastUpdate">-</strong></span>
+          <span id="delta" class="delta"></span>
+          <span id="netStatus" class="pill status">Conectando…</span>
+        </div>
         <div class="meta">Actualiza cada <span id="refreshSec">15</span>s</div>
       </footer>
     </div>
@@ -220,9 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const ROWS = 60;
   const POZOS = 6;
   const LAST_N_TO_SHOW = 8;
-  const REEL_SIZE = 2; // cantidad de fechas visibles en el mini-reel
+  const REEL_SIZE = 2; // últimas 2 fechas visibles
 
-  // ===== Umbrales del semáforo de stock (editables) =====
+  // ===== Umbrales del semáforo de stock =====
   // thresholds: [bajo, medio]  -> <bajo = low, entre = mid, >medio = high
   const STOCK_RULES = {
     'GAS OIL':             { unit: 'M3', thresholds: [50, 150] },
@@ -259,11 +284,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const datesReel = document.getElementById('datesReel');
   const remainingEl = document.getElementById('remainingStages');
 
-  // Estado inicial de preferencias
   autoScrollCheckbox.checked = prefs.get('ui:autoScroll', true);
   btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
-
   document.getElementById('refreshSec').innerText = REFRESH_SECONDS;
+
   btnRefresh.addEventListener('click', handleForceRefresh);
   btnPause.addEventListener('click', togglePause);
   autoScrollCheckbox.addEventListener('change', () => {
@@ -315,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Filas
-    tbody.innerHTML = '';
     const frag = document.createDocumentFragment();
     for (let i = 1; i <= ROWS; i++) {
       const id = '#' + String(i).padStart(2, '0');
@@ -487,7 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ========= Métricas de fracturas por fecha ========= */
   let datesArr = [];      // [{display, normalized, count}, ...] orden asc.
-  let reelStart = prefs.get('reel:start', 0); // índice inicial visible en el reel
+  let reelStart = prefs.get('reel:start', 0);
   let userMovedReel = prefs.get('reel:moved', false);
 
   function computeFractureStats(converted){
@@ -495,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let total = 0;
 
     for (const it of converted){
-      if (!it.fila || !it.fila.trim()) continue; // salteo encabezados
+      if (!it.fila || !it.fila.trim()) continue;
       for (let i = 1; i <= POZOS; i++){
         const p = parseDateValue(it['Estado'+i]);
         if (p){
@@ -517,11 +540,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const arr = Array.from(freq.values()).sort((a,b)=> a.normalized.localeCompare(b.normalized));
     datesArr = arr;
     const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
-    if (!userMovedReel) {
-      reelStart = maxStart; // por defecto, últimas REEL_SIZE fechas
-    } else {
-      reelStart = Math.min(reelStart, maxStart); // mantiene posición si no queda fuera
-    }
+    if (!userMovedReel) { reelStart = maxStart; }
+    else { reelStart = Math.min(reelStart, maxStart); }
     prefs.set('reel:start', reelStart);
     renderDatesReel();
   }
@@ -537,22 +557,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
 
-    // Botón prev
     const btnPrev = document.createElement('button');
     btnPrev.className = 'reel-btn';
     btnPrev.textContent = '‹';
     btnPrev.disabled = (reelStart === 0);
-    btnPrev.onclick = () => {
-      reelStart = Math.max(0, reelStart - REEL_SIZE);
-      userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart);
-      renderDatesReel();
-    };
+    btnPrev.onclick = () => { reelStart = Math.max(0, reelStart - REEL_SIZE); userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart); renderDatesReel(); };
     datesReel.appendChild(btnPrev);
 
-    // Ventana de REEL_SIZE elementos
     for (let k = 0; k < REEL_SIZE; k++){
-      const idx = reelStart + k;
-      if (idx >= datesArr.length) break;
+      const idx = reelStart + k; if (idx >= datesArr.length) break;
       const d = datesArr[idx];
       const chip = document.createElement('div');
       const isLatest = (idx === datesArr.length - 1);
@@ -563,22 +576,16 @@ document.addEventListener('DOMContentLoaded', () => {
       datesReel.appendChild(chip);
     }
 
-    // Botón next
     const btnNext = document.createElement('button');
     btnNext.className = 'reel-btn';
     btnNext.textContent = '›';
     btnNext.disabled = (reelStart >= maxStart);
-    btnNext.onclick = () => {
-      reelStart = Math.min(maxStart, reelStart + REEL_SIZE);
-      userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart);
-      renderDatesReel();
-    };
+    btnNext.onclick = () => { reelStart = Math.min(maxStart, reelStart + REEL_SIZE); userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart); renderDatesReel(); };
     datesReel.appendChild(btnNext);
   }
 
-  /* ========= Etapas restantes (vacías hasta STOP) ========= */
+  /* ========= Etapas restantes ========= */
   function computeRemainingStages(converted){
-    // Filas de datos (#01..#60), ordenadas por número
     const rows = converted
       .filter(it => (it.fila || '').trim())
       .map(it => {
@@ -589,17 +596,13 @@ document.addEventListener('DOMContentLoaded', () => {
       .sort((a,b) => a._row - b._row);
 
     let total = 0;
-
     for (let p = 1; p <= POZOS; p++){
-      // Buscar PRIMER "STOP" en FRACTURADO del pozo p
       let stopRow = null;
       for (const r of rows){
         const v = (r['Estado' + p] || '').toString().trim().toUpperCase();
         if (v === 'STOP'){ stopRow = r._row; break; }
       }
-      if (!stopRow) continue; // solo columnas con STOP
-
-      // Contar vacíos desde #01 hasta la fila anterior a STOP
+      if (!stopRow) continue;
       for (const r of rows){
         if (r._row >= stopRow) break;
         const raw = (r['Estado' + p] || '').toString().trim();
@@ -608,9 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return total;
   }
-  function renderRemaining(n){
-    remainingEl.textContent = `Etapas restantes: ${n}`;
-  }
+  function renderRemaining(n){ remainingEl.textContent = `Etapas restantes: ${n}`; }
 
   /* ========= Stock + semáforo ========= */
   function parseNumberFromStock(s) {
@@ -618,30 +619,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const m = s.toString().replace(',', '.').match(/-?\d+(\.\d+)?/);
     return m ? parseFloat(m[0]) : NaN;
   }
-  function getStockClass(item, value) {
+  function stockClassByLevel(item, value) {
     const rule = STOCK_RULES[item.toUpperCase()];
-    if (!rule || !Number.isFinite(value)) return '';
+    if (!rule || !Number.isFinite(value)) return 'stock-mid';
     const [low, mid] = rule.thresholds;
     if (value < low) return 'stock-low';
     if (value <= mid) return 'stock-mid';
     return 'stock-high';
   }
+  const itemThemeIdx = new Map(); // nombre -> idx
   function renderStock(stockArr = []) {
     stockBar.innerHTML = '';
     if (!Array.isArray(stockArr) || stockArr.length === 0) return;
+    let idx = 0;
     for (const s of stockArr) {
       const itemName = (s.ITEM ?? '').toString();
       const qtyStr   = (s.STOCK ?? '').toString();
       const value    = parseNumberFromStock(qtyStr);
+
+      if (!itemThemeIdx.has(itemName)) { itemThemeIdx.set(itemName, idx++ % 8); }
+      const theme = `stock-theme-${itemThemeIdx.get(itemName)}`;
+      const level = stockClassByLevel(itemName, value);
+
       const div = document.createElement('div');
-      const cls = getStockClass(itemName, value);
-      div.className = `pill ${cls}`;
-      div.textContent = `${itemName}: ${qtyStr}`;
+      div.className = `pill ${theme} ${level}`;
+      const dot = document.createElement('span'); dot.className = 'dot';
+      const txt = document.createElement('span'); txt.textContent = `${itemName}: ${qtyStr}`;
+      div.append(dot, txt);
       stockBar.appendChild(div);
     }
   }
 
-  /* ========= Cálculo “etapas restantes” por pozo y badges ========= */
+  /* ========= Badges por pozo ========= */
   function remainingPerPozo(converted){
     const rows = converted
       .filter(it => (it.fila || '').trim())
@@ -686,10 +695,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paused && !isForced) return;
     if (isFetching) return;
     isFetching = true;
-    document.getElementById('updateContainer').classList.add('fetching-indicator');
 
-    const t0 = performance.now();
     try {
+      const t0 = performance.now();
       const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
       const t1 = performance.now();
       if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -698,7 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
       net.style.borderColor = 'rgba(0,180,60,.35)';
 
       const json = await res.json();
-
       const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
       lastUpdateEl.innerText = lu.toLocaleString();
 
@@ -709,16 +716,13 @@ document.addEventListener('DOMContentLoaded', () => {
       updateHeaderNames(top, sub);
       const dataMap = itemsArrayToMap(converted);
 
-      // Tabla
       const { changedRows, changedCellsTotal } = updateDOM(dataMap);
       deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
 
-      // Métricas y reel
       const stats = computeFractureStats(converted);
       renderFractureTotal(stats.total);
       updateDatesArray(stats.freq);
 
-      // Etapas restantes (global y por pozo)
       const remaining = computeRemainingStages(converted);
       renderRemaining(remaining);
       const perPozo = remainingPerPozo(converted);
@@ -735,9 +739,6 @@ document.addEventListener('DOMContentLoaded', () => {
       net.textContent = 'ERROR';
       net.style.background = 'rgba(220,60,60,.25)';
       net.style.borderColor = 'rgba(220,60,60,.4)';
-    } finally {
-      setTimeout(() => document.getElementById('updateContainer').classList.remove('fetching-indicator'), 400);
-      isFetching = false;
     }
   }
 
