@@ -445,6 +445,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function maybeFormatDate(val){ const p = parseDateValue(val); return p ? p.display : (val ?? ''); }
 
+  function isStop(val){
+    return String(val ?? '').trim().toUpperCase() === 'STOP';
+  }
+  function isFechaValida(val){
+    // Usa tu parser: si devuelve objeto, es una fecha válida
+    return parseDateValue(val) !== null;
+  }
+
+
+  
   /* ========= Encabezados ========= */
   function updateHeaderNames(topRow, subRow) {
     if (!topRow && !subRow) return;
@@ -480,12 +490,19 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= Tabla ========= */
-  function hasVisibleData(dataObj) {
+    function hasVisibleData(dataObj) {
     if (!dataObj) return false;
+  
     for (let i = 1; i <= POZOS; i++) {
-      if ((dataObj['Seq' + i] && String(dataObj['Seq' + i]).trim() !== '') ||
-          (dataObj['Pozo' + i] && String(dataObj['Pozo' + i]).trim() !== '') ||
-          (dataObj['Estado' + i] && String(dataObj['Estado' + i]).trim() !== '')) return true;
+      const tpn = String(dataObj['Pozo' + i] ?? '').trim();
+      const estado = dataObj['Estado' + i];
+  
+      // Hay “dato visible” si:
+      // - TPN tiene contenido, o
+      // - FRACTURADO es una fecha válida (y NO es STOP)
+      if (tpn !== '' || (estado && !isStop(estado) && isFechaValida(estado))) {
+        return true;
+      }
     }
     return false;
   }
