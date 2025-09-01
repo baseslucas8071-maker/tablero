@@ -107,11 +107,42 @@
   .table-container::-webkit-scrollbar{height:10px;width:10px}
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:6px}
 
-  /* Barra superior */
-  .bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:12px; flex-wrap:wrap; }
+  /* Toda la barra en una sola línea (si no entra, scrollea horizontal) */
+ .bar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:10px;
+  flex-wrap:nowrap;      /* evita que salte a 2 líneas */
+  overflow-x:auto;       /* permite desplazamiento horizontal */
+}
 
   /* STOCK ACTUAL (no se parte; scrollea horizontal) */
-  .stockwrap { display:flex; align-items:center; gap:10px; width:100%; }
+  /* La tira de stock ocupa el espacio flexible */
+.stockwrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex:1 1 auto;         /* crece y puede encogerse */
+  min-width:0;           /* permite que la fila no “empuje” al resto */
+}
+
+/* Total + Restantes + Reel en su ancho natural */
+.indicators{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex:0 0 auto;
+  min-width:max-content; /* evita que se rompa en varias líneas */
+}
+
+/* Por si el reel no entra, que scrollee él mismo */
+.reel{
+  display:flex;
+  align-items:center;
+  gap:var(--reel-gap);
+  overflow-x:auto;
+}
   .stocklabel { font-weight:800; color:#cfe8ff; opacity:.9; }
   .stockbar { display:block; overflow-x:auto; overflow-y:hidden; white-space:nowrap; flex:1 1 auto; }
   .pill {
