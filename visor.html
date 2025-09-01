@@ -65,7 +65,7 @@
   thead th:first-child { position: sticky; left: 0; z-index: 21; }
 
   /* Cabeceras por pozo */
-  .pozoTop { font-size: var(--pozo-font-size); font-weight: 800; letter-spacing: .6px; }
+  .pozoTop { font-size: var(--pozo-font-size); font-weight: 800; letter-spacing: .6px; position: relative; }
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a); color:#002;}
   .pozo-2{background:linear-gradient(90deg,#7ad39a,#5fbf87); color:#002;}
   .pozo-3{background:linear-gradient(90deg,#74b3ff,#4686ff); color:#002;}
@@ -73,17 +73,24 @@
   .pozo-5{background:linear-gradient(90deg,#ffffff,#f2f6f9); color:#002;}  /* blanco */
   .pozo-6{background:linear-gradient(90deg,#e8c3ff,#d79bf6); color:#201;}  /* lila */
 
-  /* Badge por pozo (etapas restantes por columna) */
-  .pozoTop .badge {
+  /* Badge por pozo (etapas restantes por columna) – alto contraste universal */
+  .pozoTop .badge{
     margin-left: 8px;
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.2);
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 999px;
-    font-size: 11px;
-    font-weight: 800;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    color: #fff;
+    background: rgba(0,0,0,.45);                     /* base oscura para fondos claros */
+    border: 1px solid rgba(0,0,0,.55);               /* borde interior oscuro */
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.35),               /* aro exterior claro para fondos oscuros */
+      0 1px 6px rgba(0,0,0,.35);                     /* relieve */
+    text-shadow: 0 1px 1px rgba(0,0,0,.55);          /* mejora legibilidad del número */
+    backdrop-filter: saturate(120%) blur(1px);       /* “glass” sutil */
+    -webkit-backdrop-filter: saturate(120%) blur(1px);
     vertical-align: middle;
-    color: #eaf7ff;
   }
 
   /* STOP resaltado */
@@ -108,41 +115,23 @@
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:6px}
 
   /* Toda la barra en una sola línea (si no entra, scrollea horizontal) */
- .bar{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin-bottom:10px;
-  flex-wrap:nowrap;      /* evita que salte a 2 líneas */
-  overflow-x:auto;       /* permite desplazamiento horizontal */
-}
+  .bar{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:10px;
+    flex-wrap:nowrap;      /* evita que salte a 2 líneas */
+    overflow-x:auto;       /* permite desplazamiento horizontal */
+  }
 
-  /* STOCK ACTUAL (no se parte; scrollea horizontal) */
-  /* La tira de stock ocupa el espacio flexible */
-.stockwrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  flex:1 1 auto;         /* crece y puede encogerse */
-  min-width:0;           /* permite que la fila no “empuje” al resto */
-}
-
-/* Total + Restantes + Reel en su ancho natural */
-.indicators{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  flex:0 0 auto;
-  min-width:max-content; /* evita que se rompa en varias líneas */
-}
-
-/* Por si el reel no entra, que scrollee él mismo */
-.reel{
-  display:flex;
-  align-items:center;
-  gap:var(--reel-gap);
-  overflow-x:auto;
-}
+  /* STOCK ACTUAL */
+  .stockwrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex:1 1 auto;
+    min-width:0;
+  }
   .stocklabel { font-weight:800; color:#cfe8ff; opacity:.9; }
   .stockbar { display:block; overflow-x:auto; overflow-y:hidden; white-space:nowrap; flex:1 1 auto; }
   .pill {
@@ -178,8 +167,29 @@
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
 
-  /* Mini-reel de fechas */
-  .reel { display:flex; align-items:center; gap: var(--reel-gap); }
+  /* Indicadores compactos a la derecha */
+  .indicators{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex:0 0 auto;
+    min-width:max-content;
+  }
+  .ind{
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.08);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight:700;
+  }
+
+  /* Reel de fechas (una línea con scroll si no entra) */
+  .reel{
+    display:flex;
+    align-items:center;
+    gap:var(--reel-gap);
+    overflow-x:auto;
+  }
   .reel-btn {
     width: 28px; height: 28px; border-radius: 8px;
     border:1px solid rgba(255,255,255,0.15);
