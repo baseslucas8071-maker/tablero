@@ -16,7 +16,7 @@
     /* ===== AJUSTES RÁPIDOS ===== */
     --w-id: 54px;            /* ancho columna Fila (#01) */
     --w-seq: 50px;           /* ancho columnas Secuencia */
-    --pozo-font-size: 18px;  /* tamaño “POZO #n” (encabezado superior) */
+    --pozo-font-size: 18px;  /* tamaño “POZO #n” */
     --stock-font-size: 14px; /* tamaño texto stock */
     --stock-pad-x: 12px;     /* padding horizontal stock */
     --stock-pad-y: 8px;      /* padding vertical stock */
@@ -26,10 +26,15 @@
     --reel-pad: 10px;
     --reel-num-size: 20px;
     --reel-date-size: 12px;
+
+    /* Pixel-shift (protección burn-in) */
+    --nudge-x: 0px;
+    --nudge-y: 0px;
   }
 
   html, body { height: 100%; margin: 0; background: var(--bg); color: #fff; font-family: Inter, Segoe UI, Arial, sans-serif; }
-  .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; }
+  .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%;
+          transform: translate(var(--nudge-x), var(--nudge-y)); transition: transform .25s ease; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   header h1 { margin: 0; font-size: 28px; letter-spacing: 0.6px; }
   header .meta { opacity: 0.9; font-size: 13px; color: #9fd7ff; }
@@ -82,13 +87,11 @@
     font-weight: 900;
     line-height: 1;
     color: #fff;
-    background: rgba(0,0,0,.45);                     /* base oscura para fondos claros */
-    border: 1px solid rgba(0,0,0,.55);               /* borde interior oscuro */
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,.35),               /* aro exterior claro para fondos oscuros */
-      0 1px 6px rgba(0,0,0,.35);                     /* relieve */
-    text-shadow: 0 1px 1px rgba(0,0,0,.55);          /* mejora legibilidad del número */
-    backdrop-filter: saturate(120%) blur(1px);       /* “glass” sutil */
+    background: rgba(0,0,0,.45);
+    border: 1px solid rgba(0,0,0,.55);
+    box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 1px 6px rgba(0,0,0,.35);
+    text-shadow: 0 1px 1px rgba(0,0,0,.55);
+    backdrop-filter: saturate(120%) blur(1px);
     -webkit-backdrop-filter: saturate(120%) blur(1px);
     vertical-align: middle;
   }
@@ -116,22 +119,12 @@
 
   /* Toda la barra en una sola línea (si no entra, scrollea horizontal) */
   .bar{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    margin-bottom:10px;
-    flex-wrap:nowrap;      /* evita que salte a 2 líneas */
-    overflow-x:auto;       /* permite desplazamiento horizontal */
+    display:flex; align-items:center; gap:14px; margin-bottom:10px;
+    flex-wrap:nowrap; overflow-x:auto;
   }
 
   /* STOCK ACTUAL */
-  .stockwrap{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    flex:1 1 auto;
-    min-width:0;
-  }
+  .stockwrap{ display:flex; align-items:center; gap:10px; flex:1 1 auto; min-width:0; }
   .stocklabel { font-weight:800; color:#cfe8ff; opacity:.9; }
   .stockbar { display:block; overflow-x:auto; overflow-y:hidden; white-space:nowrap; flex:1 1 auto; }
   .pill {
@@ -169,11 +162,7 @@
 
   /* Indicadores compactos a la derecha */
   .indicators{
-    display:flex;
-    align-items:center;
-    gap:14px;
-    flex:0 0 auto;
-    min-width:max-content;
+    display:flex; align-items:center; gap:14px; flex:0 0 auto; min-width:max-content;
   }
   .ind{
     background: rgba(255,255,255,0.06);
@@ -183,13 +172,8 @@
     font-weight:700;
   }
 
-  /* Reel de fechas (una línea con scroll si no entra) */
-  .reel{
-    display:flex;
-    align-items:center;
-    gap:var(--reel-gap);
-    overflow-x:auto;
-  }
+  /* Reel de fechas */
+  .reel{ display:flex; align-items:center; gap:var(--reel-gap); overflow-x:auto; }
   .reel-btn {
     width: 28px; height: 28px; border-radius: 8px;
     border:1px solid rgba(255,255,255,0.15);
@@ -212,20 +196,55 @@
   .date-chip .num  { font-size: var(--reel-num-size); font-weight: 900; line-height: 1.1; }
 
   /* Línea secundaria (Etapas restantes) */
-  .subind{
-    font-size: 12px;
-    color: #bfe8ff;
-    margin-top: 4px;
-    font-weight: 600;
-    opacity: .95;
-  }
+  .subind{ font-size: 12px; color: #bfe8ff; margin-top: 4px; font-weight: 600; opacity: .95; }
 
   /* Estado de red como pill */
   .status { padding:6px 12px; border-radius:999px; font-weight:800; }
+
+  /* ===== Dimmer nocturno (overlay) ===== */
+  #dimVeil{
+    position: fixed; inset: 0; pointer-events: none;
+    background: #000; opacity: 0; transition: opacity .4s ease;
+    z-index: 9996;
+  }
+
+  /* ===== Screensaver (overlay) ===== */
+  #saver{
+    position: fixed; inset:0; display:none; z-index:9997;
+    background: radial-gradient(1200px 700px at var(--blob-x,40%) var(--blob-y,35%), rgba(0,163,255,.12), rgba(0,0,0,.85) 70%);
+    backdrop-filter: blur(1px);
+  }
+  #saver .msg{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    text-align:center; font-weight:900; letter-spacing:.5px;
+  }
+  #saver .msg .big{ font-size:48px; }
+  #saver .msg .small{ font-size:14px; color:#cfe8ff; opacity:.9; margin-top:6px; }
+  @keyframes drift { 0%{transform:translate(-50%,-50%) translate(0,0);} 50%{transform:translate(-50%,-50%) translate(12px,-8px);} 100%{transform:translate(-50%,-50%) translate(0,0);} }
+  #saver .msg .big span{ display:inline-block; animation:drift 6s ease-in-out infinite; }
+
+  /* ===== Modal de Ajustes ===== */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
+  .modal-card{width:min(560px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .modal-body{display:flex;flex-direction:column;gap:14px}
+  .modal-body section{padding:10px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:rgba(255,255,255,.03)}
+  .modal-body h4{margin:0 0 8px 0;font-size:14px;color:#cfe8ff}
+  .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .modal input[type="number"], .modal input[type="range"]{width:100%}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="dimVeil"></div>
+<div id="saver" role="dialog" aria-label="Protección de pantalla">
+  <div class="msg">
+    <div class="big">Visor de Estado <span>PAD</span></div>
+    <div class="small">Movimiento o tecla para reanudar</div>
+  </div>
+</div>
+
+<div class="wrap" id="root">
   <header>
     <div>
       <h1>Visor de Estado PAD</h1>
@@ -236,6 +255,7 @@
       <button class="btn" id="btnRefresh">Forzar actualización</button>
       <button class="btn secondary" id="btnPause">Pausar</button>
       <button class="btn secondary" id="btnFull">Pantalla completa</button>
+      <button class="btn secondary" id="btnSettings">Ajustes</button>
     </div>
   </header>
 
@@ -279,6 +299,47 @@
   </main>
 </div>
 
+<!-- ===== Modal Ajustes ===== -->
+<div id="settingsModal" class="modal" aria-modal="true" role="dialog" aria-label="Ajustes">
+  <div class="modal-card">
+    <div class="modal-head">
+      <strong>Ajustes de pantalla (TV-friendly)</strong>
+    </div>
+
+    <div class="modal-body">
+      <section>
+        <h4>Atenuación nocturna</h4>
+        <label><input type="checkbox" id="setNightEnabled"> Activar</label>
+        <div class="grid">
+          <label>Hora inicio <input type="number" id="setNightStart" min="0" max="23"></label>
+          <label>Hora fin <input type="number" id="setNightEnd" min="0" max="23"></label>
+        </div>
+        <label>Brillo (20–100%) <input type="range" id="setNightDim" min="20" max="100"></label>
+      </section>
+
+      <section>
+        <h4>Pixel-shift</h4>
+        <label><input type="checkbox" id="setShiftEnabled"> Activar</label>
+        <div class="grid">
+          <label>Intervalo (min) <input type="number" id="setShiftEvery" min="1" max="60"></label>
+          <label>Desplazamiento (px) <input type="number" id="setShiftPixels" min="0" max="10"></label>
+        </div>
+      </section>
+
+      <section>
+        <h4>Screensaver</h4>
+        <label><input type="checkbox" id="setSaverEnabled"> Activar</label>
+        <label>Inactividad (min) <input type="number" id="setSaverIdle" min="1" max="120"></label>
+      </section>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn" id="btnSaveSettings">Guardar</button>
+      <button class="btn secondary" id="btnCloseSettings">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const JSON_URL = 'status.json';
@@ -304,10 +365,35 @@ document.addEventListener('DOMContentLoaded', () => {
     set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
   };
 
+  // ===== Protecciones TV: configuración por defecto =====
+  const DISPLAY_SAVER = {
+    nightDim:   { enabled: true, startHour: 1, endHour: 6, dimLevel: 0.6 }, // 60% brillo (40% velado)
+    pixelShift: { enabled: true, intervalMin: 2, maxOffsetPx: 2 },
+    screensaver:{ enabled: true, idleMinutes: 10 }
+  };
+
+  // Carga ajustes guardados (si existen)
+  function loadDsConfig(){
+    const cfg = prefs.get('ds:cfg', null);
+    if (cfg) {
+      Object.assign(DISPLAY_SAVER.pixelShift, cfg.pixelShift || {});
+      Object.assign(DISPLAY_SAVER.nightDim,   cfg.nightDim   || {});
+      Object.assign(DISPLAY_SAVER.screensaver,cfg.screensaver|| {});
+    }
+  }
+  function saveDsConfig(){
+    prefs.set('ds:cfg', {
+      pixelShift: DISPLAY_SAVER.pixelShift,
+      nightDim:   DISPLAY_SAVER.nightDim,
+      screensaver:DISPLAY_SAVER.screensaver
+    });
+  }
+
   let paused = prefs.get('ui:paused', false);
   let prevDataMap = {};
   let latestDataMap = {};
   let isFetching = false;
+  let lastChangeTs = Date.now(); // para screensaver
 
   const tbody = document.getElementById('tbody');
   const hdrTop = document.getElementById('hdrTop');
@@ -321,9 +407,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnRefresh = document.getElementById('btnRefresh');
   const btnPause = document.getElementById('btnPause');
   const btnFull = document.getElementById('btnFull');
+  const btnSettings = document.getElementById('btnSettings');
   const fractureTotalEl = document.getElementById('fractureTotal');
   const datesReel = document.getElementById('datesReel');
   const remainingEl = document.getElementById('remainingStages');
+  const dimVeil = document.getElementById('dimVeil');
+  const saver = document.getElementById('saver');
+
+  // Modal ajustes
+  const settingsModal = document.getElementById('settingsModal');
+  const setNightEnabled = document.getElementById('setNightEnabled');
+  const setNightStart   = document.getElementById('setNightStart');
+  const setNightEnd     = document.getElementById('setNightEnd');
+  const setNightDim     = document.getElementById('setNightDim');
+  const setShiftEnabled = document.getElementById('setShiftEnabled');
+  const setShiftEvery   = document.getElementById('setShiftEvery');
+  const setShiftPixels  = document.getElementById('setShiftPixels');
+  const setSaverEnabled = document.getElementById('setSaverEnabled');
+  const setSaverIdle    = document.getElementById('setSaverIdle');
+  const btnSaveSettings = document.getElementById('btnSaveSettings');
+  const btnCloseSettings= document.getElementById('btnCloseSettings');
+
+  // Timers protecciones
+  let pixelShiftTimer = null;
+  let saverTimer      = null;
+  let nightTimer      = null;
+
+  function int(v){ return Number.parseInt(v,10) || 0; }
+  function clamp(v,a,b){ return Math.min(b, Math.max(a, v)); }
 
   autoScrollCheckbox.checked = prefs.get('ui:autoScroll', true);
   btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
@@ -340,14 +451,60 @@ document.addEventListener('DOMContentLoaded', () => {
     else document.exitFullscreen();
   });
 
-  // Atajos
+  btnSettings.addEventListener('click', openSettings);
+  btnCloseSettings.addEventListener('click', closeSettings);
+  settingsModal.addEventListener('click', (e)=>{ if(e.target===settingsModal) closeSettings(); });
+  btnSaveSettings.addEventListener('click', ()=>{
+    DISPLAY_SAVER.nightDim.enabled   = setNightEnabled.checked;
+    DISPLAY_SAVER.nightDim.startHour = clamp(int(setNightStart.value),0,23);
+    DISPLAY_SAVER.nightDim.endHour   = clamp(int(setNightEnd.value),0,23);
+    DISPLAY_SAVER.nightDim.dimLevel  = clamp((+setNightDim.value)/100, 0.2, 1);
+
+    DISPLAY_SAVER.pixelShift.enabled     = setShiftEnabled.checked;
+    DISPLAY_SAVER.pixelShift.intervalMin = clamp(int(setShiftEvery.value),1,60);
+    DISPLAY_SAVER.pixelShift.maxOffsetPx = clamp(int(setShiftPixels.value),0,10);
+
+    DISPLAY_SAVER.screensaver.enabled    = setSaverEnabled.checked;
+    DISPLAY_SAVER.screensaver.idleMinutes= clamp(int(setSaverIdle.value),1,120);
+
+    saveDsConfig();
+    restartNightDim();
+    restartPixelShift();
+    restartSaver();
+    closeSettings();
+  });
+
+  // Atajos teclado
   window.addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
     if (k === 'r') btnRefresh.click();
     if (k === 'p') btnPause.click();
+    if (e.key === 'Escape') { closeSettings(); hideSaver(); }
     if (e.key === 'ArrowLeft')  datesReel.querySelector('.reel-btn:not(:disabled)')?.click();
     if (e.key === 'ArrowRight') datesReel.querySelectorAll('.reel-btn')?.[1]?.click();
+    touchActivity();
   });
+  window.addEventListener('mousemove', touchActivity);
+  window.addEventListener('touchstart', touchActivity);
+
+  function touchActivity(){
+    lastChangeTs = Date.now();
+    hideSaver();
+  }
+
+  function openSettings(){
+    setNightEnabled.checked = !!DISPLAY_SAVER.nightDim.enabled;
+    setNightStart.value = DISPLAY_SAVER.nightDim.startHour ?? 1;
+    setNightEnd.value   = DISPLAY_SAVER.nightDim.endHour   ?? 6;
+    setNightDim.value   = Math.round((DISPLAY_SAVER.nightDim.dimLevel ?? 0.6)*100);
+    setShiftEnabled.checked = !!DISPLAY_SAVER.pixelShift.enabled;
+    setShiftEvery.value  = DISPLAY_SAVER.pixelShift.intervalMin ?? 2;
+    setShiftPixels.value = DISPLAY_SAVER.pixelShift.maxOffsetPx ?? 2;
+    setSaverEnabled.checked = !!DISPLAY_SAVER.screensaver.enabled;
+    setSaverIdle.value = DISPLAY_SAVER.screensaver.idleMinutes ?? 10;
+    settingsModal.style.display = 'flex';
+  }
+  function closeSettings(){ settingsModal.style.display = 'none'; }
 
   function togglePause() {
     paused = !paused;
@@ -444,17 +601,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
   function maybeFormatDate(val){ const p = parseDateValue(val); return p ? p.display : (val ?? ''); }
+  function isStop(val){ return String(val ?? '').trim().toUpperCase() === 'STOP'; }
+  function isFechaValida(val){ return parseDateValue(val) !== null; }
 
-  function isStop(val){
-    return String(val ?? '').trim().toUpperCase() === 'STOP';
-  }
-  function isFechaValida(val){
-    // Usa tu parser: si devuelve objeto, es una fecha válida
-    return parseDateValue(val) !== null;
-  }
-
-
-  
   /* ========= Encabezados ========= */
   function updateHeaderNames(topRow, subRow) {
     if (!topRow && !subRow) return;
@@ -477,12 +626,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const ths = hdrTop.querySelectorAll('th.pozoTop');
     ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
 
-    // Sub-encabezados: 3 por pozo (SEQ, TPN, FRACTURADO)
     const subCells = hdrSub.querySelectorAll('th');
     for (let i = 1; i <= POZOS; i++) {
       const pSub = (subRow && subRow['Pozo' + i]) ? String(subRow['Pozo' + i]).trim() : 'TPN';
       const eSub = (subRow && subRow['Estado' + i]) ? String(subRow['Estado' + i]).trim() : 'FRACTURADO';
-      const base = (i - 1) * 3 + 1; // +1 por la primera celda (#)
+      const base = (i - 1) * 3 + 1;
       if (subCells[base])     subCells[base].innerText     = 'SEQ';
       if (subCells[base + 1]) subCells[base + 1].innerText = pSub || 'TPN';
       if (subCells[base + 2]) subCells[base + 2].innerText = eSub || 'FRACTURADO';
@@ -490,19 +638,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= Tabla ========= */
-    function hasVisibleData(dataObj) {
+  function hasVisibleData(dataObj) {
     if (!dataObj) return false;
-  
     for (let i = 1; i <= POZOS; i++) {
       const tpn = String(dataObj['Pozo' + i] ?? '').trim();
       const estado = dataObj['Estado' + i];
-  
-      // Hay “dato visible” si:
-      // - TPN tiene contenido, o
-      // - FRACTURADO es una fecha válida (y NO es STOP)
-      if (tpn !== '' || (estado && !isStop(estado) && isFechaValida(estado))) {
-        return true;
-      }
+      // Consideramos TPN o FRACTURADO con fecha válida (ignorando STOP)
+      if (tpn !== '' || (estado && !isStop(estado) && isFechaValida(estado))) return true;
     }
     return false;
   }
@@ -527,9 +669,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (td1   && td1.innerText   !== v1 ) { td1.innerText   = v1;  changedAny = true; changedCells++; }
       if (td2   && td2.innerText   !== v2 ) { td2.innerText   = v2;  changedAny = true; changedCells++; }
 
-      if (td2){ // resaltar STOP
-        const isStop = (String(v2raw).trim().toUpperCase() === 'STOP') || (String(v2).trim().toUpperCase() === 'STOP');
-        td2.classList.toggle('stop', isStop);
+      if (td2){
+        const stop = (String(v2raw).trim().toUpperCase() === 'STOP') || (String(v2).trim().toUpperCase() === 'STOP');
+        td2.classList.toggle('stop', stop);
       }
     }
     return { changed: changedAny, cells: changedCells };
@@ -572,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let userMovedReel = prefs.get('reel:moved', false);
 
   function computeFractureStats(converted){
-    const freq = new Map(); // normalized -> {display, count, normalized}
+    const freq = new Map();
     let total = 0;
 
     for (const it of converted){
@@ -748,62 +890,119 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ========= Carga ========= */
- async function loadAndRender(isForced = false) {
-  if (paused && !isForced) return;
-  if (isFetching) return;
-  isFetching = true;
-
-  try {
-    const t0 = performance.now();
-    const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
-    const t1 = performance.now();
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-
-    net.textContent = `OK ${Math.round(t1 - t0)}ms`;
-    net.style.background = 'rgba(0,180,60,.2)';
-    net.style.borderColor = 'rgba(0,180,60,.35)';
-
-    const json = await res.json();
-    const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
-    lastUpdateEl.innerText = lu.toLocaleString();
-
-    renderStock(json.stock || []);
-
-    const converted = transformItems(json.items || []);
-    const { top, sub } = extractHeaderRows(converted);
-    updateHeaderNames(top, sub);
-    const dataMap = itemsArrayToMap(converted);
-
-    const { changedRows, changedCellsTotal } = updateDOM(dataMap);
-    deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
-
-    const stats = computeFractureStats(converted);
-    renderFractureTotal(stats.total);
-    updateDatesArray(stats.freq);
-
-    const remaining = computeRemainingStages(converted);
-    renderRemaining(remaining);
-    const perPozo = remainingPerPozo(converted);
-    paintBadgesPerPozo(perPozo);
-
-    // 🔁 AUTO-SCROLL SIEMPRE que esté tildado (aunque no haya cambios)
-    if (autoScrollCheckbox.checked) {
-      // usar RAF para que el DOM ya esté pintado antes de desplazar
-      requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
-    }
-
-  } catch (err) {
-    console.error('Error al cargar datos:', err);
-    lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
-    deltaEl.textContent = '';
-    net.textContent = 'ERROR';
-    net.style.background = 'rgba(220,60,60,.25)';
-    net.style.borderColor = 'rgba(220,60,60,.4)';
-  } finally {
-    isFetching = false; // ✅ imprescindible para que el intervalo siga funcionando
+  /* ========= Protecciones TV ========= */
+  function inRangeHour(nowH, start, end){
+    return (start <= end) ? (nowH >= start && nowH < end) : (nowH >= start || nowH < end);
   }
-}
+  function applyNightDim(){
+    if (!DISPLAY_SAVER.nightDim.enabled){ dimVeil.style.opacity = 0; return; }
+    const now = new Date();
+    const h = now.getHours();
+    const active = inRangeHour(h, DISPLAY_SAVER.nightDim.startHour, DISPLAY_SAVER.nightDim.endHour);
+    if (!active){ dimVeil.style.opacity = 0; return; }
+    const dim = clamp(DISPLAY_SAVER.nightDim.dimLevel, 0.2, 1);
+    dimVeil.style.opacity = String(1 - dim); // 1-dim = opacidad del velo
+  }
+  function restartNightDim(){
+    if (nightTimer) clearInterval(nightTimer);
+    applyNightDim();
+    nightTimer = setInterval(applyNightDim, 5*60*1000);
+  }
+
+  function restartPixelShift(){
+    if (pixelShiftTimer) clearInterval(pixelShiftTimer);
+    document.documentElement.style.setProperty('--nudge-x', '0px');
+    document.documentElement.style.setProperty('--nudge-y', '0px');
+    if (!DISPLAY_SAVER.pixelShift.enabled) return;
+    const interval = Math.max(1, DISPLAY_SAVER.pixelShift.intervalMin) * 60 * 1000;
+    pixelShiftTimer = setInterval(()=>{
+      const max = Math.max(0, DISPLAY_SAVER.pixelShift.maxOffsetPx|0);
+      const x = (Math.floor(Math.random()*(max*2+1)) - max);
+      const y = (Math.floor(Math.random()*(max*2+1)) - max);
+      document.documentElement.style.setProperty('--nudge-x', x + 'px');
+      document.documentElement.style.setProperty('--nudge-y', y + 'px');
+    }, interval);
+  }
+
+  function showSaver(){
+    if (!DISPLAY_SAVER.screensaver.enabled) return;
+    saver.style.display = 'block';
+    // Mover lentamente el blob del fondo
+    const x = 30 + Math.random()*40;
+    const y = 25 + Math.random()*40;
+    saver.style.setProperty('--blob-x', x+'%');
+    saver.style.setProperty('--blob-y', y+'%');
+  }
+  function hideSaver(){ saver.style.display = 'none'; }
+  function restartSaver(){
+    if (saverTimer) clearInterval(saverTimer);
+    hideSaver();
+    if (!DISPLAY_SAVER.screensaver.enabled) return;
+    const idleMs = Math.max(1, DISPLAY_SAVER.screensaver.idleMinutes)*60*1000;
+    saverTimer = setInterval(()=>{
+      const idle = (Date.now() - lastChangeTs) > idleMs;
+      if (idle) showSaver(); else hideSaver();
+    }, 30*1000);
+  }
+
+  /* ========= Carga ========= */
+  async function loadAndRender(isForced = false) {
+    if (paused && !isForced) return;
+    if (isFetching) return;
+    isFetching = true;
+
+    try {
+      const t0 = performance.now();
+      const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
+      const t1 = performance.now();
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      net.textContent = `OK ${Math.round(t1 - t0)}ms`;
+      net.style.background = 'rgba(0,180,60,.2)';
+      net.style.borderColor = 'rgba(0,180,60,.35)';
+
+      const json = await res.json();
+      const lu = json.lastUpdate ? new Date(json.lastUpdate) : new Date();
+      lastUpdateEl.innerText = lu.toLocaleString();
+
+      renderStock(json.stock || []);
+
+      const converted = transformItems(json.items || []);
+      const { top, sub } = extractHeaderRows(converted);
+      updateHeaderNames(top, sub);
+      const dataMap = itemsArrayToMap(converted);
+
+      const { changedRows, changedCellsTotal } = updateDOM(dataMap);
+      deltaEl.textContent = changedCellsTotal > 0 ? `• ${changedCellsTotal} cambio(s)` : '';
+
+      const stats = computeFractureStats(converted);
+      renderFractureTotal(stats.total);
+      updateDatesArray(stats.freq);
+
+      const remaining = computeRemainingStages(converted);
+      renderRemaining(remaining);
+      const perPozo = remainingPerPozo(converted);
+      paintBadgesPerPozo(perPozo);
+
+      // Si hubo cambios, consideramos "actividad" para el screensaver
+      if (changedCellsTotal > 0) lastChangeTs = Date.now();
+
+      // Auto-scroll siempre que esté tildado
+      if (autoScrollCheckbox.checked) {
+        requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
+      }
+
+    } catch (err) {
+      console.error('Error al cargar datos:', err);
+      lastUpdateEl.innerHTML = `<span style="color:salmon">Error de conexión</span>`;
+      deltaEl.textContent = '';
+      net.textContent = 'ERROR';
+      net.style.background = 'rgba(220,60,60,.25)';
+      net.style.borderColor = 'rgba(220,60,60,.4)';
+    } finally {
+      isFetching = false;
+    }
+  }
 
   // Auto-scroll
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
@@ -825,8 +1024,15 @@ document.addEventListener('DOMContentLoaded', () => {
     tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
   }
 
-  // Init
+  // ===== Init =====
+  loadDsConfig();
   initializeDOM();
+  // Arrancar protecciones TV
+  restartNightDim();
+  restartPixelShift();
+  restartSaver();
+
+  // Ciclo de datos
   loadAndRender(true);
   setInterval(() => loadAndRender(false), REFRESH_SECONDS * 1000);
 });
