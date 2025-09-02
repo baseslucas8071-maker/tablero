@@ -15,6 +15,7 @@
     --cell-font-size:19px;       /* TPN/FRACTURADO pedido: 19 */
 
     --w-id:54px; --w-seq:50px;
+
     /* Reel: fecha 18px, número 20px */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
 
@@ -125,7 +126,7 @@
 
   /* screensaver */
   #saver{position:fixed;inset:0;display:none;z-index:9997;background:radial-gradient(1200px 700px at var(--blob-x,40%) var(--blob-y,35%),rgba(0,163,255,.12),rgba(0,0,0,.85) 70%);backdrop-filter:blur(1px)}
-  #saver .center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;font-weight:900;letter-spacing:.5px}
+  #saver .center{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center;font-weight:900;letter-spacing:.5px}
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
@@ -156,8 +157,8 @@
   .pill.small{padding:4px 8px;font-size:12px}
 
   /* ====== FULLSCREEN FIX (rayas/hairlines) ====== */
-  html.is-fullscreen .wrap{ transform:none !important; }
-  html.is-fullscreen thead th{ transform:translateZ(0); }
+  html.is-fullscreen .wrap{ transform:none !important; }         /* cancela pixel-shift durante FS */
+  html.is-fullscreen thead th{ transform:translateZ(0); }        /* pinta cabeceras en su propia capa */
   html.is-fullscreen th, html.is-fullscreen td{ border-color:rgba(255,255,255,.04); }
   html.is-fullscreen tbody tr.alt td{ background:rgba(255,255,255,.005); }
 </style>
@@ -166,9 +167,7 @@
 <div id="dimVeil"></div>
 <div id="saver">
   <div id="saverStage"></div>
-  <div class="center">
-    <!-- logo opcional -->
-  </div>
+  <div class="center"></div>
   <div class="ticker" id="saverTicker"></div>
 </div>
 
@@ -230,6 +229,7 @@
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
     <div class="modal-body">
+      <!-- fila 3 tamaños -->
       <section class="grid g3">
         <label>Tamaño “POZO #n”
           <input type="number" id="setPozoFont" min="12" max="40" step="1">
@@ -242,6 +242,7 @@
         </label>
       </section>
 
+      <!-- Protector (sólo lo esencial) -->
       <section>
         <h4>Protector de pantalla</h4>
         <div class="grid g3">
@@ -266,6 +267,7 @@
         </div>
       </section>
 
+      <!-- Atenuación nocturna -->
       <section>
         <h4>Atenuación nocturna</h4>
         <div class="grid g3">
@@ -276,6 +278,7 @@
         </div>
       </section>
 
+      <!-- Pixel-shift -->
       <section>
         <h4>Pixel-shift</h4>
         <div class="grid g3">
@@ -285,6 +288,7 @@
         </div>
       </section>
 
+      <!-- Reglas de stock -->
       <section>
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
           <h4>Reglas de stock <small style="opacity:.65">(umbral bajo/medio y unidad)</small></h4>
@@ -363,8 +367,12 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastActivityTs=Date.now(); let stockCache=[];
   let shiftTimer=null, nightTimer=null, saverTO=null, rotator=null;
   let rafAnim=null; let sprites=[]; let testingTO=null;
-  const SAVER_HOLD_MS = 10000;   // tiempo mínimo que puede quedarse encendido tras activarse por inactividad
-  let saverShownAt = 0;          // timestamp cuando se mostró
+
+  /* firmas para detectar CAMBIOS REALES entre refrescos */
+  let prevStockSig='';        // JSON de stock
+  let prevHdrSig='';          // encabezados top/sub
+  let prevStatsTotal=null;    // total fracturas
+  let prevRemaining=null;     // etapas restantes
 
   /* ======= DOM ======= */
   const tbody=document.getElementById('tbody');
@@ -409,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
 
+  /* Botón de prueba del protector: evita que el click cuente como actividad y muestra 12s */
   btnTestSaver.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopImmediatePropagation();
@@ -419,17 +428,16 @@ document.addEventListener('DOMContentLoaded', () => {
     testingTO = setTimeout(hideSaver, 12000);
   });
 
-  /* ======= ACTIVIDAD (con anti-ruido) ======= */
+  /* ======= ACTIVIDAD (con anti-ruido touchpad) ======= */
   let lastMove = {x:null,y:null,t:0};
   function handleActivity(e){
-    // Anti-ruido de touchpad: ignora micro-movimientos cuando el saver está visible
     if(isSaverVisible() && e.type === 'mousemove'){
       const now = Date.now();
       const dx = Math.abs((e.clientX||0) - (lastMove.x||0));
       const dy = Math.abs((e.clientY||0) - (lastMove.y||0));
       const dt = now - (lastMove.t||0);
       lastMove = {x:e.clientX||0, y:e.clientY||0, t:now};
-      if(dx<3 && dy<3 && dt<300) return; // no lo tomes como actividad real
+      if(dx<3 && dy<3 && dt<300) return; // ignora micro-movimientos
     }
     markActivity();
   }
@@ -520,10 +528,82 @@ document.addEventListener('DOMContentLoaded', () => {
   function isSaverVisible(){ return saver.style.display==='block'; }
   function clearSaver(){ saverStage.innerHTML=''; sprites=[]; cancelAnimationFrame(rafAnim); rafAnim=null; clearInterval(rotator); rotator=null; }
 
-  function startBounce(images){ clearSaver(); const W = saverStage.clientWidth, H = saverStage.clientHeight; const n = Math.min(images.length, 6); sprites = []; for (let i = 0; i < n; i++) { const img = document.createElement('img'); img.src = images[i % images.length]; img.className = 'bImg'; saverStage.appendChild(img); const w0 = 180, h0 = 100; sprites.push({ el: img, x: Math.random() * (W - w0), y: Math.random() * (H - h0), vx: (Math.random() < .5 ? -1 : 1) * (1.0 + Math.random() * 0.8), vy: (Math.random() < .5 ? -1 : 1) * (1.0 + Math.random() * 0.8), w: w0, h: h0 }); } const step = () => { const W = saverStage.clientWidth, H = saverStage.clientHeight; for (const s of sprites) { s.w = s.el.offsetWidth || 180; s.h = s.el.offsetHeight || 100; } for (const s of sprites) { s.x += s.vx; s.y += s.vy; if (s.x <= 0){ s.x = 0; s.vx *= -1; } if (s.y <= 0){ s.y = 0; s.vy *= -1; } if (s.x + s.w >= W){ s.x = W - s.w; s.vx *= -1; } if (s.y + s.h >= H){ s.y = H - s.h; s.vy *= -1; } } for (let i = 0; i < sprites.length; i++) { for (let j = i + 1; j < sprites.length; j++) { const a = sprites[i], b = sprites[j]; const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x); const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y); if (ox > 0 && oy > 0) { if (ox < oy) { if (a.x < b.x) { a.x -= ox / 2; b.x += ox / 2; } else { a.x += ox / 2; b.x -= ox / 2; } a.vx *= -1; b.vx *= -1; } else { if (a.y < b.y) { a.y -= oy / 2; b.y += oy / 2; } else { a.y += oy / 2; b.y -= oy / 2; } a.vy *= -1; b.vy *= -1; } a.x = Math.min(Math.max(0, a.x), W - a.w); a.y = Math.min(Math.max(0, a.y), H - a.h); b.x = Math.min(Math.max(0, b.x), W - b.w); b.y = Math.min(Math.max(0, b.y), H - b.h); } } } for (const s of sprites) { s.el.style.transform = `translate(${s.x}px, ${s.y}px)`; } rafAnim = requestAnimationFrame(step); }; step(); }
-  function startStarfall(images){ clearSaver(); const W=saverStage.clientWidth, H=saverStage.clientHeight; const N=Math.min(images.length*2,14); for(let i=0;i<N;i++){ const img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg'; const scale=0.55+Math.random()*0.25; const base=Math.min(window.innerWidth*0.10,160); const size=base*scale; img.style.width=size+'px'; const x=Math.random()*(W-size); const y=-Math.random()*H*0.8 - size; const sp={el:img,x,y, size, vx:(Math.random()-0.5)*0.3, vy:0.6+Math.random()*1.2, rot:(Math.random()*8-4), a:Math.random()*360}; saverStage.appendChild(img); sprites.push(sp); } const step=()=>{ const W=saverStage.clientWidth, H=saverStage.clientHeight; for(const s of sprites){ s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5; if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); } s.el.style.transform=`translate(${s.x}px,${s.y}px) rotate(${s.a}deg)`; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function startBounce(images){
+    clearSaver();
+    const W = saverStage.clientWidth, H = saverStage.clientHeight;
+    const n = Math.min(images.length, 6);
+    sprites = [];
+    for (let i = 0; i < n; i++) {
+      const img = document.createElement('img');
+      img.src = images[i % images.length];
+      img.className = 'bImg';
+      saverStage.appendChild(img);
+      const w0 = 180, h0 = 100;
+      sprites.push({ el: img, x: Math.random() * (W - w0), y: Math.random() * (H - h0),
+                     vx: (Math.random() < .5 ? -1 : 1) * (1.0 + Math.random() * 0.8),
+                     vy: (Math.random() < .5 ? -1 : 1) * (1.0 + Math.random() * 0.8),
+                     w: w0, h: h0 });
+    }
+    const step = () => {
+      const W = saverStage.clientWidth, H = saverStage.clientHeight;
+      for (const s of sprites) { s.w = s.el.offsetWidth || 180; s.h = s.el.offsetHeight || 100; }
+      for (const s of sprites) {
+        s.x += s.vx; s.y += s.vy;
+        if (s.x <= 0){ s.x = 0; s.vx *= -1; }
+        if (s.y <= 0){ s.y = 0; s.vy *= -1; }
+        if (s.x + s.w >= W){ s.x = W - s.w; s.vx *= -1; }
+        if (s.y + s.h >= H){ s.y = H - s.h; s.vy *= -1; }
+      }
+      for (let i = 0; i < sprites.length; i++) {
+        for (let j = i + 1; j < sprites.length; j++) {
+          const a = sprites[i], b = sprites[j];
+          const ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+          const oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) { if (a.x < b.x) { a.x -= ox/2; b.x += ox/2; } else { a.x += ox/2; b.x -= ox/2; } a.vx *= -1; b.vx *= -1; }
+            else         { if (a.y < b.y) { a.y -= oy/2; b.y += oy/2; } else { a.y += oy/2; b.y -= oy/2; } a.vy *= -1; b.vy *= -1; }
+            a.x = Math.min(Math.max(0, a.x), W - a.w);
+            a.y = Math.min(Math.max(0, a.y), H - a.h);
+            b.x = Math.min(Math.max(0, b.x), W - b.w);
+            b.y = Math.min(Math.max(0, b.y), H - b.h);
+          }
+        }
+      }
+      for (const s of sprites) s.el.style.transform = `translate(${s.x}px, ${s.y}px)`;
+      rafAnim = requestAnimationFrame(step);
+    };
+    step();
+  }
 
-  function applySaverMode(mode){ clearSaver(); const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase); if(mode==='valores-rebotando') return startBounce(imgs); if(mode==='valores-lluvia') return startStarfall(imgs); }
+  function startStarfall(images){
+    clearSaver();
+    const W=saverStage.clientWidth, H=saverStage.clientHeight;
+    const N=Math.min(images.length*2,14);
+    for(let i=0;i<N;i++){
+      const img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg';
+      const scale=0.55+Math.random()*0.25; const base=Math.min(window.innerWidth*0.10,160);
+      const size=base*scale; img.style.width=size+'px';
+      const x=Math.random()*(W-size); const y=-Math.random()*H*0.8 - size;
+      const sp={el:img,x,y, size, vx:(Math.random()-0.5)*0.3, vy:0.6+Math.random()*1.2, rot:(Math.random()*8-4), a:Math.random()*360};
+      saverStage.appendChild(img); sprites.push(sp);
+    }
+    const step=()=>{ const W=saverStage.clientWidth, H=saverStage.clientHeight;
+      for(const s of sprites){
+        s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5;
+        if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size;
+        if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); }
+        s.el.style.transform=`translate(${s.x}px,${s.y}px) rotate(${s.a}deg)`;
+      }
+      rafAnim=requestAnimationFrame(step);
+    }; step();
+  }
+
+  function applySaverMode(mode){ clearSaver(); const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
+    if(mode==='valores-rebotando') return startBounce(imgs);
+    if(mode==='valores-lluvia')    return startStarfall(imgs);
+    /* 'blob' no necesita nada extra */
+  }
+
   const getIdleMs = () => Math.max(1, +DISPLAY.saver.idleMinutes || 1) * 60 * 1000;
 
   function showSaver(force=false){
@@ -531,7 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!force && (Date.now()-lastActivityTs)<idleMs) return;
     buildSaverFrame();
     saver.style.display='block'; saverStatus.textContent='Mostrando';
-    saverShownAt = Date.now();
     const modes=['blob','valores-rebotando','valores-lluvia'];
     if(DISPLAY.saver.mode==='rotar'){
       let i=0; applySaverMode(modes[i]);
@@ -542,55 +621,84 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function hideSaver(){ saver.style.display='none'; saverStatus.textContent='—'; clearSaver(); }
 
-  function scheduleSaver(){ clearTimeout(saverTO); const idleMs=getIdleMs(); const wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(()=>showSaver(false), wait+50); }
+  function scheduleSaver(){
+    clearTimeout(saverTO);
+    const idleMs=getIdleMs();
+    const wait=Math.max(0,idleMs-(Date.now()-lastActivityTs));
+    saverTO=setTimeout(()=>showSaver(false), wait+50);
+  }
 
   /* ======= CARGA Y RENDER ======= */
   async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; const t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
+
   async function loadAndRender(isForced=false){
     if(paused && !isForced) return; if(isFetching) return; isFetching=true;
     try{
       const t0=performance.now(); const res=await fetch(`${JSON_URL}?_=${Date.now()}`,{cache:'no-store'}); const t1=performance.now();
       if(!res.ok) throw new Error('HTTP '+res.status);
-      net.textContent=`OK ${Math.round(t1-t0)}ms`; net.title = `Respuesta del backend en ${Math.round(t1-t0)} ms`; net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)';
+      net.textContent=`OK ${Math.round(t1-t0)}ms`; net.title = `Respuesta del backend en ${Math.round(t1-t0)} ms`;
+      net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)';
 
       const json=await res.json();
       lastUpdateEl.innerText=(json.lastUpdate?new Date(json.lastUpdate):new Date()).toLocaleString();
 
+      /* ——— Detectores de cambio ——— */
+      const newStockSig = JSON.stringify(json.stock||[]);
+      const stockChanged = newStockSig !== prevStockSig;           // ¿cambió stock?
+      prevStockSig = newStockSig;
+
       renderStock(json.stock||[]);
+
       const conv=transformItems(json.items||[]);
-      const {top,sub}=extractHeaderRows(conv); updateHeaderNames(top,sub);
+      const {top,sub}=extractHeaderRows(conv);
+      const hdrSigNew = JSON.stringify({top,sub});
+      const hdrChanged = hdrSigNew !== prevHdrSig;                  // ¿cambiaron encabezados?
+      prevHdrSig = hdrSigNew;
+      updateHeaderNames(top,sub);
+
       const map=itemsArrayToMap(conv);
-      const {changedCellsTotal}=updateDOM(map);
+      const {changedCellsTotal}=updateDOM(map);                     // ¿cambiaron celdas?
       deltaEl.textContent=changedCellsTotal>0?`• ${changedCellsTotal} cambio(s)`:'';
 
-      const stats=computeFractureStats(conv); fractureTotalEl.textContent=`Total fracturas: ${stats.total}`; fractureTotalEl.title = `Total de celdas FRACTURADO con fecha válida (${stats.total})`;
-      updateDatesArray(stats.freq);
-      snapReelToLatest(); // lleva el reel a la última fecha
+      const stats=computeFractureStats(conv);
+      const statsChanged = (prevStatsTotal===null) ? true : (stats.total !== prevStatsTotal);
+      prevStatsTotal = stats.total;
+      fractureTotalEl.textContent=`Total fracturas: ${stats.total}`;
+      fractureTotalEl.title = `Total de celdas FRACTURADO con fecha válida (${stats.total})`;
+
+      updateDatesArray(stats.freq);                                 // refresca el arreglo interno de fechas
 
       const remaining = computeRemainingStages(conv);
+      const remainingChanged = (prevRemaining===null) ? true : (remaining !== prevRemaining);
+      prevRemaining = remaining;
       remainingEl.textContent=`Etapas restantes: ${remaining}`;
       remainingEl.title='Estimación basada en celdas Estado vacías hasta STOP';
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      // Si el saver está visible, sólo lo cierro si ya superó el "hold"
-      const saverWasVisible = isSaverVisible();
-      if(saverWasVisible && (Date.now() - saverShownAt) > SAVER_HOLD_MS){
-        hideSaver();
-        lastActivityTs=Date.now(); // para no reencenderlo enseguida
+      /* ——— Política del protector ———
+         Cerrar SÓLO si hubo cambio real en datos visibles. */
+      const dataChanged = (changedCellsTotal>0) || stockChanged || hdrChanged || statsChanged || remainingChanged;
+
+      if (dataChanged) {
+        if (isSaverVisible()) hideSaver();   // cerrar al detectar actualización real
+        lastActivityTs=Date.now();           // reprogramar idle a partir de "ahora"
         scheduleSaver();
-      } else if (changedCellsTotal>0){
-        // si hubo cambios, reprogramo el idle
-        lastActivityTs=Date.now();
-        scheduleSaver();
+        snapReelToLatest();                  // llevar reel a la última fecha (auto-scroll de fechas)
+      } else {
+        // sin cambios → no tocar el saver ni el lastActivityTs
       }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
 
     }catch(e){
-      console.error(e); lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
-      deltaEl.textContent=''; net.textContent='ERROR'; net.title='Fallo al consultar el backend'; net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
+      console.error(e);
+      lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
+      deltaEl.textContent='';
+      net.textContent='ERROR'; net.title='Fallo al consultar el backend';
+      net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
     }finally{ isFetching=false; }
   }
+
   function scrollToLastWithData(n=LAST_N_TO_SHOW){
     if(!autoScroll.checked) return;
     const rows=[...tbody.querySelectorAll('tr')]; const idx=[];
@@ -628,6 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.pixelShift.intervalMin=clamp(+setShiftEvery.value||2,1,60);
     DISPLAY.pixelShift.maxOffsetPx=clamp(+setShiftPixels.value||2,0,10);
 
+    // reglas
     const rows=[...rulesBody.querySelectorAll('.rule-row')]; const next={};
     for(const r of rows){
       const name=r.querySelector('[data-f=name]').value, unit=r.querySelector('[data-f=unit]').value;
@@ -642,14 +751,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if(close) modal.style.display='none';
   }
   function drawRulesTable(){ rulesBody.innerHTML=''; for(const [,rule] of Object.entries(STOCK_RULES)){ addRuleRow(rule); } }
-  function addRuleRow(rule={}){ const row=document.createElement('div'); row.className='rule-row';
+  function addRuleRow(rule={}){
+    const row=document.createElement('div'); row.className='rule-row';
     row.innerHTML=`<input data-f="name" value="${rule.display??''}" placeholder="Nombre visible">
                    <input data-f="unit" value="${rule.unit??''}" placeholder="ud/Tn/M3">
                    <input data-f="low" value="${rule.low??''}" type="number" step="any">
                    <input data-f="mid" value="${rule.mid??''}" type="number" step="any">
                    <button class="btn secondary" type="button">Quitar</button>`;
-    row.querySelector('button').onclick=()=>row.remove(); rulesBody.appendChild(row); }
-  function mergeDetectedItems(){ const detected=new Map(Object.entries(STOCK_RULES)); for(const it of stockCache){ const canon=canonicalizeName(it.ITEM); if(!detected.has(canon)) detected.set(canon,{display:(it.ITEM||'').toString(),unit:'',low:0,mid:0}); } STOCK_RULES=Object.fromEntries(detected.entries()); drawRulesTable(); }
+    row.querySelector('button').onclick=()=>row.remove(); rulesBody.appendChild(row);
+  }
+  function mergeDetectedItems(){
+    const detected=new Map(Object.entries(STOCK_RULES));
+    for(const it of stockCache){
+      const canon=canonicalizeName(it.ITEM);
+      if(!detected.has(canon)) detected.set(canon,{display:(it.ITEM||'').toString(),unit:'',low:0,mid:0});
+    }
+    STOCK_RULES=Object.fromEntries(detected.entries()); drawRulesTable();
+  }
 
   /* ======= INIT ======= */
   function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
