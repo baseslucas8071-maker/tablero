@@ -398,7 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSave.onclick=()=>saveSettings(true);
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
-  btnTestSaver.onclick=()=>{ saveSettings(false); modal.style.display='none'; showSaver(true); clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000); };
+  btnTestSaver.addEventListener('click', (e) => {e.preventDefault(); e.stopPropagation(); // ← no dispares markActivity() saveSettings(false); modal.style.display = 'none'; setTimeout(() => {// ← ejecutá después de que termine el click
+  showSaver(true); }, 0); clearTimeout(testingTO); testingTO = setTimeout(hideSaver, 12000); });
+
 
   ['mousemove','touchstart','click','wheel','keydown'].forEach(ev=>window.addEventListener(ev,markActivity));
   function markActivity(){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
