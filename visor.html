@@ -16,32 +16,28 @@
     /* ===== AJUSTES RÁPIDOS ===== */
     --w-id: 54px;            /* ancho columna Fila (#01) */
     --w-seq: 50px;           /* ancho columnas Secuencia */
-    --pozo-font-size: 18px;  /* tamaño “POZO #n” */
-    --stock-font-size: 14px; /* tamaño texto stock */
-    --stock-pad-x: 12px;     /* padding horizontal stock */
-    --stock-pad-y: 8px;      /* padding vertical stock */
+    --pozo-font-size: 18px;  /* tamaño “POZO #n” (ajustable en Ajustes) */
+    --stock-font-size: 14px; /* tamaño texto stock (ajustable en Ajustes) */
+    --stock-pad-x: 12px;
+    --stock-pad-y: 8px;
 
     /* Mini-reel de fechas */
     --reel-gap: 8px;
     --reel-pad: 10px;
     --reel-num-size: 20px;
     --reel-date-size: 12px;
-
-    /* Pixel-shift (protección burn-in) */
-    --nudge-x: 0px;
-    --nudge-y: 0px;
   }
 
   html, body { height: 100%; margin: 0; background: var(--bg); color: #fff; font-family: Inter, Segoe UI, Arial, sans-serif; }
-  .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%;
-          transform: translate(var(--nudge-x), var(--nudge-y)); transition: transform .25s ease; }
+  .wrap { padding: 14px; box-sizing: border-box; display: flex; flex-direction: column; height: 100%; }
   header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   header h1 { margin: 0; font-size: 28px; letter-spacing: 0.6px; }
   header .meta { opacity: 0.9; font-size: 13px; color: #9fd7ff; }
   .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .btn { background: #0b61a8; border: none; color: white; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; }
-  .btn.secondary { background: transparent; border: 1px solid rgba(255, 255, 255, 0.08); }
+  .btn.secondary { background: transparent; border: 1px solid rgba(255, 255, 255, 0.12); }
   .switch { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); cursor: pointer; }
+
   main { flex: 1; margin-top: 12px; display: flex; min-height: 0; }
   .board { flex: 1; background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)); border-radius: 10px; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; }
   .table-container { flex: 1; overflow: auto; border-radius: 8px; position: relative; min-height: 0; }
@@ -78,15 +74,10 @@
   .pozo-5{background:linear-gradient(90deg,#ffffff,#f2f6f9); color:#002;}  /* blanco */
   .pozo-6{background:linear-gradient(90deg,#e8c3ff,#d79bf6); color:#201;}  /* lila */
 
-  /* Badge por pozo (etapas restantes por columna) – alto contraste universal */
+  /* Badge por pozo (alto contraste universal) */
   .pozoTop .badge{
-    margin-left: 8px;
-    padding: 2px 7px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 900;
-    line-height: 1;
-    color: #fff;
+    margin-left: 8px; padding: 2px 7px; border-radius: 999px;
+    font-size: 12px; font-weight: 900; line-height: 1; color: #fff;
     background: rgba(0,0,0,.45);
     border: 1px solid rgba(0,0,0,.55);
     box-shadow: 0 0 0 1px rgba(255,255,255,.35), 0 1px 6px rgba(0,0,0,.35);
@@ -100,8 +91,7 @@
   td.stop {
     background: rgba(255, 60, 60, .14) !important;
     color: #ffb3b3 !important;
-    font-weight: 900;
-    letter-spacing: .4px;
+    font-weight: 900; letter-spacing: .4px;
     text-shadow: 0 0 6px rgba(255,60,60,.4);
   }
 
@@ -117,13 +107,8 @@
   .table-container::-webkit-scrollbar{height:10px;width:10px}
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:6px}
 
-  /* Toda la barra en una sola línea (si no entra, scrollea horizontal) */
-  .bar{
-    display:flex; align-items:center; gap:14px; margin-bottom:10px;
-    flex-wrap:nowrap; overflow-x:auto;
-  }
-
-  /* STOCK ACTUAL */
+  /* Barra superior (una línea con scroll si no entra) */
+  .bar{ display:flex; align-items:center; gap:14px; margin-bottom:10px; flex-wrap:nowrap; overflow-x:auto; }
   .stockwrap{ display:flex; align-items:center; gap:10px; flex:1 1 auto; min-width:0; }
   .stocklabel { font-weight:800; color:#cfe8ff; opacity:.9; }
   .stockbar { display:block; overflow-x:auto; overflow-y:hidden; white-space:nowrap; flex:1 1 auto; }
@@ -150,7 +135,7 @@
   .stock-theme-6 { background: rgba(200,220,60,.18);  border-color: rgba(200,220,60,.35); }
   .stock-theme-7 { background: rgba(255,120,40,.18);  border-color: rgba(255,120,40,.35); }
 
-  /* Semáforo: anillo + punto (no cambia el fondo temático) */
+  /* Semáforo: anillo + punto */
   .stock-low  { box-shadow: inset 0 0 0 2px rgba(220,60,60,.65);  }
   .stock-mid  { box-shadow: inset 0 0 0 2px rgba(255,180,0,.65); }
   .stock-high { box-shadow: inset 0 0 0 2px rgba(40,200,120,.65); }
@@ -160,91 +145,63 @@
 
   .delta { font-size:12px; color:#96d7ff; margin-left:8px; }
 
-  /* Indicadores compactos a la derecha */
-  .indicators{
-    display:flex; align-items:center; gap:14px; flex:0 0 auto; min-width:max-content;
-  }
-  .ind{
-    background: rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.08);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-weight:700;
-  }
+  /* Indicadores a la derecha */
+  .indicators{ display:flex; align-items:center; gap:14px; flex:0 0 auto; min-width:max-content; }
+  .ind{ background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); padding: 6px 10px; border-radius: 8px; font-weight:700; }
 
   /* Reel de fechas */
   .reel{ display:flex; align-items:center; gap:var(--reel-gap); overflow-x:auto; }
-  .reel-btn {
-    width: 28px; height: 28px; border-radius: 8px;
-    border:1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.05);
-    color:#cfe8ff; font-weight: 800; cursor: pointer;
-  }
+  .reel-btn { width: 28px; height: 28px; border-radius: 8px; border:1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); color:#cfe8ff; font-weight: 800; cursor: pointer; }
   .reel-btn:disabled { opacity:.4; cursor: default; }
-  .date-chip {
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    min-width: 132px; padding: var(--reel-pad);
-    border-radius: 10px;
-    background: rgba(255,255,255,0.05);
-    border:1px solid rgba(255,255,255,0.08);
-  }
-  .date-chip.latest {
-    background: linear-gradient(180deg, rgba(0,163,255,0.18), rgba(0,163,255,0.08));
-    border-color: rgba(0,163,255,0.35);
-  }
+  .date-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width: 132px; padding: var(--reel-pad); border-radius: 10px; background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); }
+  .date-chip.latest { background: linear-gradient(180deg, rgba(0,163,255,0.18), rgba(0,163,255,0.08)); border-color: rgba(0,163,255,0.35); }
   .date-chip .date { font-size: var(--reel-date-size); color:#bfe8ff; }
   .date-chip .num  { font-size: var(--reel-num-size); font-weight: 900; line-height: 1.1; }
 
-  /* Línea secundaria (Etapas restantes) */
   .subind{ font-size: 12px; color: #bfe8ff; margin-top: 4px; font-weight: 600; opacity: .95; }
-
-  /* Estado de red como pill */
   .status { padding:6px 12px; border-radius:999px; font-weight:800; }
 
-  /* ===== Dimmer nocturno (overlay) ===== */
-  #dimVeil{
-    position: fixed; inset: 0; pointer-events: none;
-    background: #000; opacity: 0; transition: opacity .4s ease;
-    z-index: 9996;
-  }
+  /* ====== Screensaver (protector) ====== */
+  :root{ --brand-dark:#0b3e51; --brand-teal:#007c99; }
+  #saver{ position:fixed; inset:0; z-index:9999; display:none; align-items:center; justify-content:center; text-align:center;
+          background: radial-gradient(1200px 1200px at var(--x,50%) var(--y,50%), rgba(0,0,0,.28), rgba(0,0,0,.54));
+          backdrop-filter: brightness(calc(0.88 - var(--night-dim,0))) saturate(110%);}
+  #saver.on{ display:flex; }
+  #saver .msg{ color:#e6f7ff; user-select:none; pointer-events:none; }
+  #saver .clock{ margin-top:12px; font-size:12px; opacity:.85; color:#cdefff; }
+  #saverLogo{ width:min(26vw,320px); max-width:45vh; opacity:.98; filter: drop-shadow(0 6px 20px rgba(0,0,0,.45)); }
+  .mode-float #saverLogo{ animation: logoFloat 12s ease-in-out infinite, pixelDrift 60s linear infinite; }
+  @keyframes logoFloat{ 0%,100%{ transform: translateY(0) scale(1) } 50%{ transform: translateY(-10px) scale(1.02) } }
+  @keyframes pixelDrift{ 0%{transform:translate(0,0)}25%{transform:translate(4px,2px)}50%{transform:translate(0,4px)}75%{transform:translate(-3px,1px)}100%{transform:translate(0,0)} }
+  .mode-frac .frac-strip{ display:flex; gap:8px; margin-top:18px; justify-content:center; }
+  .mode-frac .stage{ width:26px; height:10px; border-radius:5px; background:#35d19f; opacity:.18; box-shadow: 0 0 10px rgba(53,209,159,.25); animation: stageLight 2.6s linear infinite; animation-delay: calc(var(--i)*0.11s); }
+  @keyframes stageLight{ 0%,60%{opacity:.18} 72%{opacity:.95} 100%{opacity:.18} }
+  .mode-bounce #bounceBox{ position:relative; width:100vw; height:100vh; }
+  .mode-bounce #saverLogo{ position:absolute; }
+  .mode-pulse .pads{ display:grid; grid-template-columns: repeat(8, min(8vw,80px)); gap:12px; margin-top:16px; justify-content:center; }
+  .mode-pulse .pad{ width:min(8vw,80px); height:min(8vw,80px); border-radius:18%; background: radial-gradient(circle at 50% 40%, rgba(0,255,180,.35), rgba(0,255,180,.08)); box-shadow: inset 0 0 0 2px rgba(0,255,180,.20), 0 0 12px rgba(0,255,180,.15); animation: padPulse 3.8s ease-in-out infinite; animation-delay: calc(var(--i)*.12s); }
+  @keyframes padPulse{ 0%,100%{transform:scale(1); opacity:.65} 50%{transform:scale(1.06); opacity:1} }
 
-  /* ===== Screensaver (overlay) ===== */
-  #saver{
-    position: fixed; inset:0; display:none; z-index:9997;
-    background: radial-gradient(1200px 700px at var(--blob-x,40%) var(--blob-y,35%), rgba(0,163,255,.12), rgba(0,0,0,.85) 70%);
-    backdrop-filter: blur(1px);
-  }
-  #saver .msg{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    text-align:center; font-weight:900; letter-spacing:.5px;
-  }
-  #saver .msg .big{ font-size:48px; }
-  #saver .msg .small{ font-size:14px; color:#cfe8ff; opacity:.9; margin-top:6px; }
-  @keyframes drift { 0%{transform:translate(-50%,-50%) translate(0,0);} 50%{transform:translate(-50%,-50%) translate(12px,-8px);} 100%{transform:translate(-50%,-50%) translate(0,0);} }
-  #saver .msg .big span{ display:inline-block; animation:drift 6s ease-in-out infinite; }
-
-  /* ===== Modal de Ajustes ===== */
-  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
-  .modal-card{width:min(560px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
-  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-  .modal-body{display:flex;flex-direction:column;gap:14px}
-  .modal-body section{padding:10px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:rgba(255,255,255,.03)}
-  .modal-body h4{margin:0 0 8px 0;font-size:14px;color:#cfe8ff}
-  .modal .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .modal input[type="number"], .modal input[type="range"]{width:100%}
-  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+  /* ====== MODAL AJUSTES ====== */
+  .modal{ position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:flex-start; justify-content:center; padding:40px 16px; z-index:10000; }
+  .modal.on{ display:flex; }
+  .card{ background:#0b1733; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px; width:min(860px,96vw); color:#eaf6ff; }
+  .card h3{ margin:8px 0 12px; font-size:18px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .field{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 10px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:8px; }
+  .field label{ font-weight:700; color:#cfe8ff; }
+  .field input[type="number"], .field input[type="text"], .field select{ width:140px; padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.18); background:#0d2142; color:#eaf6ff; }
+  .small{ font-size:12px; opacity:.85; }
+  .line{ height:1px; background:rgba(255,255,255,.08); margin:10px 0; }
+  .tbl{ width:100%; border-collapse:collapse; }
+  .tbl th, .tbl td{ border:1px solid rgba(255,255,255,.08); padding:6px 8px; text-align:left; }
+  .tbl th{ background:rgba(255,255,255,.06); }
+  .right{ text-align:right; }
+  .btns{ display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
 </style>
 </head>
 <body>
-<div id="dimVeil"></div>
-<div id="saver" role="dialog" aria-label="Protección de pantalla">
-  <div class="msg">
-    <div class="big">Visor de Estado <span>PAD</span></div>
-    <div class="small">Movimiento o tecla para reanudar</div>
-  </div>
-</div>
-
-<div class="wrap" id="root">
+<div class="wrap">
   <header>
     <div>
       <h1>Visor de Estado PAD</h1>
@@ -262,7 +219,6 @@
   <main>
     <div class="board">
       <div class="bar">
-        <!-- STOCK ACTUAL + Indicadores -->
         <div class="stockwrap">
           <div class="stocklabel">STOCK ACTUAL:</div>
           <div id="stockBar" class="stockbar"></div>
@@ -299,43 +255,68 @@
   </main>
 </div>
 
-<!-- ===== Modal Ajustes ===== -->
-<div id="settingsModal" class="modal" aria-modal="true" role="dialog" aria-label="Ajustes">
-  <div class="modal-card">
-    <div class="modal-head">
-      <strong>Ajustes de pantalla (TV-friendly)</strong>
+<!-- Screensaver -->
+<div id="saver" aria-hidden="true">
+  <div class="msg">
+    <div id="saverContent"></div>
+    <div class="clock"></div>
+  </div>
+</div>
+
+<!-- Modal Ajustes -->
+<div id="modalSettings" class="modal" aria-hidden="true">
+  <div class="card">
+    <h3>Ajustes rápidos</h3>
+    <div class="grid2">
+      <div class="field">
+        <label for="optPozoFont">Tamaño “POZO #n”</label>
+        <input id="optPozoFont" type="number" min="12" max="28" step="1">
+      </div>
+      <div class="field">
+        <label for="optStockFont">Tamaño “STOCK”</label>
+        <input id="optStockFont" type="number" min="10" max="22" step="1">
+      </div>
+      <div class="field">
+        <label for="optSaverMode">Protector de pantalla</label>
+        <select id="optSaverMode">
+          <option value="logoFloat">Logo flotante</option>
+          <option value="fracStrip">Tira de etapas</option>
+          <option value="wellPulse">Pads pulsantes</option>
+          <option value="bouncingLogo">Logo rebotando</option>
+          <option value="rotate">Rotar todos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="optIdleMin">Minutos inactivo</label>
+        <input id="optIdleMin" type="number" min="1" max="60" step="1">
+      </div>
+      <div class="field">
+        <label for="optNightDim">Atenuación nocturna (0–0.8)</label>
+        <input id="optNightDim" type="number" min="0" max="0.8" step="0.05">
+      </div>
+      <div class="field">
+        <label for="optRotateEvery">Rotar cada (min)</label>
+        <input id="optRotateEvery" type="number" min="1" max="30" step="1">
+      </div>
     </div>
 
-    <div class="modal-body">
-      <section>
-        <h4>Atenuación nocturna</h4>
-        <label><input type="checkbox" id="setNightEnabled"> Activar</label>
-        <div class="grid">
-          <label>Hora inicio <input type="number" id="setNightStart" min="0" max="23"></label>
-          <label>Hora fin <input type="number" id="setNightEnd" min="0" max="23"></label>
-        </div>
-        <label>Brillo (20–100%) <input type="range" id="setNightDim" min="20" max="100"></label>
-      </section>
-
-      <section>
-        <h4>Pixel-shift</h4>
-        <label><input type="checkbox" id="setShiftEnabled"> Activar</label>
-        <div class="grid">
-          <label>Intervalo (min) <input type="number" id="setShiftEvery" min="1" max="60"></label>
-          <label>Desplazamiento (px) <input type="number" id="setShiftPixels" min="0" max="10"></label>
-        </div>
-      </section>
-
-      <section>
-        <h4>Screensaver</h4>
-        <label><input type="checkbox" id="setSaverEnabled"> Activar</label>
-        <label>Inactividad (min) <input type="number" id="setSaverIdle" min="1" max="120"></label>
-      </section>
+    <div class="line"></div>
+    <h3>Reglas de stock <span class="small">(umbral bajo/medio y unidad)</span></h3>
+    <div class="field" style="justify-content:flex-start; gap:8px;">
+      <button class="btn secondary" id="btnLoadFromStock">Cargar ítems detectados</button>
+      <button class="btn secondary" id="btnAddRule">Añadir regla</button>
     </div>
+    <table class="tbl" id="rulesTable">
+      <thead>
+        <tr><th>Ítem</th><th>Unidad</th><th class="right">Bajo</th><th class="right">Medio</th><th></th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-    <div class="modal-actions">
-      <button class="btn" id="btnSaveSettings">Guardar</button>
+    <div class="btns">
       <button class="btn secondary" id="btnCloseSettings">Cerrar</button>
+      <button class="btn secondary" id="btnResetSettings">Restablecer</button>
+      <button class="btn" id="btnSaveSettings">Guardar</button>
     </div>
   </div>
 </div>
@@ -347,11 +328,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const ROWS = 60;
   const POZOS = 6;
   const LAST_N_TO_SHOW = 8;
-  const REEL_SIZE = 2; // últimas 2 fechas visibles
+  const REEL_SIZE = 2;
 
-  // ===== Umbrales del semáforo de stock =====
-  // thresholds: [bajo, medio]  -> <bajo = low, entre = mid, >medio = high
-  const STOCK_RULES = {
+  /* ===== Umbrales base ===== */
+  const STOCK_RULES_BASE = {
     'GAS OIL':             { unit: 'M3', thresholds: [50, 150] },
     'ARENA MALLA #100':    { unit: 'Tn', thresholds: [100, 300] },
     'ARENA MALLA #30/70':  { unit: 'Tn', thresholds: [300, 800] },
@@ -359,41 +339,19 @@ document.addEventListener('DOMContentLoaded', () => {
     'GEL TOTE':            { unit: 'ud', thresholds: [5, 15] },
   };
 
-  // ===== Preferencias (localStorage) =====
+  /* ===== Preferencias (localStorage) ===== */
   const prefs = {
     get(k, def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; } catch{ return def; } },
-    set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+    set(k, v){ localStorage.setItem(k, JSON.stringify(v)); },
+    del(k){ localStorage.removeItem(k); }
   };
 
-  // ===== Protecciones TV: configuración por defecto =====
-  const DISPLAY_SAVER = {
-    nightDim:   { enabled: true, startHour: 1, endHour: 6, dimLevel: 0.6 }, // 60% brillo (40% velado)
-    pixelShift: { enabled: true, intervalMin: 2, maxOffsetPx: 2 },
-    screensaver:{ enabled: true, idleMinutes: 10 }
-  };
-
-  // Carga ajustes guardados (si existen)
-  function loadDsConfig(){
-    const cfg = prefs.get('ds:cfg', null);
-    if (cfg) {
-      Object.assign(DISPLAY_SAVER.pixelShift, cfg.pixelShift || {});
-      Object.assign(DISPLAY_SAVER.nightDim,   cfg.nightDim   || {});
-      Object.assign(DISPLAY_SAVER.screensaver,cfg.screensaver|| {});
-    }
-  }
-  function saveDsConfig(){
-    prefs.set('ds:cfg', {
-      pixelShift: DISPLAY_SAVER.pixelShift,
-      nightDim:   DISPLAY_SAVER.nightDim,
-      screensaver:DISPLAY_SAVER.screensaver
-    });
-  }
-
+  /* ===== Estado UI ===== */
   let paused = prefs.get('ui:paused', false);
   let prevDataMap = {};
   let latestDataMap = {};
   let isFetching = false;
-  let lastChangeTs = Date.now(); // para screensaver
+  let lastStockData = []; // guarda el último stock para re-render
 
   const tbody = document.getElementById('tbody');
   const hdrTop = document.getElementById('hdrTop');
@@ -411,30 +369,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const fractureTotalEl = document.getElementById('fractureTotal');
   const datesReel = document.getElementById('datesReel');
   const remainingEl = document.getElementById('remainingStages');
-  const dimVeil = document.getElementById('dimVeil');
-  const saver = document.getElementById('saver');
-
-  // Modal ajustes
-  const settingsModal = document.getElementById('settingsModal');
-  const setNightEnabled = document.getElementById('setNightEnabled');
-  const setNightStart   = document.getElementById('setNightStart');
-  const setNightEnd     = document.getElementById('setNightEnd');
-  const setNightDim     = document.getElementById('setNightDim');
-  const setShiftEnabled = document.getElementById('setShiftEnabled');
-  const setShiftEvery   = document.getElementById('setShiftEvery');
-  const setShiftPixels  = document.getElementById('setShiftPixels');
-  const setSaverEnabled = document.getElementById('setSaverEnabled');
-  const setSaverIdle    = document.getElementById('setSaverIdle');
-  const btnSaveSettings = document.getElementById('btnSaveSettings');
-  const btnCloseSettings= document.getElementById('btnCloseSettings');
-
-  // Timers protecciones
-  let pixelShiftTimer = null;
-  let saverTimer      = null;
-  let nightTimer      = null;
-
-  function int(v){ return Number.parseInt(v,10) || 0; }
-  function clamp(v,a,b){ return Math.min(b, Math.max(a, v)); }
 
   autoScrollCheckbox.checked = prefs.get('ui:autoScroll', true);
   btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
@@ -442,88 +376,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnRefresh.addEventListener('click', handleForceRefresh);
   btnPause.addEventListener('click', togglePause);
-  autoScrollCheckbox.addEventListener('change', () => {
-    prefs.set('ui:autoScroll', autoScrollCheckbox.checked);
-    if (autoScrollCheckbox.checked) requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
-  });
   btnFull.addEventListener('click', () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
   });
-
-  btnSettings.addEventListener('click', openSettings);
-  btnCloseSettings.addEventListener('click', closeSettings);
-  settingsModal.addEventListener('click', (e)=>{ if(e.target===settingsModal) closeSettings(); });
-  btnSaveSettings.addEventListener('click', ()=>{
-    DISPLAY_SAVER.nightDim.enabled   = setNightEnabled.checked;
-    DISPLAY_SAVER.nightDim.startHour = clamp(int(setNightStart.value),0,23);
-    DISPLAY_SAVER.nightDim.endHour   = clamp(int(setNightEnd.value),0,23);
-    DISPLAY_SAVER.nightDim.dimLevel  = clamp((+setNightDim.value)/100, 0.2, 1);
-
-    DISPLAY_SAVER.pixelShift.enabled     = setShiftEnabled.checked;
-    DISPLAY_SAVER.pixelShift.intervalMin = clamp(int(setShiftEvery.value),1,60);
-    DISPLAY_SAVER.pixelShift.maxOffsetPx = clamp(int(setShiftPixels.value),0,10);
-
-    DISPLAY_SAVER.screensaver.enabled    = setSaverEnabled.checked;
-    DISPLAY_SAVER.screensaver.idleMinutes= clamp(int(setSaverIdle.value),1,120);
-
-    saveDsConfig();
-    restartNightDim();
-    restartPixelShift();
-    restartSaver();
-    closeSettings();
+  autoScrollCheckbox.addEventListener('change', () => {
+    prefs.set('ui:autoScroll', autoScrollCheckbox.checked);
+    if (autoScrollCheckbox.checked) requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
   });
 
-  // Atajos teclado
+  /* Atajos */
   window.addEventListener('keydown', e => {
     const k = e.key.toLowerCase();
     if (k === 'r') btnRefresh.click();
     if (k === 'p') btnPause.click();
-    if (e.key === 'Escape') { closeSettings(); hideSaver(); }
     if (e.key === 'ArrowLeft')  datesReel.querySelector('.reel-btn:not(:disabled)')?.click();
     if (e.key === 'ArrowRight') datesReel.querySelectorAll('.reel-btn')?.[1]?.click();
-    touchActivity();
   });
-  window.addEventListener('mousemove', touchActivity);
-  window.addEventListener('touchstart', touchActivity);
-
-  function touchActivity(){
-    lastChangeTs = Date.now();
-    hideSaver();
-  }
-
-  function openSettings(){
-    setNightEnabled.checked = !!DISPLAY_SAVER.nightDim.enabled;
-    setNightStart.value = DISPLAY_SAVER.nightDim.startHour ?? 1;
-    setNightEnd.value   = DISPLAY_SAVER.nightDim.endHour   ?? 6;
-    setNightDim.value   = Math.round((DISPLAY_SAVER.nightDim.dimLevel ?? 0.6)*100);
-    setShiftEnabled.checked = !!DISPLAY_SAVER.pixelShift.enabled;
-    setShiftEvery.value  = DISPLAY_SAVER.pixelShift.intervalMin ?? 2;
-    setShiftPixels.value = DISPLAY_SAVER.pixelShift.maxOffsetPx ?? 2;
-    setSaverEnabled.checked = !!DISPLAY_SAVER.screensaver.enabled;
-    setSaverIdle.value = DISPLAY_SAVER.screensaver.idleMinutes ?? 10;
-    settingsModal.style.display = 'flex';
-  }
-  function closeSettings(){ settingsModal.style.display = 'none'; }
 
   function togglePause() {
-    paused = !paused;
-    prefs.set('ui:paused', paused);
+    paused = !paused; prefs.set('ui:paused', paused);
     btnPause.innerText = paused ? 'Reanudar' : 'Pausar';
   }
 
   async function handleForceRefresh() {
     if (isFetching) return;
     const original = btnRefresh.innerText;
-    btnRefresh.disabled = true;
-    btnRefresh.innerText = 'Actualizando...';
+    btnRefresh.disabled = true; btnRefresh.innerText = 'Actualizando...';
     await loadAndRender(true);
-    btnRefresh.innerText = original;
-    btnRefresh.disabled = false;
+    btnRefresh.innerText = original; btnRefresh.disabled = false;
   }
 
   function initializeDOM() {
-    // Encabezados (SEQ, TPN, FRACTURADO)
     for (let i = 1; i <= POZOS; i++) {
       const thTop = document.createElement('th');
       thTop.className = `pozo-${i} pozoTop`;
@@ -536,18 +420,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const thSub2 = document.createElement('th'); thSub2.innerText = 'FRACTURADO'; hdrSub.appendChild(thSub2);
     }
 
-    // Filas
     const frag = document.createDocumentFragment();
     for (let i = 1; i <= ROWS; i++) {
       const id = '#' + String(i).padStart(2, '0');
-      const tr = document.createElement('tr');
-      tr.dataset.rowId = id;
+      const tr = document.createElement('tr'); tr.dataset.rowId = id;
       if (i % 2 === 0) tr.classList.add('alt');
 
-      const tdId = document.createElement('td');
-      tdId.className = 'rowid';
-      tdId.innerText = id;
-      tr.appendChild(tdId);
+      const tdId = document.createElement('td'); tdId.className = 'rowid'; tdId.innerText = id; tr.appendChild(tdId);
 
       for (let p = 1; p <= POZOS; p++) {
         const tdSeq = document.createElement('td'); tdSeq.dataset.col = `Seq${p}`; tdSeq.className = 'seq'; tr.appendChild(tdSeq);
@@ -623,8 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
       newNames.push(headerText);
     }
 
-    const ths = hdrTop.querySelectorAll('th.pozoTop');
-    ths.forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
+    hdrTop.querySelectorAll('th.pozoTop').forEach((th, idx) => { th.innerText = newNames[idx] || `POZO #${idx+1}`; });
 
     const subCells = hdrSub.querySelectorAll('th');
     for (let i = 1; i <= POZOS; i++) {
@@ -643,7 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 1; i <= POZOS; i++) {
       const tpn = String(dataObj['Pozo' + i] ?? '').trim();
       const estado = dataObj['Estado' + i];
-      // Consideramos TPN o FRACTURADO con fecha válida (ignorando STOP)
       if (tpn !== '' || (estado && !isStop(estado) && isFechaValida(estado))) return true;
     }
     return false;
@@ -652,8 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateRowCells(rowId, newData) {
     const tr = tbody.querySelector(`tr[data-row-id="${rowId}"]`);
     if (!tr) return { changed: false, cells: 0 };
-    let changedAny = false;
-    let changedCells = 0;
+    let changedAny = false, changedCells = 0;
 
     for (let p = 1; p <= POZOS; p++) {
       const tdSeq = tr.querySelector(`td[data-col="Seq${p}"]`);
@@ -670,8 +546,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (td2   && td2.innerText   !== v2 ) { td2.innerText   = v2;  changedAny = true; changedCells++; }
 
       if (td2){
-        const stop = (String(v2raw).trim().toUpperCase() === 'STOP') || (String(v2).trim().toUpperCase() === 'STOP');
-        td2.classList.toggle('stop', stop);
+        const isS = (String(v2raw).trim().toUpperCase() === 'STOP') || (String(v2).trim().toUpperCase() === 'STOP');
+        td2.classList.toggle('stop', isS);
       }
     }
     return { changed: changedAny, cells: changedCells };
@@ -708,58 +584,38 @@ document.addEventListener('DOMContentLoaded', () => {
     return { changedRows, changedCellsTotal };
   }
 
-  /* ========= Métricas de fracturas por fecha ========= */
-  let datesArr = [];      // [{display, normalized, count}, ...] orden asc.
-  let reelStart = prefs.get('reel:start', 0);
-  let userMovedReel = prefs.get('reel:moved', false);
+  /* ========= Métricas ========= */
+  let datesArr = []; let reelStart = prefs.get('reel:start', 0); let userMovedReel = prefs.get('reel:moved', false);
 
   function computeFractureStats(converted){
-    const freq = new Map();
-    let total = 0;
-
+    const freq = new Map(); let total = 0;
     for (const it of converted){
       if (!it.fila || !it.fila.trim()) continue;
       for (let i = 1; i <= POZOS; i++){
         const p = parseDateValue(it['Estado'+i]);
-        if (p){
-          total++;
-          const cur = freq.get(p.normalized);
-          if (cur) cur.count++;
-          else freq.set(p.normalized, { display: p.display, count: 1, normalized: p.normalized });
-        }
+        if (p){ total++; const cur = freq.get(p.normalized); if (cur) cur.count++; else freq.set(p.normalized, { display: p.display, count: 1, normalized: p.normalized }); }
       }
     }
     return { total, freq };
   }
-
-  function renderFractureTotal(total){
-    fractureTotalEl.textContent = `Total fracturas: ${total}`;
-  }
+  function renderFractureTotal(total){ fractureTotalEl.textContent = `Total fracturas: ${total}`; }
 
   function updateDatesArray(freq){
     const arr = Array.from(freq.values()).sort((a,b)=> a.normalized.localeCompare(b.normalized));
     datesArr = arr;
     const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
-    if (!userMovedReel) { reelStart = maxStart; }
-    else { reelStart = Math.min(reelStart, maxStart); }
-    prefs.set('reel:start', reelStart);
-    renderDatesReel();
+    if (!userMovedReel) reelStart = maxStart; else reelStart = Math.min(reelStart, maxStart);
+    prefs.set('reel:start', reelStart); renderDatesReel();
   }
 
   function renderDatesReel(){
     datesReel.innerHTML = '';
     if (!datesArr.length){
-      const empty = document.createElement('div');
-      empty.className = 'pill';
-      empty.textContent = 'Sin fechas';
-      datesReel.appendChild(empty);
-      return;
+      const empty = document.createElement('div'); empty.className = 'pill'; empty.textContent = 'Sin fechas'; datesReel.appendChild(empty); return;
     }
     const maxStart = Math.max(0, datesArr.length - REEL_SIZE);
 
-    const btnPrev = document.createElement('button');
-    btnPrev.className = 'reel-btn';
-    btnPrev.textContent = '‹';
+    const btnPrev = document.createElement('button'); btnPrev.className = 'reel-btn'; btnPrev.textContent = '‹';
     btnPrev.disabled = (reelStart === 0);
     btnPrev.onclick = () => { reelStart = Math.max(0, reelStart - REEL_SIZE); userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart); renderDatesReel(); };
     datesReel.appendChild(btnPrev);
@@ -767,18 +623,14 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let k = 0; k < REEL_SIZE; k++){
       const idx = reelStart + k; if (idx >= datesArr.length) break;
       const d = datesArr[idx];
-      const chip = document.createElement('div');
-      const isLatest = (idx === datesArr.length - 1);
+      const chip = document.createElement('div'); const isLatest = (idx === datesArr.length - 1);
       chip.className = 'date-chip' + (isLatest ? ' latest' : '');
       const dd = document.createElement('div'); dd.className = 'date'; dd.textContent = d.display;
       const nn = document.createElement('div'); nn.className = 'num';  nn.textContent = d.count;
-      chip.append(dd, nn);
-      datesReel.appendChild(chip);
+      chip.append(dd, nn); datesReel.appendChild(chip);
     }
 
-    const btnNext = document.createElement('button');
-    btnNext.className = 'reel-btn';
-    btnNext.textContent = '›';
+    const btnNext = document.createElement('button'); btnNext.className = 'reel-btn'; btnNext.textContent = '›';
     btnNext.disabled = (reelStart >= maxStart);
     btnNext.onclick = () => { reelStart = Math.min(maxStart, reelStart + REEL_SIZE); userMovedReel = true; prefs.set('reel:moved', true); prefs.set('reel:start', reelStart); renderDatesReel(); };
     datesReel.appendChild(btnNext);
@@ -788,47 +640,39 @@ document.addEventListener('DOMContentLoaded', () => {
   function computeRemainingStages(converted){
     const rows = converted
       .filter(it => (it.fila || '').trim())
-      .map(it => {
-        const m = (it.fila || '').trim().match(/^#?(\d+)/);
-        return { ...it, _row: m ? parseInt(m[1], 10) : NaN };
-      })
+      .map(it => { const m = (it.fila || '').trim().match(/^#?(\d+)/); return { ...it, _row: m ? parseInt(m[1], 10) : NaN }; })
       .filter(it => Number.isFinite(it._row))
       .sort((a,b) => a._row - b._row);
 
     let total = 0;
     for (let p = 1; p <= POZOS; p++){
       let stopRow = null;
-      for (const r of rows){
-        const v = (r['Estado' + p] || '').toString().trim().toUpperCase();
-        if (v === 'STOP'){ stopRow = r._row; break; }
-      }
+      for (const r of rows){ const v = (r['Estado' + p] || '').toString().trim().toUpperCase(); if (v === 'STOP'){ stopRow = r._row; break; } }
       if (!stopRow) continue;
-      for (const r of rows){
-        if (r._row >= stopRow) break;
-        const raw = (r['Estado' + p] || '').toString().trim();
-        if (raw === '') total++;
-      }
+      for (const r of rows){ if (r._row >= stopRow) break; const raw = (r['Estado' + p] || '').toString().trim(); if (raw === '') total++; }
     }
     return total;
   }
   function renderRemaining(n){ remainingEl.textContent = `Etapas restantes: ${n}`; }
 
   /* ========= Stock + semáforo ========= */
-  function parseNumberFromStock(s) {
-    if (!s) return NaN;
-    const m = s.toString().replace(',', '.').match(/-?\d+(\.\d+)?/);
-    return m ? parseFloat(m[0]) : NaN;
+  function parseNumberFromStock(s) { if (!s) return NaN; const m = s.toString().replace(',', '.').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : NaN; }
+  function getMergedRules(){
+    const override = prefs.get('stock:rules', {});
+    return { ...STOCK_RULES_BASE, ...override };
   }
   function stockClassByLevel(item, value) {
-    const rule = STOCK_RULES[item.toUpperCase()];
+    const rules = getMergedRules();
+    const rule = rules[item.toUpperCase()];
     if (!rule || !Number.isFinite(value)) return 'stock-mid';
     const [low, mid] = rule.thresholds;
     if (value < low) return 'stock-low';
     if (value <= mid) return 'stock-mid';
     return 'stock-high';
   }
-  const itemThemeIdx = new Map(); // nombre -> idx
+  const itemThemeIdx = new Map();
   function renderStock(stockArr = []) {
+    lastStockData = stockArr;
     stockBar.innerHTML = '';
     if (!Array.isArray(stockArr) || stockArr.length === 0) return;
     let idx = 0;
@@ -836,17 +680,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const itemName = (s.ITEM ?? '').toString();
       const qtyStr   = (s.STOCK ?? '').toString();
       const value    = parseNumberFromStock(qtyStr);
-
-      if (!itemThemeIdx.has(itemName)) { itemThemeIdx.set(itemName, idx++ % 8); }
+      if (!itemThemeIdx.has(itemName)) itemThemeIdx.set(itemName, idx++ % 8);
       const theme = `stock-theme-${itemThemeIdx.get(itemName)}`;
       const level = stockClassByLevel(itemName, value);
 
-      const div = document.createElement('div');
-      div.className = `pill ${theme} ${level}`;
+      const div = document.createElement('div'); div.className = `pill ${theme} ${level}`;
       const dot = document.createElement('span'); dot.className = 'dot';
       const txt = document.createElement('span'); txt.textContent = `${itemName}: ${qtyStr}`;
-      div.append(dot, txt);
-      stockBar.appendChild(div);
+      div.append(dot, txt); stockBar.appendChild(div);
     }
   }
 
@@ -854,25 +695,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function remainingPerPozo(converted){
     const rows = converted
       .filter(it => (it.fila || '').trim())
-      .map(it => {
-        const m = (it.fila || '').trim().match(/^#?(\d+)/);
-        return { ...it, _row: m ? parseInt(m[1], 10) : NaN };
-      })
+      .map(it => { const m = (it.fila || '').trim().match(/^#?(\d+)/); return { ...it, _row: m ? parseInt(m[1], 10) : NaN }; })
       .filter(it => Number.isFinite(it._row))
       .sort((a,b) => a._row - b._row);
 
     const result = Array(POZOS).fill(0);
     for (let p = 1; p <= POZOS; p++){
       let stopRow = null;
-      for (const r of rows){
-        const v = (r['Estado' + p] || '').toString().trim().toUpperCase();
-        if (v === 'STOP'){ stopRow = r._row; break; }
-      }
+      for (const r of rows){ const v = (r['Estado' + p] || '').toString().trim().toUpperCase(); if (v === 'STOP'){ stopRow = r._row; break; } }
       if (!stopRow) continue;
-      for (const r of rows){
-        if (r._row >= stopRow) break;
-        if ((r['Estado' + p] || '').toString().trim() === '') result[p-1]++;
-      }
+      for (const r of rows){ if (r._row >= stopRow) break; if ((r['Estado' + p] || '').toString().trim() === '') result[p-1]++; }
     }
     return result;
   }
@@ -881,68 +713,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ths.forEach((th, i) => {
       th.querySelectorAll('.badge').forEach(b => b.remove());
       const val = arr[i] ?? 0;
-      if (val > 0){
-        const b = document.createElement('span');
-        b.className = 'badge';
-        b.textContent = val;
-        th.appendChild(b);
-      }
+      if (val > 0){ const b = document.createElement('span'); b.className = 'badge'; b.textContent = val; th.appendChild(b); }
     });
-  }
-
-  /* ========= Protecciones TV ========= */
-  function inRangeHour(nowH, start, end){
-    return (start <= end) ? (nowH >= start && nowH < end) : (nowH >= start || nowH < end);
-  }
-  function applyNightDim(){
-    if (!DISPLAY_SAVER.nightDim.enabled){ dimVeil.style.opacity = 0; return; }
-    const now = new Date();
-    const h = now.getHours();
-    const active = inRangeHour(h, DISPLAY_SAVER.nightDim.startHour, DISPLAY_SAVER.nightDim.endHour);
-    if (!active){ dimVeil.style.opacity = 0; return; }
-    const dim = clamp(DISPLAY_SAVER.nightDim.dimLevel, 0.2, 1);
-    dimVeil.style.opacity = String(1 - dim); // 1-dim = opacidad del velo
-  }
-  function restartNightDim(){
-    if (nightTimer) clearInterval(nightTimer);
-    applyNightDim();
-    nightTimer = setInterval(applyNightDim, 5*60*1000);
-  }
-
-  function restartPixelShift(){
-    if (pixelShiftTimer) clearInterval(pixelShiftTimer);
-    document.documentElement.style.setProperty('--nudge-x', '0px');
-    document.documentElement.style.setProperty('--nudge-y', '0px');
-    if (!DISPLAY_SAVER.pixelShift.enabled) return;
-    const interval = Math.max(1, DISPLAY_SAVER.pixelShift.intervalMin) * 60 * 1000;
-    pixelShiftTimer = setInterval(()=>{
-      const max = Math.max(0, DISPLAY_SAVER.pixelShift.maxOffsetPx|0);
-      const x = (Math.floor(Math.random()*(max*2+1)) - max);
-      const y = (Math.floor(Math.random()*(max*2+1)) - max);
-      document.documentElement.style.setProperty('--nudge-x', x + 'px');
-      document.documentElement.style.setProperty('--nudge-y', y + 'px');
-    }, interval);
-  }
-
-  function showSaver(){
-    if (!DISPLAY_SAVER.screensaver.enabled) return;
-    saver.style.display = 'block';
-    // Mover lentamente el blob del fondo
-    const x = 30 + Math.random()*40;
-    const y = 25 + Math.random()*40;
-    saver.style.setProperty('--blob-x', x+'%');
-    saver.style.setProperty('--blob-y', y+'%');
-  }
-  function hideSaver(){ saver.style.display = 'none'; }
-  function restartSaver(){
-    if (saverTimer) clearInterval(saverTimer);
-    hideSaver();
-    if (!DISPLAY_SAVER.screensaver.enabled) return;
-    const idleMs = Math.max(1, DISPLAY_SAVER.screensaver.idleMinutes)*60*1000;
-    saverTimer = setInterval(()=>{
-      const idle = (Date.now() - lastChangeTs) > idleMs;
-      if (idle) showSaver(); else hideSaver();
-    }, 30*1000);
   }
 
   /* ========= Carga ========= */
@@ -956,7 +728,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`${JSON_URL}?_=${Date.now()}`, { cache: 'no-store' });
       const t1 = performance.now();
       if (!res.ok) throw new Error('HTTP ' + res.status);
-
       net.textContent = `OK ${Math.round(t1 - t0)}ms`;
       net.style.background = 'rgba(0,180,60,.2)';
       net.style.borderColor = 'rgba(0,180,60,.35)';
@@ -966,7 +737,6 @@ document.addEventListener('DOMContentLoaded', () => {
       lastUpdateEl.innerText = lu.toLocaleString();
 
       renderStock(json.stock || []);
-
       const converted = transformItems(json.items || []);
       const { top, sub } = extractHeaderRows(converted);
       updateHeaderNames(top, sub);
@@ -984,13 +754,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const perPozo = remainingPerPozo(converted);
       paintBadgesPerPozo(perPozo);
 
-      // Si hubo cambios, consideramos "actividad" para el screensaver
-      if (changedCellsTotal > 0) lastChangeTs = Date.now();
+      if (autoScrollCheckbox.checked) requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
 
-      // Auto-scroll siempre que esté tildado
-      if (autoScrollCheckbox.checked) {
-        requestAnimationFrame(() => scrollToLastWithData(LAST_N_TO_SHOW));
-      }
+      /* — actividad para el protector — */
+      saver.lastChangeTs = Date.now();
+      hideSaver();
 
     } catch (err) {
       console.error('Error al cargar datos:', err);
@@ -1004,37 +772,209 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Auto-scroll
   function scrollToLastWithData(n = LAST_N_TO_SHOW) {
     if (!autoScrollCheckbox.checked) return;
     const rows = Array.from(tbody.querySelectorAll('tr'));
     const idxWithData = [];
-    rows.forEach((tr, idx) => {
-      const id = tr.dataset.rowId;
-      if (hasVisibleData(latestDataMap[id])) idxWithData.push(idx);
-    });
+    rows.forEach((tr, idx) => { const id = tr.dataset.rowId; if (hasVisibleData(latestDataMap[id])) idxWithData.push(idx); });
     if (idxWithData.length === 0) return;
-
     const startIdx = idxWithData[Math.max(0, idxWithData.length - n)];
-    const startRow = rows[startIdx];
-    if (!startRow) return;
-
+    const startRow = rows[startIdx]; if (!startRow) return;
     const headerHeight = hdrTop.offsetHeight + hdrSub.offsetHeight;
     const targetTop = startRow.offsetTop - headerHeight - 8;
     tableContainer.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
   }
 
-  // ===== Init =====
-  loadDsConfig();
-  initializeDOM();
-  // Arrancar protecciones TV
-  restartNightDim();
-  restartPixelShift();
-  restartSaver();
+  /* ====== Screensaver (todos los modos + ajustes) ====== */
+  const LOGO_URL = 'logo-pluspetrol.png';
+  const saverEl = document.getElementById('saver');
+  const saverContent = document.getElementById('saverContent');
+  const saver = {
+    mode: prefs.get('saver:mode','rotate'),
+    idleMinutes: prefs.get('saver:idle', 2),
+    nightDim: prefs.get('saver:night', 0.35),
+    rotateEvery: prefs.get('saver:rotateEvery', 3),
+    lastChangeTs: Date.now(),
+    tick: null, rotTick: null, bounceRAF: null,
+  };
 
-  // Ciclo de datos
+  function kickActivity(){ saver.lastChangeTs = Date.now(); hideSaver(); }
+  ['mousemove','keydown','click','wheel','touchstart'].forEach(evt => document.addEventListener(evt, kickActivity, {passive:true}));
+
+  function showSaver(){
+    if (saverEl.classList.contains('on')) return;
+    const h = new Date().getHours(); const night = (h >= 22 || h <= 6);
+    saverEl.style.setProperty('--night-dim', night ? saver.nightDim : 0);
+    saverEl.style.setProperty('--x', `${40 + Math.random()*20}%`);
+    saverEl.style.setProperty('--y', `${40 + Math.random()*20}%`);
+    const mode = (saver.mode === 'rotate') ? nextModeForRotate() : saver.mode;
+    buildSaver(mode);
+    saverEl.classList.add('on'); renderSaverClock();
+  }
+  function hideSaver(){ saverEl.classList.remove('on'); clearBounce(); }
+  function renderSaverClock(){ const el = saverEl.querySelector('.clock'); if (el) el.textContent = new Date().toLocaleString(); }
+  function checkSaver(){ const idle = (Date.now() - saver.lastChangeTs)/60000; if (idle >= saver.idleMinutes) showSaver(); else hideSaver(); renderSaverClock(); }
+  saver.tick = setInterval(checkSaver, 10000);
+
+  const MODES = ['logoFloat','fracStrip','wellPulse','bouncingLogo'];
+  let rotateIdx = 0;
+  function nextModeForRotate(){ const m = MODES[rotateIdx % MODES.length]; rotateIdx++; return m; }
+  if (saver.mode === 'rotate') saver.rotTick = setInterval(() => { if (saverEl.classList.contains('on')) showSaver(); }, saver.rotateEvery*60000);
+
+  function buildSaver(mode){
+    saverEl.classList.remove('mode-float','mode-frac','mode-bounce','mode-pulse');
+    saverContent.innerHTML = ''; clearBounce();
+    if (mode === 'logoFloat'){
+      saverEl.classList.add('mode-float');
+      const img = new Image(); img.id = 'saverLogo'; img.src = LOGO_URL; saverContent.appendChild(img);
+    } else if (mode === 'fracStrip'){
+      saverEl.classList.add('mode-frac');
+      const img = new Image(); img.id = 'saverLogo'; img.src = LOGO_URL;
+      const strip = document.createElement('div'); strip.className = 'frac-strip';
+      for (let i=0;i<24;i++){ const s=document.createElement('span'); s.className='stage'; s.style.setProperty('--i',i); strip.appendChild(s); }
+      saverContent.append(img, strip);
+    } else if (mode === 'bouncingLogo'){
+      saverEl.classList.add('mode-bounce');
+      const box = document.createElement('div'); box.id='bounceBox';
+      const img = new Image(); img.id='saverLogo'; img.src = LOGO_URL; box.appendChild(img);
+      saverContent.appendChild(box); startBounce(img, box);
+    } else if (mode === 'wellPulse'){
+      saverEl.classList.add('mode-pulse');
+      const img = new Image(); img.id = 'saverLogo'; img.src = LOGO_URL;
+      const pads = document.createElement('div'); pads.className = 'pads';
+      const N = 24; for (let i=0;i<N;i++){ const p = document.createElement('span'); p.className='pad'; p.style.setProperty('--i',i); pads.appendChild(p); }
+      saverContent.append(img, pads);
+    }
+  }
+  function startBounce(img, box){
+    let x=80, y=80, vx=2.1, vy=1.6;
+    function step(){
+      const bw = box.clientWidth, bh = box.clientHeight, w = img.clientWidth, h = img.clientHeight;
+      x += vx; y += vy;
+      if (x<=0 || x+w>=bw){ vx = -vx; tintLogo(img); }
+      if (y<=0 || y+h>=bh){ vy = -vy; tintLogo(img); }
+      img.style.transform = `translate(${Math.max(0,Math.min(x,bw-w))}px,${Math.max(0,Math.min(y,bh-h))}px)`;
+      saver.bounceRAF = requestAnimationFrame(step);
+    }
+    saver.bounceRAF = requestAnimationFrame(step);
+  }
+  function clearBounce(){ if (saver.bounceRAF){ cancelAnimationFrame(saver.bounceRAF); saver.bounceRAF = null; } }
+  function tintLogo(img){ img.style.filter = `drop-shadow(0 6px 18px rgba(0,0,0,.45)) hue-rotate(${Math.round(Math.random()*20-10)}deg)`; }
+
+  /* ====== Ajustes (UI) ====== */
+  const modal = document.getElementById('modalSettings');
+  const optPozoFont = document.getElementById('optPozoFont');
+  const optStockFont = document.getElementById('optStockFont');
+  const optSaverMode = document.getElementById('optSaverMode');
+  const optIdleMin = document.getElementById('optIdleMin');
+  const optNightDim = document.getElementById('optNightDim');
+  const optRotateEvery = document.getElementById('optRotateEvery');
+  const rulesTable = document.getElementById('rulesTable').querySelector('tbody');
+
+  btnSettings.addEventListener('click', openSettings);
+  document.getElementById('btnCloseSettings').addEventListener('click', () => modal.classList.remove('on'));
+  document.getElementById('btnResetSettings').addEventListener('click', resetSettings);
+  document.getElementById('btnSaveSettings').addEventListener('click', saveSettings);
+  document.getElementById('btnLoadFromStock').addEventListener('click', () => {
+    const names = Array.from(new Set((lastStockData||[]).map(s=> (s.ITEM||'').toString().trim()).filter(Boolean)));
+    names.forEach(name => addOrUpdateRuleRow(name.toUpperCase()));
+  });
+  document.getElementById('btnAddRule').addEventListener('click', () => addOrUpdateRuleRow('NUEVO ITEM'));
+
+  function openSettings(){
+    optPozoFont.value = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--pozo-font-size')) || 18;
+    optStockFont.value = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--stock-font-size')) || 14;
+    optSaverMode.value = saver.mode;
+    optIdleMin.value = saver.idleMinutes;
+    optNightDim.value = saver.nightDim;
+    optRotateEvery.value = saver.rotateEvery;
+    buildRulesTable();
+    modal.classList.add('on');
+  }
+
+  function resetSettings(){
+    prefs.del('ui:pozoFont'); prefs.del('ui:stockFont');
+    prefs.del('saver:mode'); prefs.del('saver:idle'); prefs.del('saver:night'); prefs.del('saver:rotateEvery');
+    prefs.del('stock:rules');
+    applyPrefs(); renderStock(lastStockData); modal.classList.remove('on');
+  }
+
+  function saveSettings(){
+    const pf = clamp(+optPozoFont.value, 12, 28);
+    const sf = clamp(+optStockFont.value, 10, 22);
+    const im = clamp(+optIdleMin.value, 1, 60);
+    const nd = clamp(+optNightDim.value, 0, 0.8);
+    const re = clamp(+optRotateEvery.value, 1, 30);
+    prefs.set('ui:pozoFont', pf);
+    prefs.set('ui:stockFont', sf);
+    prefs.set('saver:mode', optSaverMode.value);
+    prefs.set('saver:idle', im);
+    prefs.set('saver:night', nd);
+    prefs.set('saver:rotateEvery', re);
+
+    const rules = tableToRules();
+    prefs.set('stock:rules', rules);
+
+    applyPrefs(); renderStock(lastStockData); modal.classList.remove('on');
+    if (saverEl.classList.contains('on')) showSaver();
+  }
+
+  function clamp(v, min, max){ return Math.min(max, Math.max(min, isNaN(v)?min:v)); }
+
+  function buildRulesTable(){
+    rulesTable.innerHTML = '';
+    const merged = getMergedRules();
+    Object.keys(merged).sort().forEach(name => addRuleRow(name, merged[name]));
+  }
+  function addOrUpdateRuleRow(name){
+    const merged = getMergedRules();
+    addRuleRow(name, merged[name] || { unit:'', thresholds:[0,0] });
+  }
+  function addRuleRow(name, rule){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${name}" /></td>
+      <td><input type="text" value="${(rule.unit||'')}" /></td>
+      <td class="right"><input type="number" step="0.01" value="${(rule.thresholds?.[0]??0)}" /></td>
+      <td class="right"><input type="number" step="0.01" value="${(rule.thresholds?.[1]??0)}" /></td>
+      <td class="right"><button class="btn secondary">Quitar</button></td>
+    `;
+    tr.querySelector('button').onclick = () => tr.remove();
+    rulesTable.appendChild(tr);
+  }
+  function tableToRules(){
+    const out = {};
+    rulesTable.querySelectorAll('tr').forEach(tr => {
+      const [nameEl, unitEl, lowEl, midEl] = tr.querySelectorAll('input');
+      const name = (nameEl.value||'').toUpperCase().trim(); if (!name) return;
+      const low = parseFloat(lowEl.value)||0, mid=parseFloat(midEl.value)||0;
+      out[name] = { unit: (unitEl.value||'').trim(), thresholds:[low, mid] };
+    });
+    return out;
+  }
+
+  function applyPrefs(){
+    const pf = prefs.get('ui:pozoFont', 18);
+    const sf = prefs.get('ui:stockFont', 14);
+    document.documentElement.style.setProperty('--pozo-font-size', pf + 'px');
+    document.documentElement.style.setProperty('--stock-font-size', sf + 'px');
+
+    saver.mode = prefs.get('saver:mode','rotate');
+    saver.idleMinutes = prefs.get('saver:idle',2);
+    saver.nightDim = prefs.get('saver:night',0.35);
+    saver.rotateEvery = prefs.get('saver:rotateEvery',3);
+    if (saver.rotTick){ clearInterval(saver.rotTick); saver.rotTick = null; }
+    if (saver.mode === 'rotate'){ saver.rotTick = setInterval(() => { if (saverEl.classList.contains('on')) showSaver(); }, saver.rotateEvery*60000); }
+  }
+
+  /* ===== Init ===== */
+  initializeDOM();
+  applyPrefs();
   loadAndRender(true);
   setInterval(() => loadAndRender(false), REFRESH_SECONDS * 1000);
+
+  /* Utils */
+  function renderSaverClock(){ const el = document.querySelector('#saver .clock'); if (el) el.textContent = new Date().toLocaleString(); }
 });
 </script>
 </body>
