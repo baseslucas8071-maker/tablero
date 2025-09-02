@@ -15,7 +15,7 @@
     --cell-font-size:19px;       /* TPN/FRACTURADO pedido: 19 */
 
     --w-id:54px; --w-seq:50px;
-    /* Reel: número (conteo) queda en 20px; fecha pedida a 18px */
+    /* Reel: fecha 18px, número 20px */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
 
     /* pixel-shift */
@@ -117,7 +117,7 @@
   #fractureTotal, #remainingStages { font-size:17px; }
   .status{padding:6px 12px;border-radius:999px;font-weight:800}
 
-  footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:#muted;gap:10px}
+  footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted);gap:10px}
   #footerLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
   /* atenuación */
@@ -154,6 +154,15 @@
   .rule-row{display:grid;grid-template-columns:minmax(180px,2.3fr) minmax(80px,.8fr) minmax(110px,1fr) minmax(110px,1fr) auto;gap:12px;padding:6px 10px;align-items:center}
   .rule-row input{width:100%}
   .pill.small{padding:4px 8px;font-size:12px}
+
+  /* ====== FULLSCREEN FIX (rayas/hairlines) ======
+     Sticky dentro de un ancestro transformado puede dibujar líneas.
+     En modo pantalla completa anulamos el transform y suavizamos grilla.
+  */
+  html.is-fullscreen .wrap{ transform:none !important; }
+  html.is-fullscreen thead th{ transform:translateZ(0); } /* promueve a capa propia */
+  html.is-fullscreen th, html.is-fullscreen td{ border-color:rgba(255,255,255,.04); }
+  html.is-fullscreen tbody tr.alt td{ background:rgba(255,255,255,.005); } /* zebra muy sutil */
 </style>
 </head>
 <body>
@@ -189,7 +198,7 @@
           <div id="stockBar" class="stockbar"></div>
         </div>
         <div class="indicators">
-          <div class="ind">
+          <div class="ind" title="KPIs del tablero">
             <div id="fractureTotal">Total fracturas: 0</div>
             <div id="remainingStages" class="subind">Etapas restantes: 0</div>
           </div>
@@ -198,7 +207,7 @@
       </div>
 
       <div class="table-container" id="tableContainer">
-        <table id="mainTable">
+        <table id="mainTable" title="Grilla principal">
           <thead>
             <tr id="hdrTop"><th class="rowid">#</th></tr>
             <tr id="hdrSub"><th class="rowid">&nbsp;</th></tr>
@@ -211,7 +220,7 @@
         <div id="footerLeft">
           <span>Última actualización: <strong id="lastUpdate">-</strong></span>
           <span id="delta" class="delta"></span>
-          <span id="netStatus" class="pill status">Conectando…</span>
+          <span id="netStatus" class="pill status" title="Estado de red">Conectando…</span>
         </div>
         <div class="meta">Actualiza cada <span id="refreshSec">15</span>s</div>
       </footer>
@@ -256,7 +265,7 @@
             <input type="number" id="setRotateEvery" min="1" max="60" step="1">
           </label>
           <div class="full" style="display:flex;gap:8px;align-items:center">
-            <button class="btn secondary" id="btnTestSaver">Probar protector</button>
+            <button class="btn secondary" id="btnTestSaver" title="Mostrar protector por 12s">Probar protector</button>
             <span class="pill small" id="saverStatus">—</span>
           </div>
         </div>
@@ -315,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ROWS=60,                        // filas visibles en la grilla
         POZOS=6,                        // cantidad de pozos
         LAST_N_TO_SHOW=8,               // autos-scroll: últimas N filas con data
-        REEL_SIZE=2;                    // cantidad de “chips” concurrentes en reel
+        REEL_SIZE=2;                    // cantidad de chips visibles en el reel
 
   /* carpeta de GitHub para los “Valores” (1.png..6.png) */
   const DEFAULT_VALUES_BASE = 'https://github.com/baseslucas8071-maker/tablero/blob/main/images/';
@@ -396,6 +405,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
   const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
   const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
+
+  /* ======= FULLSCREEN: toggle clase para CSS ======= */
+  document.addEventListener('fullscreenchange', () => {
+    document.documentElement.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+  });
 
   /* ======= HEADER ACCIONES ======= */
   autoScroll.checked=prefs.get('ui:autoScroll',true);
@@ -517,8 +531,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for(let i=1;i<=POZOS;i++){
       const pTop=topRow?.['Pozo'+i]?.trim()||'', eTop=topRow?.['Estado'+i]?.trim()||'';
       const pSub=subRow?.['Pozo'+i]?.trim()||'', eSub=subRow?.['Estado'+i]?.trim()||'';
-      let t=pTop||pSub||`POZO #${i}`;
-      let s=eTop||'';
+      let t=pTop||pSub||`POZO #${i}`; let s=eTop||'';
       if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub;
       n.push((t+(s?(' '+s):'' )).trim());
     }
@@ -618,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const el=datesReel; el.innerHTML='';
     if(!datesArr.length){
       const d=document.createElement('div'); d.className='pill'; d.textContent='Sin fechas';
+      d.title='Aún no hay registros de fracturas con fecha válida';
       el.appendChild(d); return;
     }
     const max=Math.max(0,datesArr.length-REEL_SIZE);
@@ -655,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
     el.appendChild(next);
   }
 
-  // NUEVO: función para llevar el reel a la última fecha SIEMPRE (auto-snap)
+  // Auto-snap del reel a la última fecha
   function snapReelToLatest(){
     const max=Math.max(0,datesArr.length-REEL_SIZE);
     reelStart=max;
@@ -708,6 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const val=numFromString(valStr);
       const cls=stockLevelClass(canon,val);
       const div=document.createElement('div'); div.className=`pill ${theme} ${cls}`;
+      div.title = `${raw} — ${valStr} (${cls.replace('stock-','')})`; // reseña
       const dot=document.createElement('span'); dot.className='dot';
       const txt=document.createElement('span'); txt.textContent=`${raw}: ${valStr}`;
       div.append(dot,txt); stockBar.appendChild(div);
@@ -934,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // reseña de red
       net.textContent=`OK ${Math.round(t1-t0)}ms`;
+      net.title = `Respuesta del backend en ${Math.round(t1-t0)} ms`;
       net.style.background='rgba(0,180,60,.2)';
       net.style.borderColor='rgba(0,180,60,.35)';
 
@@ -953,20 +969,29 @@ document.addEventListener('DOMContentLoaded', () => {
       // KPIs + REEL
       const stats=computeFractureStats(conv);
       fractureTotalEl.textContent=`Total fracturas: ${stats.total}`;
+      fractureTotalEl.title = `Total de celdas FRACTURADO con fecha válida (${stats.total})`;
       updateDatesArray(stats.freq);
 
-      // NUEVO: auto-snap del reel a la última fecha SIEMPRE tras cada refresh
+      // Auto-snap del reel a la última fecha
       snapReelToLatest();
 
       // Etapas restantes + badges por pozo
-      remainingEl.textContent=`Etapas restantes: ${computeRemainingStages(conv)}`;
+      const remaining = computeRemainingStages(conv);
+      remainingEl.textContent=`Etapas restantes: ${remaining}`;
+      remainingEl.title='Estimación basada en celdas Estado vacías hasta STOP';
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      // NUEVO: si el saver está visible, se desconecta al actualizar
-      if(isSaverVisible()) hideSaver();
+      // Si el saver estaba visible, lo cerramos para mostrar la data fresca
+      const saverWasVisible = isSaverVisible();
+      if(saverWasVisible) hideSaver();
 
-      // Si hubo cambios, reinicia timers de saver
-      if(changedCellsTotal>0){ lastActivityTs=Date.now(); scheduleSaver(); }
+      // MUY IMPORTANTE:
+      // - Si hubo cambios, reinicia el idle.
+      // - Si cerramos el saver por actualización (aunque NO haya cambios), también reprogramamos el idle.
+      if(changedCellsTotal>0 || saverWasVisible){
+        lastActivityTs=Date.now();
+        scheduleSaver();
+      }
 
       // Auto-scroll a últimas N filas con data
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
@@ -976,6 +1001,7 @@ document.addEventListener('DOMContentLoaded', () => {
       lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
       deltaEl.textContent='';
       net.textContent='ERROR';
+      net.title='Fallo al consultar el backend';
       net.style.background='rgba(220,60,60,.25)';
       net.style.borderColor='rgba(220,60,60,.4)';
     }finally{
