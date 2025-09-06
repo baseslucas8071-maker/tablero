@@ -21,11 +21,22 @@
 
     /* pixel-shift */
     --nudge-x:0px; --nudge-y:0px;
+
+    /* NUEVO: escala general y margen de seguridad para overscan */
+    --scale:1;
+    --safe-pad:0px;
   }
 
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
-  .wrap{padding:14px;box-sizing:border-box;display:flex;flex-direction:column;height:100%;
-        transform:translate(var(--nudge-x),var(--nudge-y));transition:transform .25s ease;}
+  .wrap{
+    padding:calc(14px + var(--safe-pad));
+    box-sizing:border-box;
+    display:flex;flex-direction:column;height:100%;
+    /* pixel-shift + escala global */
+    transform:translate(var(--nudge-x),var(--nudge-y)) scale(var(--scale));
+    transform-origin:top left;
+    transition:transform .2s ease, padding .2s ease;
+  }
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
   header h1{margin:0;font-size:28px;letter-spacing:.6px}
   header .meta{opacity:.9;font-size:13px;color:#9fd7ff}
@@ -157,7 +168,7 @@
   .pill.small{padding:4px 8px;font-size:12px}
 
   /* ====== FULLSCREEN FIX (rayas/hairlines) ====== */
-  html.is-fullscreen .wrap{ transform:none !important; }         /* cancela pixel-shift durante FS */
+  html.is-fullscreen{ --nudge-x:0px; --nudge-y:0px; }  /* cancela pixel-shift durante FS, pero mantiene escala */
   html.is-fullscreen thead th{ transform:translateZ(0); }        /* pinta cabeceras en su propia capa */
   html.is-fullscreen th, html.is-fullscreen td{ border-color:rgba(255,255,255,.04); }
   html.is-fullscreen tbody tr.alt td{ background:rgba(255,255,255,.005); }
@@ -239,6 +250,25 @@
         </label>
         <label>Tamaño datos (TPN/FRACTURADO)
           <input type="number" id="setCellFont" min="12" max="32" step="1">
+        </label>
+      </section>
+
+      <!-- NUEVO: Escalado / Zoom -->
+      <section class="grid g3">
+        <label>Modo de escala
+          <select id="setScaleMode">
+            <option value="none">100% (sin escala)</option>
+            <option value="fit-height">Ajustar a alto</option>
+            <option value="fit-width">Ajustar a ancho</option>
+            <option value="fit-both">Ajustar a ambos</option>
+            <option value="manual">Manual (%)</option>
+          </select>
+        </label>
+        <label>Manual (%)
+          <input type="number" id="setScaleManual" min="50" max="150" step="1">
+        </label>
+        <label>Margen (px)
+          <input type="number" id="setOverscan" min="0" max="80" step="1" title="Borde de seguridad para TVs con overscan">
         </label>
       </section>
 
@@ -358,7 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
     pozoFont:20, stockFont:16, cellFont:19,
     saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:2, gitBase:DEFAULT_VALUES_BASE },
     nightDim:{ enabled:true, startHour:1, endHour:6, dimLevel:0.65 },
-    pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 }
+    pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 },
+    /* NUEVO: control de escala */
+    scale:{ mode:'fit-height', manual:100, overscan:0 }
   });
 
   /* ======= ESTADO RUNTIME ======= */
@@ -394,10 +426,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
   const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
   const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
+  /* NUEVO: inputs de escala */
+  const setScaleMode=document.getElementById('setScaleMode');
+  const setScaleManual=document.getElementById('setScaleManual');
+  const setOverscan=document.getElementById('setOverscan');
 
   /* ======= FULLSCREEN: clase CSS para fix de rayas ======= */
   document.addEventListener('fullscreenchange', () => {
     document.documentElement.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+    computeScale(); // recalcular al entrar/salir de FS
   });
 
   /* ======= HEADER ACCIONES ======= */
@@ -413,7 +450,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnClose.onclick=()=>modal.style.display='none';
   btnReset.onclick=()=>{localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload();};
-  btnSave.onclick=()=>saveSettings(true);
+  /* Guardar + recalcular escala */
+  btnSave.onclick=()=>{ saveSettings(true); computeScale(); };
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
 
@@ -628,6 +666,46 @@ document.addEventListener('DOMContentLoaded', () => {
     saverTO=setTimeout(()=>showSaver(false), wait+50);
   }
 
+  /* ======= CÁLCULO DE ESCALA ======= */
+  function computeScale(){
+    const mode = DISPLAY.scale.mode;
+    const hostW = window.innerWidth  - 2*DISPLAY.scale.overscan;
+    const hostH = window.innerHeight - 2*DISPLAY.scale.overscan;
+
+    // aplica margen de seguridad visual (padding extra)
+    document.documentElement.style.setProperty('--safe-pad', DISPLAY.scale.overscan+'px');
+
+    // medir dimensiones del contenido con escala=1
+    const prev = getComputedStyle(document.documentElement).getPropertyValue('--scale');
+    document.documentElement.style.setProperty('--scale','1');
+
+    const contentW = document.querySelector('.wrap').scrollWidth;
+
+    const rowEl = tbody.querySelector('tr');
+    const rowH = rowEl ? rowEl.offsetHeight : 44;
+    const headerH = hdrTop.offsetHeight + hdrSub.offsetHeight;
+    const chromeH = document.querySelector('.bar').offsetHeight + document.querySelector('footer').offsetHeight + 20;
+    const contentH = headerH + (ROWS * rowH) + chromeH;
+
+    // volver a la escala previa (de forma transparente)
+    document.documentElement.style.setProperty('--scale', prev);
+
+    let s = 1;
+    if (mode === 'manual') {
+      s = clamp((DISPLAY.scale.manual||100)/100, 0.5, 1.5);
+    } else if (mode === 'fit-height') {
+      s = clamp(hostH / contentH, 0.5, 1.0);
+    } else if (mode === 'fit-width') {
+      s = clamp(hostW / contentW, 0.5, 1.0);
+    } else if (mode === 'fit-both') {
+      s = clamp(Math.min(hostW/contentW, hostH/contentH), 0.5, 1.0);
+    } else { // none
+      s = 1;
+    }
+
+    document.documentElement.style.setProperty('--scale', String(s));
+  }
+
   /* ======= CARGA Y RENDER ======= */
   async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; const t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
 
@@ -684,11 +762,12 @@ document.addEventListener('DOMContentLoaded', () => {
         lastActivityTs=Date.now();           // reprogramar idle a partir de "ahora"
         scheduleSaver();
         snapReelToLatest();                  // llevar reel a la última fecha (auto-scroll de fechas)
-      } else {
-        // sin cambios → no tocar el saver ni el lastActivityTs
       }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
+
+      // tras actualizar contenido, recalcular escala (por si cambió el alto de filas/encabezados)
+      computeScale();
 
     }catch(e){
       console.error(e);
@@ -712,6 +791,12 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ======= MODAL ======= */
   function openSettings(){
     setPozoFont.value=DISPLAY.pozoFont; setStockFont.value=DISPLAY.stockFont; setCellFont.value=DISPLAY.cellFont;
+
+    /* escala */
+    setScaleMode.value  = DISPLAY.scale.mode;
+    setScaleManual.value= DISPLAY.scale.manual;
+    setOverscan.value   = DISPLAY.scale.overscan;
+
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
@@ -721,6 +806,11 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.pozoFont=clamp(+setPozoFont.value||20,12,40);
     DISPLAY.stockFont=clamp(+setStockFont.value||16,10,30);
     DISPLAY.cellFont=clamp(+setCellFont.value||19,12,32);
+
+    /* escala */
+    DISPLAY.scale.mode   = setScaleMode.value;
+    DISPLAY.scale.manual = clamp(+setScaleManual.value||100,50,150);
+    DISPLAY.scale.overscan = clamp(+setOverscan.value||0,0,80);
 
     DISPLAY.saver.mode=setSaverMode.value;
     DISPLAY.saver.rotateEveryMin=clamp(+setRotateEvery.value||3,1,60);
@@ -770,8 +860,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ======= INIT ======= */
-  function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
+  function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); computeScale(); }
   initializeDOM(); applyDisplay(); loadAndRender(true); setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
+
+  /* Recalcular escala al redimensionar ventana (o cambiar zoom del SO) */
+  window.addEventListener('resize', computeScale);
 });
 </script>
 </body>
