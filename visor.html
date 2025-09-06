@@ -8,32 +8,21 @@
   :root{
     --bg:#071027; --card:#08203a; --muted:#cfe8ff;
 
-    /* ===== Base de diseño (valores “a 1x”) ===== */
-    --ui-scale:1;                    /* se recalcula en JS para PC/TV */
-    --h1-base:48px;                  /* alto header fila 1 */
-    --h2-base:44px;                  /* alto header fila 2 */
-    --rowh-base:44px;                /* alto de celdas del body */
-    --pozo-base:20px;                /* pedido: 20 */
-    --stock-base:16px;               /* pedido: 16 */
-    --cell-base:19px;                /* TPN/FRACTURADO pedido: 19 */
-    --reel-date-base:18px;           /* pedido: 18 */
-    --reel-num-base:20px;
+    /* ===== ALTOS/TAMAÑOS “fijos” (sin auto-escala) ===== */
+    --header-h-1:48px;  /* cabecera fila 1 */
+    --header-h-2:44px;  /* cabecera fila 2 */
+    --row-h:44px;       /* alto de celdas del body */
 
-    /* ===== Derivados escalables (PC/TV) ===== */
-    --header-h-1: calc(var(--h1-base) * var(--ui-scale));
-    --header-h-2: calc(var(--h2-base) * var(--ui-scale));
-    --row-h:      calc(var(--rowh-base) * var(--ui-scale));
-    --pozo-font-size:  calc(var(--pozo-base)  * var(--ui-scale));
-    --stock-font-size: calc(var(--stock-base) * var(--ui-scale));
-    --cell-font-size:  calc(var(--cell-base)  * var(--ui-scale));
-    --reel-num-size:   calc(var(--reel-num-base)  * var(--ui-scale));
-    --reel-date-size:  calc(var(--reel-date-base) * var(--ui-scale));
+    /* tamaños por defecto (editables por ajustes) */
+    --pozo-font-size:20px; /* pedido: 20 */
+    --stock-font-size:16px;/* pedido: 16 */
+    --cell-font-size:19px; /* TPN/FRACTURADO pedido: 19 */
 
-    /* anchos fijos de columnas identificadoras */
+    /* medidas varias */
     --w-id:54px; --w-seq:50px;
-    --reel-gap:8px; --reel-pad:10px;
+    --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
 
-    /* pixel-shift (se aplica como translate en .wrap) */
+    /* pixel-shift (pequeños nudge anti burn-in) */
     --nudge-x:0px; --nudge-y:0px;
   }
 
@@ -124,12 +113,11 @@
   .date-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:132px;padding:var(--reel-pad);
              border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
   .date-chip.latest{background:linear-gradient(180deg,rgba(0,163,255,.18),rgba(0,163,255,.08));border-color:rgba(0,163,255,.35)}
-  .date-chip .date{font-size:var(--reel-date-size);color:#bfe8ff}
+  .date-chip .date{font-size:var(--reel-date-size);color:#bfe8ff} /* ← pedido: 18 */
   .date-chip .num{font-size:var(--reel-num-size);font-weight:900;line-height:1.1}
 
   .subind{font-size:12px;color:#bfe8ff;margin-top:4px;font-weight:600;opacity:.95}
-  /* pedido: ambos a 17px (se mantienen fijos) */
-  #fractureTotal, #remainingStages { font-size:17px; }
+  #fractureTotal, #remainingStages { font-size:17px; } /* ← pedido: 17 */
   .status{padding:6px 12px;border-radius:999px;font-weight:800}
 
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted);gap:10px}
@@ -144,7 +132,7 @@
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
-  /* imágenes “rebotando” (pequeñas, estética cuidada) */
+  /* imágenes “rebotando” (pequeñas) */
   .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
 
   /* imágenes “lluvia” */
@@ -171,10 +159,8 @@
   .pill.small{padding:4px 8px;font-size:12px}
 
   /* ====== FULLSCREEN FIX (rayas/hairlines) ====== */
-  html.is-fullscreen .wrap{ transform:none !important; }         /* cancela pixel-shift durante FS */
-  html.is-fullscreen thead th{ transform:translateZ(0); }        /* pinta cabeceras en su propia capa */
-  html.is-fullscreen th, html.is-fullscreen td{ border-color:rgba(255,255,255,.04); }
-  html.is-fullscreen tbody tr.alt td{ background:rgba(255,255,255,.005); }
+  html.is-fullscreen .wrap{ transform:none !important; }      /* cancela pixel-shift durante FS */
+  html.is-fullscreen thead th{ transform:translateZ(0); }     /* pinta cabeceras en su propia capa */
 </style>
 </head>
 <body>
@@ -192,7 +178,7 @@
       <div class="meta">Actualiza automáticamente</div>
     </div>
     <div class="controls">
-      <label class="switch" title="Desplaza automáticamente a las últimas filas con datos"><input id="autoScroll" type="checkbox" /> Auto-scroll (últimas 7)</label>
+      <label class="switch" title="Desplaza a las últimas filas con datos"><input id="autoScroll" type="checkbox" /> Auto-scroll (últimas 7)</label>
       <button class="btn" id="btnRefresh" title="Descargar datos ahora">Forzar actualización</button>
       <button class="btn secondary" id="btnPause" title="Pausar/reanudar auto-actualización">Pausar</button>
       <button class="btn secondary" id="btnFull" title="Pantalla completa">Pantalla completa</button>
@@ -238,7 +224,7 @@
   </main>
 </div>
 
-<!-- ===== Modal Ajustes ===== -->
+<!-- ===== Modal Ajustes (sin escalas) ===== -->
 <div id="settingsModal" class="modal" aria-modal="true" role="dialog" aria-label="Ajustes">
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
@@ -278,17 +264,6 @@
             <button class="btn secondary" id="btnTestSaver" title="Mostrar protector por 12s">Probar protector</button>
             <span class="pill small" id="saverStatus">—</span>
           </div>
-        </div>
-      </section>
-
-      <!-- Escala / filas visibles -->
-      <section>
-        <h4>Escala y filas por pantalla</h4>
-        <div class="grid g3">
-          <label><input type="checkbox" id="setFitEnabled"> Ajustar a pantalla (PC/TV)</label>
-          <label class="full">Filas visibles por pantalla
-            <input type="number" id="setRowsPerScreen" min="8" max="40" step="1">
-          </label>
         </div>
       </section>
 
@@ -379,11 +354,9 @@ document.addEventListener('DOMContentLoaded', () => {
     [canonicalizeName('GEL TOTE')]:{display:'GEL TOTE',unit:'ud',low:5,mid:15},
   });
 
-  /* NUEVO: preferencia de “fit a pantalla” */
   let DISPLAY=prefs.get('display:cfg',{
     pozoFont:20, stockFont:16, cellFont:19,
     saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:2, gitBase:DEFAULT_VALUES_BASE },
-    fit:{ enabled:true, rowsPerScreen:14 },   // ← aquí
     nightDim:{ enabled:true, startHour:1, endHour:6, dimLevel:0.65 },
     pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 }
   });
@@ -409,20 +382,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const fractureTotalEl=document.getElementById('fractureTotal'), datesReel=document.getElementById('datesReel'), remainingEl=document.getElementById('remainingStages');
   const dimVeil=document.getElementById('dimVeil'), saver=document.getElementById('saver'), saverTicker=document.getElementById('saverTicker'), saverStage=document.getElementById('saverStage');
 
-  /* Modal */
-  const modal=document.getElementById('settingsModal');
-  const setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
-  const setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
-  const setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
-  const setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
-  const btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
-  const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
-  const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
-
   /* ======= FULLSCREEN: clase CSS para fix de rayas ======= */
   document.addEventListener('fullscreenchange', () => {
     document.documentElement.classList.toggle('is-fullscreen', !!document.fullscreenElement);
-    autoScale(); // recalcula la escala al entrar/salir de FS
   });
 
   /* ======= HEADER ACCIONES ======= */
@@ -436,9 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
   btnFull.onclick=()=>{!document.fullscreenElement?document.documentElement.requestFullscreen():document.exitFullscreen();};
   btnSettings.onclick=openSettings;
 
-  btnClose.onclick=()=>modal.style.display='none';
+  btnCloseSettings.onclick=()=>modal.style.display='none';
   btnReset.onclick=()=>{localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload();};
-  btnSave.onclick=()=>saveSettings(true);
+  btnSaveSettings.onclick=()=>saveSettings(true);
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
 
@@ -453,7 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
     testingTO = setTimeout(hideSaver, 12000);
   });
 
-  /* ======= ACTIVIDAD (anti-ruido) ======= */
+  /* ======= ACTIVIDAD (con filtro de “ruido” del mouse) ======= */
   let lastMove = {x:null,y:null,t:0};
   function handleActivity(e){
     if(isSaverVisible() && e.type === 'mousemove'){
@@ -462,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dy = Math.abs((e.clientY||0) - (lastMove.y||0));
       const dt = now - (lastMove.t||0);
       lastMove = {x:e.clientX||0, y:e.clientY||0, t:now};
-      if(dx<3 && dy<3 && dt<300) return;
+      if(dx<3 && dy<3 && dt<300) return; // ignora “temblor” del sensor
     }
     markActivity();
   }
@@ -495,43 +457,11 @@ document.addEventListener('DOMContentLoaded', () => {
     tbody.appendChild(frag);
     applyFontVars();
   }
-
-  /* ======= ESCALA / FUENTES ======= */
   function applyFontVars(){
-    document.documentElement.style.setProperty('--pozo-base',  DISPLAY.pozoFont+'px');
-    document.documentElement.style.setProperty('--stock-base', DISPLAY.stockFont+'px');
-    document.documentElement.style.setProperty('--cell-base',  DISPLAY.cellFont+'px');
-    autoScale();
+    document.documentElement.style.setProperty('--pozo-font-size', DISPLAY.pozoFont+'px');
+    document.documentElement.style.setProperty('--stock-font-size', DISPLAY.stockFont+'px');
+    document.documentElement.style.setProperty('--cell-font-size',  DISPLAY.cellFont+'px');
   }
-
-  /* Calcula un factor global para que se vea igual en PC/TV */
-  function autoScale(){
-    if(!DISPLAY.fit?.enabled){
-      document.documentElement.style.setProperty('--ui-scale','1');
-      return;
-    }
-    const rowsWanted = clamp(+DISPLAY.fit.rowsPerScreen || 14, 8, 40);
-
-    const vh = window.innerHeight;
-    const wrapPad = 28;                                           // padding .wrap (14*2)
-    const headerH = document.querySelector('header').offsetHeight;
-    const barH    = document.querySelector('.bar').offsetHeight;
-    const footerH = document.querySelector('footer').offsetHeight;
-    const extra = 6;
-
-    const avail = vh - wrapPad - headerH - barH - footerH - extra;
-    const baseRowH = 44;                                          // rowh-base
-    const scaleByRows = clamp(avail / (rowsWanted * baseRowH), 0.70, 1.60);
-
-    // Asegura que el ancho mínimo de la tabla (1280px) entre sin scroll horizontal “forzado”.
-    const desiredMinWidth = 1280;
-    const vw = window.innerWidth - 8;
-    const scaleByWidth = clamp(vw / desiredMinWidth, 0.75, 2.00);
-
-    const scale = Math.min(scaleByRows, scaleByWidth);
-    document.documentElement.style.setProperty('--ui-scale', scale.toFixed(3));
-  }
-  window.addEventListener('resize', autoScale);
 
   /* ======= JSON / FECHAS ======= */
   function transformItems(items){ if(!Array.isArray(items)) return []; return items.map(raw=>{const o={}; o.fila=(raw.Fila??raw.fila??'').toString(); for(let i=1;i<=POZOS;i++){ o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString(); o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString(); o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString(); } return o;}); }
@@ -585,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function isSaverVisible(){ return saver.style.display==='block'; }
   function clearSaver(){ saverStage.innerHTML=''; sprites=[]; cancelAnimationFrame(rafAnim); rafAnim=null; clearInterval(rotator); rotator=null; }
 
+  /* Rebote con 6 imágenes + colisiones */
   function startBounce(images){
     clearSaver();
     const W = saverStage.clientWidth, H = saverStage.clientHeight;
@@ -677,6 +608,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   function hideSaver(){ saver.style.display='none'; saverStatus.textContent='—'; clearSaver(); }
+  function isSaverVisible(){ return saver.style.display==='block'; }
 
   function scheduleSaver(){
     clearTimeout(saverTO);
@@ -737,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isSaverVisible()) hideSaver();
         lastActivityTs=Date.now();
         scheduleSaver();
-        snapReelToLatest();                 // auto-scroll del reel a la última fecha
+        snapReelToLatest();  // auto-scroll del reel a la última fecha
       }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
@@ -762,15 +694,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ======= MODAL ======= */
+  const modal=document.getElementById('settingsModal');
+  const setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
+  const setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
+  const setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
+  const setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
+  const btnSaveSettings=document.getElementById('btnSaveSettings'), btnCloseSettings=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
+  const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
+  const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
+
   function openSettings(){
     setPozoFont.value=DISPLAY.pozoFont; setStockFont.value=DISPLAY.stockFont; setCellFont.value=DISPLAY.cellFont;
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
-
-    /* Fit */
-    const fit = DISPLAY.fit || {enabled:true, rowsPerScreen:14};
-    document.getElementById('setFitEnabled').checked = !!fit.enabled;
-    document.getElementById('setRowsPerScreen').value = fit.rowsPerScreen;
-
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
     drawRulesTable(); modal.style.display='flex';
@@ -784,11 +719,6 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.saver.rotateEveryMin=clamp(+setRotateEvery.value||3,1,60);
     DISPLAY.saver.idleMinutes=clamp(+setSaverIdle.value||2,1,120);
     DISPLAY.saver.gitBase = DISPLAY.saver.gitBase || DEFAULT_VALUES_BASE;
-
-    /* Fit */
-    DISPLAY.fit = DISPLAY.fit || {};
-    DISPLAY.fit.enabled = document.getElementById('setFitEnabled').checked;
-    DISPLAY.fit.rowsPerScreen = clamp(+document.getElementById('setRowsPerScreen').value||14,8,40);
 
     DISPLAY.nightDim.enabled=setNightEnabled.checked;
     DISPLAY.nightDim.startHour=clamp(+setNightStart.value||1,0,23);
