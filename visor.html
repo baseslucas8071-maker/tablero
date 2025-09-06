@@ -8,21 +8,20 @@
   :root{
     --bg:#071027; --card:#08203a; --muted:#cfe8ff;
 
-    /* ===== ALTOS/TAMAÑOS “fijos” (sin auto-escala) ===== */
-    --header-h-1:48px;  /* cabecera fila 1 */
-    --header-h-2:44px;  /* cabecera fila 2 */
-    --row-h:44px;       /* alto de celdas del body */
+    /* Altos / tamaños base */
+    --header-h-1:48px;
+    --header-h-2:44px;
+    --row-h:44px; /* se autoajusta por JS para llenar pantalla */
 
-    /* tamaños por defecto (editables por ajustes) */
-    --pozo-font-size:20px; /* pedido: 20 */
-    --stock-font-size:16px;/* pedido: 16 */
-    --cell-font-size:19px; /* TPN/FRACTURADO pedido: 19 */
+    /* tamaños tipográficos configurables */
+    --pozo-font-size:20px;  /* pedido */
+    --stock-font-size:16px; /* pedido */
+    --cell-font-size:19px;  /* pedido */
 
-    /* medidas varias */
     --w-id:54px; --w-seq:50px;
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
 
-    /* pixel-shift (pequeños nudge anti burn-in) */
+    /* pixel-shift */
     --nudge-x:0px; --nudge-y:0px;
   }
 
@@ -113,11 +112,11 @@
   .date-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:132px;padding:var(--reel-pad);
              border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
   .date-chip.latest{background:linear-gradient(180deg,rgba(0,163,255,.18),rgba(0,163,255,.08));border-color:rgba(0,163,255,.35)}
-  .date-chip .date{font-size:var(--reel-date-size);color:#bfe8ff} /* ← pedido: 18 */
+  .date-chip .date{font-size:var(--reel-date-size);color:#bfe8ff} /* 18px */
   .date-chip .num{font-size:var(--reel-num-size);font-weight:900;line-height:1.1}
 
   .subind{font-size:12px;color:#bfe8ff;margin-top:4px;font-weight:600;opacity:.95}
-  #fractureTotal, #remainingStages { font-size:17px; } /* ← pedido: 17 */
+  #fractureTotal, #remainingStages { font-size:17px; } /* pedido */
   .status{padding:6px 12px;border-radius:999px;font-weight:800}
 
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted);gap:10px}
@@ -132,10 +131,7 @@
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
-  /* imágenes “rebotando” (pequeñas) */
   .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
-
-  /* imágenes “lluvia” */
   .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
 
   /* Modal */
@@ -152,15 +148,15 @@
   .modal input[type="number"], .modal input[type="range"], .modal select{width:100%}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
 
-  /* Reglas stock */
+  /* Reglas de stock */
   .rules-head{display:grid;grid-template-columns:minmax(180px,2.3fr) minmax(80px,.8fr) minmax(110px,1fr) minmax(110px,1fr) auto;gap:12px;padding:8px 10px;color:#cfe8ff;opacity:.9}
   .rule-row{display:grid;grid-template-columns:minmax(180px,2.3fr) minmax(80px,.8fr) minmax(110px,1fr) minmax(110px,1fr) auto;gap:12px;padding:6px 10px;align-items:center}
   .rule-row input{width:100%}
   .pill.small{padding:4px 8px;font-size:12px}
 
-  /* ====== FULLSCREEN FIX (rayas/hairlines) ====== */
-  html.is-fullscreen .wrap{ transform:none !important; }      /* cancela pixel-shift durante FS */
-  html.is-fullscreen thead th{ transform:translateZ(0); }     /* pinta cabeceras en su propia capa */
+  /* Fullscreen fix (evita rayitas) */
+  html.is-fullscreen .wrap{ transform:none !important; }
+  html.is-fullscreen thead th{ transform:translateZ(0); }
 </style>
 </head>
 <body>
@@ -224,12 +220,11 @@
   </main>
 </div>
 
-<!-- ===== Modal Ajustes (sin escalas) ===== -->
+<!-- ===== Modal Ajustes ===== -->
 <div id="settingsModal" class="modal" aria-modal="true" role="dialog" aria-label="Ajustes">
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
     <div class="modal-body">
-      <!-- fila 3 tamaños -->
       <section class="grid g3">
         <label>Tamaño “POZO #n”
           <input type="number" id="setPozoFont" min="12" max="40" step="1">
@@ -242,12 +237,11 @@
         </label>
       </section>
 
-      <!-- Protector -->
       <section>
         <h4>Protector de pantalla</h4>
         <div class="grid g3">
           <label>Modo
-            <select id="setSaverMode" title="Modo visual del protector">
+            <select id="setSaverMode">
               <option value="rotar">Rotar</option>
               <option value="blob">Luz ambiental</option>
               <option value="valores-rebotando">Valores rebotando</option>
@@ -255,45 +249,42 @@
             </select>
           </label>
           <label>Minutos inactivo
-            <input type="number" id="setSaverIdle" min="1" max="120" step="1" title="Tiempo sin actividad para activar el protector">
+            <input type="number" id="setSaverIdle" min="1" max="120" step="1">
           </label>
           <label>Rotar cada (min)
-            <input type="number" id="setRotateEvery" min="1" max="60" step="1" title="Sólo en modo 'Rotar'">
+            <input type="number" id="setRotateEvery" min="1" max="60" step="1">
           </label>
           <div class="full" style="display:flex;gap:8px;align-items:center">
-            <button class="btn secondary" id="btnTestSaver" title="Mostrar protector por 12s">Probar protector</button>
+            <button class="btn secondary" id="btnTestSaver">Probar protector</button>
             <span class="pill small" id="saverStatus">—</span>
           </div>
         </div>
       </section>
 
-      <!-- Atenuación nocturna -->
       <section>
         <h4>Atenuación nocturna</h4>
         <div class="grid g3">
-          <label title="Activa la atenuación en el rango horario indicado"><input type="checkbox" id="setNightEnabled"> Activar</label>
+          <label><input type="checkbox" id="setNightEnabled"> Activar</label>
           <label>Hora inicio <input type="number" id="setNightStart" min="0" max="23"></label>
           <label>Hora fin <input type="number" id="setNightEnd" min="0" max="23"></label>
           <label class="full">Brillo (20–100%) <input type="range" id="setNightDim" min="20" max="100"></label>
         </div>
       </section>
 
-      <!-- Pixel-shift -->
       <section>
         <h4>Pixel-shift</h4>
         <div class="grid g3">
-          <label title="Mueve la pantalla sutilmente para evitar retención"><input type="checkbox" id="setShiftEnabled"> Activar</label>
+          <label><input type="checkbox" id="setShiftEnabled"> Activar</label>
           <label>Intervalo (min) <input type="number" id="setShiftEvery" min="1" max="60"></label>
           <label>Desplazamiento (px) <input type="number" id="setShiftPixels" min="0" max="10"></label>
         </div>
       </section>
 
-      <!-- Reglas de stock -->
       <section>
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
           <h4>Reglas de stock <small style="opacity:.65">(umbral bajo/medio y unidad)</small></h4>
           <div>
-            <button class="btn secondary" id="btnLoadDetected" title="Agrega reglas para ítems detectados en el último JSON">Cargar ítems detectados</button>
+            <button class="btn secondary" id="btnLoadDetected">Cargar ítems detectados</button>
             <button class="btn secondary" id="btnAddRule">Añadir regla</button>
           </div>
         </div>
@@ -306,7 +297,7 @@
 
     <div class="modal-actions">
       <button class="btn secondary" id="btnCloseSettings">Cerrar</button>
-      <button class="btn secondary" id="btnReset" title="Borra preferencias locales">Restablecer</button>
+      <button class="btn secondary" id="btnReset">Restablecer</button>
       <button class="btn" id="btnSaveSettings">Guardar</button>
     </div>
   </div>
@@ -316,8 +307,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   /* ======= CONFIG ======= */
   const JSON_URL='status.json', REFRESH_SECONDS=15, ROWS=60, POZOS=6, LAST_N_TO_SHOW=8, REEL_SIZE=2;
-
-  /* carpeta de GitHub para los “Valores” (1.png..6.png) */
   const DEFAULT_VALUES_BASE = 'https://github.com/baseslucas8071-maker/tablero/blob/main/images/';
 
   /* ======= UTILES ======= */
@@ -334,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return [1,2,3,4,5,6].map(i=> r + i + '.png');
   };
 
-  /* ======= NORMALIZACIÓN DE NOMBRES (stock) ======= */
+  /* ======= ESTADO PERSISTENTE ======= */
   function canonicalizeName(raw){
     let s=(raw??'').toString().toUpperCase();
     s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -345,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return s;
   }
 
-  /* ======= ESTADO PERSISTENTE ======= */
   let STOCK_RULES=prefs.get('stock:rules',{
     [canonicalizeName('GAS OIL')]:{display:'GAS OIL',unit:'M3',low:50,mid:150},
     [canonicalizeName('ARENA #100')]:{display:'ARENA #100',unit:'Tn',low:100,mid:300},
@@ -382,9 +370,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const fractureTotalEl=document.getElementById('fractureTotal'), datesReel=document.getElementById('datesReel'), remainingEl=document.getElementById('remainingStages');
   const dimVeil=document.getElementById('dimVeil'), saver=document.getElementById('saver'), saverTicker=document.getElementById('saverTicker'), saverStage=document.getElementById('saverStage');
 
-  /* ======= FULLSCREEN: clase CSS para fix de rayas ======= */
+  /* Modal DOM (declarado ANTES de usarlo) */
+  const modal=document.getElementById('settingsModal');
+  const setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
+  const setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
+  const setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
+  const setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
+  const btnSaveSettings=document.getElementById('btnSaveSettings'), btnCloseSettings=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
+  const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
+  const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
+
+  /* ======= FULLSCREEN ======= */
   document.addEventListener('fullscreenchange', () => {
     document.documentElement.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+    fitRowsToViewport(); // recalcular alto de fila al entrar/salir
   });
 
   /* ======= HEADER ACCIONES ======= */
@@ -415,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     testingTO = setTimeout(hideSaver, 12000);
   });
 
-  /* ======= ACTIVIDAD (con filtro de “ruido” del mouse) ======= */
+  /* ======= ACTIVIDAD (filtrado de micro-movimientos) ======= */
   let lastMove = {x:null,y:null,t:0};
   function handleActivity(e){
     if(isSaverVisible() && e.type === 'mousemove'){
@@ -424,12 +423,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const dy = Math.abs((e.clientY||0) - (lastMove.y||0));
       const dt = now - (lastMove.t||0);
       lastMove = {x:e.clientX||0, y:e.clientY||0, t:now};
-      if(dx<3 && dy<3 && dt<300) return; // ignora “temblor” del sensor
+      if(dx<3 && dy<3 && dt<300) return;
     }
     markActivity();
   }
   ['mousemove','touchstart','click','wheel','keydown'].forEach(ev=>window.addEventListener(ev,handleActivity,{passive:true}));
-
   function markActivity(){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'){modal.style.display='none'; hideSaver();}});
 
@@ -455,13 +453,27 @@ document.addEventListener('DOMContentLoaded', () => {
       frag.appendChild(tr);
     }
     tbody.appendChild(frag);
-    applyFontVars();
   }
+
   function applyFontVars(){
     document.documentElement.style.setProperty('--pozo-font-size', DISPLAY.pozoFont+'px');
     document.documentElement.style.setProperty('--stock-font-size', DISPLAY.stockFont+'px');
     document.documentElement.style.setProperty('--cell-font-size',  DISPLAY.cellFont+'px');
   }
+
+  /* Ajuste: filas ocupan todo el alto disponible */
+  function fitRowsToViewport(){
+    // alto disponible entre la parte superior del contenedor de tabla y el borde superior del footer
+    const rectStart = tableContainer.getBoundingClientRect().top;
+    const footerTop = document.querySelector('footer').getBoundingClientRect().top;
+    const available = Math.max(100, footerTop - rectStart); // px para el área scrollable
+    const headH = hdrTop.offsetHeight + hdrSub.offsetHeight; // px reales de los sticky headers
+    const inner = Math.max(50, available - headH);
+    const target = Math.floor(inner / ROWS); // alto ideal por fila
+    const rowH = clamp(target, 26, 72);      // límites razonables
+    document.documentElement.style.setProperty('--row-h', rowH+'px');
+  }
+  window.addEventListener('resize', ()=>{ fitRowsToViewport(); }, {passive:true});
 
   /* ======= JSON / FECHAS ======= */
   function transformItems(items){ if(!Array.isArray(items)) return []; return items.map(raw=>{const o={}; o.fila=(raw.Fila??raw.fila??'').toString(); for(let i=1;i<=POZOS;i++){ o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString(); o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString(); o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString(); } return o;}); }
@@ -505,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function remainingPerPozo(conv){ const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row); const res=Array(POZOS).fill(0); for(let p=1;p<=POZOS;p++){ let stop=null; for(const r of rows){ const v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} } if(!stop) continue; for(const r of rows){ if(r._row>=stop) break; if((r['Estado'+p]||'').toString().trim()==='') res[p-1]++; } } return res; }
   function paintBadgesPerPozo(arr){ document.querySelectorAll('#hdrTop th.pozoTop').forEach((th,i)=>{ th.querySelectorAll('.badge').forEach(b=>b.remove()); const val=arr[i]??0; if(val>0){ const b=document.createElement('span'); b.className='badge'; b.textContent=val; b.title = `Etapas restantes estimadas: ${val}`; th.appendChild(b);} }); }
 
-  /* ======= PROTECCIONES: atenuación / shift / saver ======= */
+  /* ======= PROTECCIONES ======= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
   function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } const h=new Date().getHours(); const on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
   function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
@@ -515,7 +527,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function isSaverVisible(){ return saver.style.display==='block'; }
   function clearSaver(){ saverStage.innerHTML=''; sprites=[]; cancelAnimationFrame(rafAnim); rafAnim=null; clearInterval(rotator); rotator=null; }
 
-  /* Rebote con 6 imágenes + colisiones */
   function startBounce(images){
     clearSaver();
     const W = saverStage.clientWidth, H = saverStage.clientHeight;
@@ -576,8 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
       saverStage.appendChild(img); sprites.push(sp);
     }
     const step=()=>{ const W=saverStage.clientWidth, H=saverStage.clientHeight;
-      for(const s of sprites){
-        s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5;
+      for(const s of sprites){ s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5;
         if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size;
         if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); }
         s.el.style.transform=`translate(${s.x}px,${s.y}px) rotate(${s.a}deg)`;
@@ -586,7 +596,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }; step();
   }
 
-  function applySaverMode(mode){ clearSaver(); const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
+  function applySaverMode(mode){
+    clearSaver();
+    const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
     if(mode==='valores-rebotando') return startBounce(imgs);
     if(mode==='valores-lluvia')    return startStarfall(imgs);
     /* 'blob' no necesita nada extra */
@@ -631,17 +643,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const json=await res.json();
       lastUpdateEl.innerText=(json.lastUpdate?new Date(json.lastUpdate):new Date()).toLocaleString();
 
-      /* Detectores de cambio “real” */
       const newStockSig = JSON.stringify(json.stock||[]);
       const stockChanged = newStockSig !== prevStockSig;  prevStockSig = newStockSig;
-
       renderStock(json.stock||[]);
 
       const conv=transformItems(json.items||[]);
-      const {top,sub}=extractHeaderRows(conv);
+      const {top,sub}=extractHeaderRows(conv); updateHeaderNames(top,sub);
       const hdrSigNew = JSON.stringify({top,sub});
-      const hdrChanged = hdrSigNew !== prevHdrSig;        prevHdrSig = hdrSigNew;
-      updateHeaderNames(top,sub);
+      const hdrChanged = hdrSigNew !== prevHdrSig; prevHdrSig = hdrSigNew;
 
       const map=itemsArrayToMap(conv);
       const {changedCellsTotal}=updateDOM(map);
@@ -651,28 +660,26 @@ document.addEventListener('DOMContentLoaded', () => {
       const statsChanged = (prevStatsTotal===null) ? true : (stats.total !== prevStatsTotal);
       prevStatsTotal = stats.total;
       fractureTotalEl.textContent=`Total fracturas: ${stats.total}`;
-      fractureTotalEl.title = `Total de celdas FRACTURADO con fecha válida (${stats.total})`;
-
       updateDatesArray(stats.freq);
 
       const remaining = computeRemainingStages(conv);
       const remainingChanged = (prevRemaining===null) ? true : (remaining !== prevRemaining);
       prevRemaining = remaining;
       remainingEl.textContent=`Etapas restantes: ${remaining}`;
-      remainingEl.title='Estimación basada en celdas Estado vacías hasta STOP';
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      /* Política del protector:
-         cerrar SÓLO si hubo cambio real (o por interacción de usuario). */
+      /* Cerrar protector sólo si hubo cambio real */
       const dataChanged = (changedCellsTotal>0) || stockChanged || hdrChanged || statsChanged || remainingChanged;
       if (dataChanged) {
         if (isSaverVisible()) hideSaver();
         lastActivityTs=Date.now();
         scheduleSaver();
-        snapReelToLatest();  // auto-scroll del reel a la última fecha
+        snapReelToLatest();
       }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
+      // Recalcular alto de fila por si cambió algo en layout
+      fitRowsToViewport();
 
     }catch(e){
       console.error(e);
@@ -694,15 +701,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ======= MODAL ======= */
-  const modal=document.getElementById('settingsModal');
-  const setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
-  const setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
-  const setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
-  const setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
-  const btnSaveSettings=document.getElementById('btnSaveSettings'), btnCloseSettings=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
-  const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
-  const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
-
   function openSettings(){
     setPozoFont.value=DISPLAY.pozoFont; setStockFont.value=DISPLAY.stockFont; setCellFont.value=DISPLAY.cellFont;
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
@@ -741,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     prefs.set('display:cfg',DISPLAY); prefs.set('stock:rules',STOCK_RULES);
     applyFontVars(); restartNight(); restartShift(); scheduleSaver(); renderStock(stockCache);
+    fitRowsToViewport();
     if(close) modal.style.display='none';
   }
   function drawRulesTable(){ rulesBody.innerHTML=''; for(const [,rule] of Object.entries(STOCK_RULES)){ addRuleRow(rule); } }
@@ -764,7 +763,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   /* ======= INIT ======= */
   function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
-  initializeDOM(); applyDisplay(); loadAndRender(true); setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
+  initializeDOM(); applyDisplay(); fitRowsToViewport();
+  loadAndRender(true); setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
 });
 </script>
 </body>
