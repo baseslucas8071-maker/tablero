@@ -7,40 +7,18 @@
 <style>
   :root{
     --bg:#071027; --card:#08203a; --muted:#cfe8ff;
-
-    /* cabeceras (se escalan por JS) */
-    --header-h-1:48px; 
-    --header-h-2:44px;
-
-    /* tamaños base de texto (se escalan por JS) */
-    --pozo-font-size:20px;       /* pedido: 20 */
-    --stock-font-size:16px;      /* pedido: 16 */
-    --cell-font-size:19px;       /* pedido: 19 */
-
+    --header-h-1:48px; --header-h-2:44px;
+    --pozo-font-size:20px; --stock-font-size:16px; --cell-font-size:19px;
     --w-id:54px; --w-seq:50px;
-
-    /* Reel: fecha 18px, número 20px */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
-
-    /* pixel-shift (solo traslación, sin escala) */
     --nudge-x:0px; --nudge-y:0px;
-
-    /* margen de seguridad para TVs con overscan */
     --safe-pad:0px;
-
-    /* ALTURA DE FILA (se escala por JS) */
     --row-h:44px;
   }
 
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
-  .wrap{
-    padding:calc(14px + var(--safe-pad));
-    box-sizing:border-box;
-    display:flex;flex-direction:column;height:100%;
-    transform:translate(var(--nudge-x),var(--nudge-y)); /* SIN scale() */
-    transform-origin:top left;
-    transition:padding .2s ease;
-  }
+  .wrap{padding:calc(14px + var(--safe-pad));box-sizing:border-box;display:flex;flex-direction:column;height:100%;
+        transform:translate(var(--nudge-x),var(--nudge-y));transform-origin:top left;transition:padding .2s ease;}
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
   header h1{margin:0;font-size:28px;letter-spacing:.6px}
   header .meta{opacity:.9;font-size:13px;color:#9fd7ff}
@@ -78,13 +56,9 @@
 
   td[data-col^="Pozo"], td[data-col^="Estado"]{font-size:var(--cell-font-size)}
 
-  .pozoTop .badge{
-    margin-left:8px;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:900;line-height:1;color:#fff;
-    background:rgba(0,0,0,.45);border:1px solid rgba(0,0,0,.55);
-    box-shadow:0 0 0 1px rgba(255,255,255,.35),0 1px 6px rgba(0,0,0,.35);
-    text-shadow:0 1px 1px rgba(0,0,0,.55);backdrop-filter:saturate(120%) blur(1px);-webkit-backdrop-filter:saturate(120%) blur(1px);
-    vertical-align:middle
-  }
+  .pozoTop .badge{margin-left:8px;padding:2px 7px;border-radius:999px;font-size:12px;font-weight:900;line-height:1;color:#fff;
+    background:rgba(0,0,0,.45);border:1px solid rgba(0,0,0,.55);box-shadow:0 0 0 1px rgba(255,255,255,.35),0 1px 6px rgba(0,0,0,.35);
+    text-shadow:0 1px 1px rgba(0,0,0,.55);backdrop-filter:saturate(120%) blur(1px);-webkit-backdrop-filter:saturate(120%) blur(1px);vertical-align:middle}
 
   td.stop{background:rgba(255,60,60,.14)!important;color:#ffb3b3!important;font-weight:900;letter-spacing:.4px;text-shadow:0 0 6px rgba(255,60,60,.4)}
 
@@ -92,7 +66,6 @@
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:6px}
 
   .bar{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:nowrap;overflow-x:auto}
-
   .stockwrap{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0}
   .stocklabel{font-weight:800;color:#cfe8ff;opacity:.9}
   .stockbar{display:block;overflow-x:auto;overflow-y:hidden;white-space:nowrap;flex:1 1 auto}
@@ -135,19 +108,15 @@
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:var(--muted);gap:10px}
   #footerLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-  /* atenuación */
   #dimVeil{position:fixed;inset:0;pointer-events:none;background:#000;opacity:0;transition:opacity .4s ease;z-index:9996}
 
-  /* screensaver */
   #saver{position:fixed;inset:0;display:none;z-index:9997;background:radial-gradient(1200px 700px at var(--blob-x,40%) var(--blob-y,35%),rgba(0,163,255,.12),rgba(0,0,0,.85) 70%);backdrop-filter:blur(1px)}
   #saver .center{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center;font-weight:900;letter-spacing:.5px}
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
-
   .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
   .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
 
-  /* Modal */
   .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
   .modal-card{width:min(860px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -166,7 +135,6 @@
   .rule-row input{width:100%}
   .pill.small{padding:4px 8px;font-size:12px}
 
-  /* FULLSCREEN: cancelamos solo el pixel-shift para evitar rayas, NO tocamos escala de contenido */
   html.is-fullscreen{ --nudge-x:0px; --nudge-y:0px; }
   html.is-fullscreen thead th{ transform:translateZ(0); }
   html.is-fullscreen th, html.is-fullscreen td{ border-color:rgba(255,255,255,.04); }
@@ -239,20 +207,12 @@
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
     <div class="modal-body">
-      <!-- Tamaños -->
       <section class="grid g3">
-        <label>Tamaño “POZO #n”
-          <input type="number" id="setPozoFont" min="12" max="40" step="1">
-        </label>
-        <label>Tamaño “STOCK”
-          <input type="number" id="setStockFont" min="10" max="30" step="1">
-        </label>
-        <label>Tamaño datos (TPN/FRACTURADO)
-          <input type="number" id="setCellFont" min="12" max="32" step="1">
-        </label>
+        <label>Tamaño “POZO #n” <input type="number" id="setPozoFont" min="12" max="40" step="1"></label>
+        <label>Tamaño “STOCK” <input type="number" id="setStockFont" min="10" max="30" step="1"></label>
+        <label>Tamaño datos (TPN/FRACTURADO) <input type="number" id="setCellFont" min="12" max="32" step="1"></label>
       </section>
 
-      <!-- Escalado / Zoom REAL (sin transform) -->
       <section class="grid g3">
         <label>Modo de escala
           <select id="setScaleMode">
@@ -263,79 +223,65 @@
             <option value="manual">Manual (%)</option>
           </select>
         </label>
-        <label>Manual (%)
-          <input type="number" id="setScaleManual" min="50" max="150" step="1">
-        </label>
-        <label>Margen (px)
-          <input type="number" id="setOverscan" min="0" max="80" step="1" title="Borde de seguridad para TVs con overscan">
-        </label>
+        <label>Manual (%) <input type="number" id="setScaleManual" min="50" max="150" step="1"></label>
+        <label>Margen (px) <input type="number" id="setOverscan" min="0" max="80" step="1" title="Borde de seguridad para TVs con overscan"></label>
       </section>
 
-      <!-- Protector -->
       <section>
         <h4>Protector de pantalla</h4>
         <div class="grid g3">
           <label>Modo
-            <select id="setSaverMode" title="Modo visual del protector">
+            <select id="setSaverMode">
               <option value="rotar">Rotar</option>
               <option value="blob">Luz ambiental</option>
               <option value="valores-rebotando">Valores rebotando</option>
               <option value="valores-lluvia">Lluvia de valores</option>
             </select>
           </label>
-          <label>Minutos inactivo
-            <input type="number" id="setSaverIdle" min="1" max="120" step="1" title="Tiempo sin actividad para activar el protector">
-          </label>
-          <label>Rotar cada (min)
-            <input type="number" id="setRotateEvery" min="1" max="60" step="1" title="Sólo en modo 'Rotar'">
-          </label>
+          <label>Minutos inactivo <input type="number" id="setSaverIdle" min="1" max="120" step="1"></label>
+          <label>Rotar cada (min) <input type="number" id="setRotateEvery" min="1" max="60" step="1"></label>
           <div class="full" style="display:flex;gap:8px;align-items:center">
-            <button class="btn secondary" id="btnTestSaver" title="Mostrar protector por 12s">Probar protector</button>
+            <button class="btn secondary" id="btnTestSaver">Probar protector</button>
             <span class="pill small" id="saverStatus">—</span>
           </div>
         </div>
       </section>
 
-      <!-- Atenuación nocturna -->
       <section>
         <h4>Atenuación nocturna</h4>
         <div class="grid g3">
-          <label title="Activa la atenuación en el rango horario indicado"><input type="checkbox" id="setNightEnabled"> Activar</label>
+          <label><input type="checkbox" id="setNightEnabled"> Activar</label>
           <label>Hora inicio <input type="number" id="setNightStart" min="0" max="23"></label>
           <label>Hora fin <input type="number" id="setNightEnd" min="0" max="23"></label>
           <label class="full">Brillo (20–100%) <input type="range" id="setNightDim" min="20" max="100"></label>
         </div>
       </section>
 
-      <!-- Pixel-shift -->
       <section>
         <h4>Pixel-shift</h4>
         <div class="grid g3">
-          <label title="Mueve la pantalla sutilmente para evitar retención"><input type="checkbox" id="setShiftEnabled"> Activar</label>
+          <label><input type="checkbox" id="setShiftEnabled"> Activar</label>
           <label>Intervalo (min) <input type="number" id="setShiftEvery" min="1" max="60"></label>
           <label>Desplazamiento (px) <input type="number" id="setShiftPixels" min="0" max="10"></label>
         </div>
       </section>
 
-      <!-- Reglas de stock -->
       <section>
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
           <h4>Reglas de stock <small style="opacity:.65">(umbral bajo/medio y unidad)</small></h4>
           <div>
-            <button class="btn secondary" id="btnLoadDetected" title="Agrega reglas para ítems detectados en el último JSON">Cargar ítems detectados</button>
+            <button class="btn secondary" id="btnLoadDetected">Cargar ítems detectados</button>
             <button class="btn secondary" id="btnAddRule">Añadir regla</button>
           </div>
         </div>
-        <div class="rules-head">
-          <div>Ítem</div><div>Unidad</div><div>Bajo</div><div>Medio</div><div></div>
-        </div>
+        <div class="rules-head"><div>Ítem</div><div>Unidad</div><div>Bajo</div><div>Medio</div><div></div></div>
         <div id="rulesBody"></div>
       </section>
     </div>
 
     <div class="modal-actions">
       <button class="btn secondary" id="btnCloseSettings">Cerrar</button>
-      <button class="btn secondary" id="btnReset" title="Borra preferencias locales">Restablecer</button>
+      <button class="btn secondary" id="btnReset">Restablecer</button>
       <button class="btn" id="btnSaveSettings">Guardar</button>
     </div>
   </div>
@@ -343,26 +289,20 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  /* ======= CONFIG ======= */
   const JSON_URL='status.json', REFRESH_SECONDS=15, ROWS=60, POZOS=6, LAST_N_TO_SHOW=8, REEL_SIZE=2;
   const DEFAULT_VALUES_BASE = 'https://github.com/baseslucas8071-maker/tablero/blob/main/images/';
 
-  /* ======= UTILES ======= */
   const prefs={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)); const pad2=n=>String(n).padStart(2,'0');
   const toRawURL = u => { if(!u) return ''; const m=u.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.*)$/); return m ? `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}/${m[4]}` : u; };
   const VALUES_IMAGES = base=>{ const b=(base||DEFAULT_VALUES_BASE); const raw=(b.endsWith('/')?b:(b+'/')); const r=toRawURL(raw); return [1,2,3,4,5,6].map(i=> r + i + '.png'); };
 
-  /* ======= NOMBRES (stock) ======= */
   function canonicalizeName(raw){
     let s=(raw??'').toString().toUpperCase();
-    s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    s=s.replace(/\s*:\s*$/,'').replace(/ARENA\s*MALLA\s*/g,'ARENA ').replace(/\s+/g,' ').trim();
-    s=s.replace(/^GASOIL$/,'GAS OIL');
-    return s;
+    s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*:\s*$/,'').replace(/ARENA\s*MALLA\s*/g,'ARENA ').replace(/\s+/g,' ').trim();
+    s=s.replace(/^GASOIL$/,'GAS OIL'); return s;
   }
 
-  /* ======= ESTADO PERSISTENTE ======= */
   let STOCK_RULES=prefs.get('stock:rules',{
     [canonicalizeName('GAS OIL')]:{display:'GAS OIL',unit:'M3',low:50,mid:150},
     [canonicalizeName('ARENA #100')]:{display:'ARENA #100',unit:'Tn',low:100,mid:300},
@@ -379,17 +319,14 @@ document.addEventListener('DOMContentLoaded', () => {
     scale:{ mode:'fit-height', manual:100, overscan:0 }
   });
 
-  /* ======= ESTADO RUNTIME ======= */
   let paused=prefs.get('ui:paused',false);
   let prevDataMap={}, latestDataMap={}, isFetching=false;
-  let lastActivityTs=Date.now(); let stockCache=[];
+  let lastActivityTs=Date.now(), stockCache=[];
   let shiftTimer=null, nightTimer=null, saverTO=null, rotator=null;
   let rafAnim=null; let sprites=[]; let testingTO=null;
 
-  /* firmas de cambio */
-  let prevStockSig=''; let prevHdrSig=''; let prevStatsTotal=null; let prevRemaining=null;
+  let prevStockSig='', prevHdrSig='', prevStatsTotal=null, prevRemaining=null;
 
-  /* ======= DOM ======= */
   const tbody=document.getElementById('tbody');
   const hdrTop=document.getElementById('hdrTop'), hdrSub=document.getElementById('hdrSub');
   const tableContainer=document.getElementById('tableContainer');
@@ -400,7 +337,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const fractureTotalEl=document.getElementById('fractureTotal'), datesReel=document.getElementById('datesReel'), remainingEl=document.getElementById('remainingStages');
   const dimVeil=document.getElementById('dimVeil'), saver=document.getElementById('saver'), saverTicker=document.getElementById('saverTicker'), saverStage=document.getElementById('saverStage');
 
-  /* Modal */
   const modal=document.getElementById('settingsModal');
   const setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
   const setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
@@ -410,18 +346,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
   const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
 
-  /* NUEVO: inputs de escala */
   const setScaleMode=document.getElementById('setScaleMode');
   const setScaleManual=document.getElementById('setScaleManual');
   const setOverscan=document.getElementById('setOverscan');
 
-  /* ======= FULLSCREEN ======= */
   document.addEventListener('fullscreenchange', () => {
     document.documentElement.classList.toggle('is-fullscreen', !!document.fullscreenElement);
-    computeScale(); // recalcular al entrar/salir
+    requestAnimationFrame(computeScale);
   });
 
-  /* ======= HEADER ACCIONES ======= */
   autoScroll.checked=prefs.get('ui:autoScroll',true);
   btnPause.innerText=paused?'Reanudar':'Pausar';
   document.getElementById('refreshSec').innerText=REFRESH_SECONDS;
@@ -434,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnClose.onclick=()=>modal.style.display='none';
   btnReset.onclick=()=>{localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload();};
-  btnSave.onclick=()=>{ saveSettings(true); computeScale(); };
+  btnSave.onclick=()=>{ saveSettings(true); requestAnimationFrame(computeScale); };
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
 
@@ -445,7 +378,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(testingTO); testingTO = setTimeout(hideSaver, 12000);
   });
 
-  /* ======= ACTIVIDAD ======= */
   let lastMove = {x:null,y:null,t:0};
   function handleActivity(e){
     if(isSaverVisible() && e.type === 'mousemove'){
@@ -462,7 +394,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function markActivity(){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'){modal.style.display='none'; hideSaver();}});
 
-  /* ======= TABLA ======= */
   function initializeDOM(){
     for(let i=1;i<=POZOS;i++){
       const thTop=document.createElement('th'); thTop.className=`pozo-${i} pozoTop`; thTop.colSpan=3; thTop.innerText=`POZO #${i}`; thTop.title=`Encabezado del Pozo #${i}`;
@@ -487,29 +418,21 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFontVars();
   }
 
-  /* ======= TIPOGRAFÍAS / ALTURAS (escalables) ======= */
-  let runtimeScale = 1;              // factor aplicado (auto o manual)
-  const BASE = {                     // mínimos de legibilidad
-    rowH:44, head1:48, head2:44,
-    pozo:12, stock:10, cell:12
-  };
+  let runtimeScale = 1;
+  const BASE = {rowH:44, head1:48, head2:44, pozo:12, stock:10, cell:12};
 
   function applyFontVars(){
-    // tamaños pedidos por usuario * escala runtime
     const pf = Math.max(BASE.pozo,  DISPLAY.pozoFont * runtimeScale);
     const sf = Math.max(BASE.stock, DISPLAY.stockFont * runtimeScale);
     const cf = Math.max(BASE.cell,  DISPLAY.cellFont * runtimeScale);
-
     document.documentElement.style.setProperty('--pozo-font-size', pf+'px');
     document.documentElement.style.setProperty('--stock-font-size', sf+'px');
     document.documentElement.style.setProperty('--cell-font-size',  cf+'px');
-
     document.documentElement.style.setProperty('--row-h', Math.max(24, BASE.rowH * runtimeScale)+'px');
     document.documentElement.style.setProperty('--header-h-1', Math.max(28, BASE.head1 * runtimeScale)+'px');
     document.documentElement.style.setProperty('--header-h-2', Math.max(26, BASE.head2 * runtimeScale)+'px');
   }
 
-  /* ======= JSON / FECHAS ======= */
   function transformItems(items){ if(!Array.isArray(items)) return []; return items.map(raw=>{const o={}; o.fila=(raw.Fila??raw.fila??'').toString(); for(let i=1;i<=POZOS;i++){ o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString(); o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString(); o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString(); } return o;}); }
   const excelSerialToYMD=num=>{const base=Date.UTC(1899,11,30);const ms=base+Math.round(num)*86400000;const d=new Date(ms);return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()}};
   function parseDateValue(val){const s=(val??'').toString().trim(); if(!s) return null; let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m){const y=+m[1],mo=+m[2],d=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};} m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m){const d=+m[1],mo=+m[2],y=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};} if(/^-?\d+(\.\d+)?$/.test(s)){const n=Number(s.replace(',','.')); if(Number.isFinite(n)&&n>=30000&&n<=70000){const {y,m:mo,d}=excelSerialToYMD(n); return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};}} return null;}
@@ -519,7 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function extractHeaderRows(c){const h=c.filter(it=>(it.fila||'').trim()===''); return {top:h[0]||null, sub:h[1]||null};}
   function itemsArrayToMap(c){const m={}; for(const it of c){const k=(it.fila||'').toString().trim(); if(!k) continue; m[k]=it;} return m;}
 
-  /* ======= UI ENCABEZADOS / TABLA ======= */
   function updateHeaderNames(topRow, subRow){
     if(!topRow && !subRow) return;
     const n=[]; for(let i=1;i<=POZOS;i++){ const pTop=topRow?.['Pozo'+i]?.trim()||'', eTop=topRow?.['Estado'+i]?.trim()||''; const pSub=subRow?.['Pozo'+i]?.trim()||'', eSub=subRow?.['Estado'+i]?.trim()||''; let t=pTop||pSub||`POZO #${i}`; let s=eTop||''; if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub; n.push((t+(s?(' '+s):'' )).trim()); }
@@ -531,27 +453,22 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateRowCells(rowId,data){ const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`); if(!tr) return{changed:false,cells:0}; let ch=false,c=0; for(let p=1;p<=POZOS;p++){ const tdS=tr.querySelector(`td[data-col="Seq${p}"]`), td1=tr.querySelector(`td[data-col="Pozo${p}"]`), td2=tr.querySelector(`td[data-col="Estado${p}"]`); const vS=(data?.['Seq'+p])?String(data['Seq'+p]):''; const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):''; const raw=(data?.['Estado'+p])??''; const v2=maybeFormatDate(raw); if(tdS && tdS.innerText!==vS){tdS.innerText=vS; ch=true;c++;} if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;} if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;} if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); } } return{changed:ch,cells:c}; }
   function updateDOM(map){ let total=0; for(let i=1;i<=ROWS;i++){ const id='#'+String(i).padStart(2,'0'); const obj=map[id]||{}; const s=JSON.stringify(obj); const prev=prevDataMap[id]; if(prev===undefined){ prevDataMap[id]=s; latestDataMap[id]=obj; const {cells}=updateRowCells(id,obj); total+=cells; continue; } if(prev!==s){ const {cells}=updateRowCells(id,obj); total+=cells; prevDataMap[id]=s; latestDataMap[id]=obj; } else { latestDataMap[id]=obj; } } return {changedCellsTotal:total}; }
 
-  /* ======= STATS FRACTURAS ======= */
   let datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
   function computeFractureStats(conv){ const f=new Map(); let tot=0; for(const it of conv){ if(!it.fila?.trim()) continue; for(let i=1;i<=POZOS;i++){ const p=parseDateValue(it['Estado'+i]); if(p){tot++; const cur=f.get(p.normalized); cur?cur.count++:f.set(p.normalized,{display:p.display,count:1,normalized:p.normalized}); } } } return {total:tot,freq:f}; }
   function updateDatesArray(freq){ datesArr=Array.from(freq.values()).sort((a,b)=>a.normalized.localeCompare(b.normalized)); const max=Math.max(0,datesArr.length-REEL_SIZE); reelStart=userMovedReel?Math.min(reelStart,max):max; prefs.set('reel:start',reelStart); renderDatesReel(); }
   function renderDatesReel(){ const el=datesReel; el.innerHTML=''; if(!datesArr.length){ const d=document.createElement('div'); d.className='pill'; d.textContent='Sin fechas'; d.title='Aún no hay registros de fracturas con fecha válida'; el.appendChild(d); return; } const max=Math.max(0,datesArr.length-REEL_SIZE); const prev=document.createElement('button'); prev.className='reel-btn'; prev.textContent='‹'; prev.disabled=(reelStart===0); prev.title='Ver anteriores'; prev.onclick=()=>{reelStart=Math.max(0,reelStart-REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel();}; el.appendChild(prev); for(let k=0;k<REEL_SIZE;k++){ const idx=reelStart+k; if(idx>=datesArr.length) break; const d=datesArr[idx]; const chip=document.createElement('div'); chip.className='date-chip'+(idx===datesArr.length-1?' latest':''); chip.title = `${d.display} — ${d.count} fracturas`; const dd=document.createElement('div'); dd.className='date'; dd.textContent=d.display; const nn=document.createElement('div'); nn.className='num'; nn.textContent=d.count; chip.append(dd,nn); el.appendChild(chip);} const next=document.createElement('button'); next.className='reel-btn'; next.textContent='›'; next.disabled=(reelStart>=max); next.title='Ver siguientes'; next.onclick=()=>{reelStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel();}; el.appendChild(next); }
   function snapReelToLatest(){ const max=Math.max(0,datesArr.length-REEL_SIZE); reelStart=max; userMovedReel=false; prefs.set('reel:moved',false); prefs.set('reel:start',reelStart); renderDatesReel(); }
 
-  /* ======= ETAPAS RESTANTES ======= */
   function computeRemainingStages(conv){ const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row); let total=0; for(let p=1;p<=POZOS;p++){ let stop=null; for(const r of rows){ const v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} } if(!stop) continue; for(const r of rows){ if(r._row>=stop) break; if((r['Estado'+p]||'').toString().trim()==='') total++; } } return total; }
 
-  /* ======= STOCK ======= */
   function numFromString(s){ if(!s) return NaN; const m=s.toString().replace(',', '.').match(/-?\d+(\.\d+)?/); return m?parseFloat(m[0]):NaN; }
   function stockLevelClass(canon,val){ const rule=STOCK_RULES[canon]; if(!rule||!Number.isFinite(val)) return 'stock-mid'; if(val<rule.low) return 'stock-low'; if(val<=rule.mid) return 'stock-mid'; return 'stock-high'; }
   const themeMap=new Map();
   function renderStock(arr=[]){ stockCache=Array.isArray(arr)?arr:[]; stockBar.innerHTML=''; let idx=0; for(const it of stockCache){ const raw=(it.ITEM??'').toString(); const canon=canonicalizeName(raw); if(!themeMap.has(canon)) themeMap.set(canon,(idx++)%8); const theme=`stock-theme-${themeMap.get(canon)}`; const valStr=(it.STOCK??'').toString(); const val=numFromString(valStr); const cls=stockLevelClass(canon,val); const div=document.createElement('div'); div.className=`pill ${theme} ${cls}`; div.title = `${raw} — ${valStr} (${cls.replace('stock-','')})`; const dot=document.createElement('span'); dot.className='dot'; const txt=document.createElement('span'); txt.textContent=`${raw}: ${valStr}`; div.append(dot,txt); stockBar.appendChild(div);} }
 
-  /* ======= BADGES POR POZO ======= */
   function remainingPerPozo(conv){ const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row); const res=Array(POZOS).fill(0); for(let p=1;p<=POZOS;p++){ let stop=null; for(const r of rows){ const v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} } if(!stop) continue; for(const r of rows){ if(r._row>=stop) break; if((r['Estado'+p]||'').toString().trim()==='') res[p-1]++; } } return res; }
   function paintBadgesPerPozo(arr){ document.querySelectorAll('#hdrTop th.pozoTop').forEach((th,i)=>{ th.querySelectorAll('.badge').forEach(b=>b.remove()); const val=arr[i]??0; if(val>0){ const b=document.createElement('span'); b.className='badge'; b.textContent=val; b.title = `Etapas restantes estimadas: ${val}`; th.appendChild(b);} }); }
 
-  /* ======= PROTECCIONES ======= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
   function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } const h=new Date().getHours(); const on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
   function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
@@ -568,64 +485,66 @@ document.addEventListener('DOMContentLoaded', () => {
   function hideSaver(){ saver.style.display='none'; saverStatus.textContent='—'; clearSaver(); }
   function scheduleSaver(){ clearTimeout(saverTO); const idleMs=getIdleMs(); const wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(()=>showSaver(false), wait+50); }
 
-  /* ======= ESCALA DE CONTENIDO (sin transform) ======= */
+  /* ====== ESCALA (robusta) ====== */
   function measureContentAtScale(scaleTemp=1){
     const prev = runtimeScale;
     runtimeScale = scaleTemp;
     applyFontVars();
 
-    // Forzar layout y medir
-    const rowEl = tbody.querySelector('tr');
-    const rowH = rowEl ? rowEl.offsetHeight : 44;
-    const headerH = hdrTop.offsetHeight + hdrSub.offsetHeight;
-    const chromeH = document.querySelector('.bar').offsetHeight + document.querySelector('footer').offsetHeight + 20;
+    const rowEl = tbody?.querySelector('tr');
+    const rowH = rowEl?.offsetHeight || 44;
+    const headerH = (hdrTop?.offsetHeight||0) + (hdrSub?.offsetHeight||0);
+    const barH = document.querySelector('.bar')?.offsetHeight || 0;
+    const footH = document.querySelector('footer')?.offsetHeight || 0;
+    const chromeH = barH + footH + 20;
     const contentH = headerH + (ROWS * rowH) + chromeH;
 
-    const contentW = document.querySelector('.wrap').scrollWidth;
+    const wrapW = document.querySelector('.wrap')?.scrollWidth || 0;
+    const tableW = document.getElementById('mainTable')?.scrollWidth || 0;
+    const contentW = Math.max(wrapW, tableW);
 
     runtimeScale = prev;
     applyFontVars();
-
     return {contentH, contentW};
   }
 
   function computeScale(){
-    // margen de seguridad
-    document.documentElement.style.setProperty('--safe-pad', (DISPLAY.scale.overscan||0)+'px');
+    try{
+      document.documentElement.style.setProperty('--safe-pad', (DISPLAY.scale.overscan||0)+'px');
 
-    const hostW = window.innerWidth  - 2*(DISPLAY.scale.overscan||0);
-    const hostH = window.innerHeight - 2*(DISPLAY.scale.overscan||0);
+      const hostW = Math.max(0, window.innerWidth  - 2*(DISPLAY.scale.overscan||0));
+      const hostH = Math.max(0, window.innerHeight - 2*(DISPLAY.scale.overscan||0));
 
-    // medimos con escala 1 (tamaños "reales" de contenido)
-    const {contentH, contentW} = measureContentAtScale(1);
+      const meas = measureContentAtScale(1);
+      let contentH = meas.contentH || 0;
+      let contentW = meas.contentW || 0;
+      if(contentH<=0) contentH = hostH; // fallback para no romper
+      if(contentW<=0) contentW = hostW;
 
-    let s = 1;
-    const mode = DISPLAY.scale.mode;
-    if (mode === 'manual') {
-      s = clamp((DISPLAY.scale.manual||100)/100, 0.5, 1.5);
-    } else if (mode === 'fit-height') {
-      s = clamp(hostH / contentH, 0.5, 1.2);
-    } else if (mode === 'fit-width') {
-      s = clamp(hostW / contentW, 0.5, 1.2);
-    } else if (mode === 'fit-both') {
-      s = clamp(Math.min(hostW/contentW, hostH/contentH), 0.5, 1.2);
-    } else {
-      s = 1;
+      let s = 1, mode = DISPLAY.scale.mode;
+      if (mode === 'manual') s = clamp((DISPLAY.scale.manual||100)/100, 0.5, 1.5);
+      else if (mode === 'fit-height') s = clamp(hostH / contentH, 0.5, 1.2);
+      else if (mode === 'fit-width')  s = clamp(hostW / contentW, 0.5, 1.2);
+      else if (mode === 'fit-both')   s = clamp(Math.min(hostW/contentW, hostH/contentH), 0.5, 1.2);
+      else s = 1;
+
+      runtimeScale = isFinite(s)&&s>0 ? s : 1;
+      applyFontVars();
+    }catch(err){
+      console.error('computeScale failed:', err);
+      runtimeScale = 1; applyFontVars();
     }
-
-    runtimeScale = s;
-    applyFontVars();
   }
 
-  /* ======= CARGA Y RENDER ======= */
   async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; const t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
 
   async function loadAndRender(isForced=false){
     if(paused && !isForced) return; if(isFetching) return; isFetching=true;
     try{
-      const t0=performance.now(); const res=await fetch(`${JSON_URL}?_=${Date.now()}`,{cache:'no-store'}); const t1=performance.now();
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      net.textContent=`OK ${Math.round(t1-t0)}ms`; net.title = `Respuesta del backend en ${Math.round(t1-t0)} ms`;
+      const t0=performance.now(); const res=await fetch(`${JSON_URL}?_=${Date.now()}`,{cache:'no-store'});
+      const t1=performance.now();
+      if(!res.ok){ net.textContent=`ERROR ${res.status}`; net.title=`HTTP ${res.status}`; net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)'; throw new Error('HTTP '+res.status); }
+      net.textContent=`OK ${Math.round(t1-t0)}ms`; net.title = `Respuesta ${Math.round(t1-t0)} ms`;
       net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)';
 
       const json=await res.json();
@@ -649,7 +568,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const statsChanged = (prevStatsTotal===null) ? true : (stats.total !== prevStatsTotal);
       prevStatsTotal = stats.total;
       fractureTotalEl.textContent=`Total fracturas: ${stats.total}`;
-      fractureTotalEl.title = `Total de celdas FRACTURADO con fecha válida (${stats.total})`;
 
       updateDatesArray(stats.freq);
 
@@ -657,26 +575,23 @@ document.addEventListener('DOMContentLoaded', () => {
       const remainingChanged = (prevRemaining===null) ? true : (remaining !== prevRemaining);
       prevRemaining = remaining;
       remainingEl.textContent=`Etapas restantes: ${remaining}`;
-      remainingEl.title='Estimación basada en celdas Estado vacías hasta STOP';
       paintBadgesPerPozo(remainingPerPozo(conv));
 
       const dataChanged = (changedCellsTotal>0) || stockChanged || hdrChanged || statsChanged || remainingChanged;
-      if (dataChanged) {
-        if (isSaverVisible()) hideSaver();
-        lastActivityTs=Date.now(); scheduleSaver(); snapReelToLatest();
-      }
+      if (dataChanged) { if (isSaverVisible()) hideSaver(); lastActivityTs=Date.now(); scheduleSaver(); snapReelToLatest(); }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
 
-      // Si cambió algo visual (alturas por fuentes, etc.), recalculamos escala real
-      computeScale();
+      requestAnimationFrame(computeScale);
 
     }catch(e){
       console.error(e);
+      if(net.textContent.indexOf('ERROR')===-1){
+        net.textContent='ERROR'; net.title='Fallo al consultar el backend';
+        net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
+      }
       lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
       deltaEl.textContent='';
-      net.textContent='ERROR'; net.title='Fallo al consultar el backend';
-      net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
     }finally{ isFetching=false; }
   }
 
@@ -686,18 +601,13 @@ document.addEventListener('DOMContentLoaded', () => {
     rows.forEach((tr,i)=>{const id=tr.dataset.rowId; if(hasVisibleData(latestDataMap[id])) idx.push(i);});
     if(!idx.length) return;
     const startIdx=idx[Math.max(0,idx.length-n)], startRow=rows[startIdx]; if(!startRow) return;
-    const headerH=hdrTop.offsetHeight+hdrSub.offsetHeight;
+    const headerH=(hdrTop?.offsetHeight||0)+(hdrSub?.offsetHeight||0);
     tableContainer.scrollTo({top:Math.max(0,startRow.offsetTop-headerH-8),behavior:'smooth'});
   }
 
-  /* ======= MODAL ======= */
   function openSettings(){
     setPozoFont.value=DISPLAY.pozoFont; setStockFont.value=DISPLAY.stockFont; setCellFont.value=DISPLAY.cellFont;
-
-    setScaleMode.value  = DISPLAY.scale.mode;
-    setScaleManual.value= DISPLAY.scale.manual;
-    setOverscan.value   = DISPLAY.scale.overscan;
-
+    setScaleMode.value=DISPLAY.scale.mode; setScaleManual.value=DISPLAY.scale.manual; setOverscan.value=DISPLAY.scale.overscan;
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
@@ -708,9 +618,9 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.stockFont=clamp(+setStockFont.value||16,10,30);
     DISPLAY.cellFont=clamp(+setCellFont.value||19,12,32);
 
-    DISPLAY.scale.mode   = setScaleMode.value;
-    DISPLAY.scale.manual = clamp(+setScaleManual.value||100,50,150);
-    DISPLAY.scale.overscan = clamp(+setOverscan.value||0,0,80);
+    DISPLAY.scale.mode=setScaleMode.value;
+    DISPLAY.scale.manual=clamp(+setScaleManual.value||100,50,150);
+    DISPLAY.scale.overscan=clamp(+setOverscan.value||0,0,80);
 
     DISPLAY.saver.mode=setSaverMode.value;
     DISPLAY.saver.rotateEveryMin=clamp(+setRotateEvery.value||3,1,60);
@@ -740,8 +650,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(close) modal.style.display='none';
   }
   function drawRulesTable(){ rulesBody.innerHTML=''; for(const [,rule] of Object.entries(STOCK_RULES)){ addRuleRow(rule); } }
-  function addRuleRow(rule={}){
-    const row=document.createElement('div'); row.className='rule-row';
+  function addRuleRow(rule={}){ const row=document.createElement('div'); row.className='rule-row';
     row.innerHTML=`<input data-f="name" value="${rule.display??''}" placeholder="Nombre visible">
                    <input data-f="unit" value="${rule.unit??''}" placeholder="ud/Tn/M3">
                    <input data-f="low" value="${rule.low??''}" type="number" step="any">
@@ -749,19 +658,21 @@ document.addEventListener('DOMContentLoaded', () => {
                    <button class="btn secondary" type="button">Quitar</button>`;
     row.querySelector('button').onclick=()=>row.remove(); rulesBody.appendChild(row);
   }
-  function mergeDetectedItems(){
-    const detected=new Map(Object.entries(STOCK_RULES));
-    for(const it of stockCache){
-      const canon=canonicalizeName(it.ITEM);
-      if(!detected.has(canon)) detected.set(canon,{display:(it.ITEM||'').toString(),unit:'',low:0,mid:0});
-    }
+  function mergeDetectedItems(){ const detected=new Map(Object.entries(STOCK_RULES));
+    for(const it of stockCache){ const canon=canonicalizeName(it.ITEM); if(!detected.has(canon)) detected.set(canon,{display:(it.ITEM||'').toString(),unit:'',low:0,mid:0}); }
     STOCK_RULES=Object.fromEntries(detected.entries()); drawRulesTable();
   }
 
-  /* ======= INIT ======= */
-  function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); computeScale(); }
-  initializeDOM(); applyDisplay(); loadAndRender(true); setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
-  window.addEventListener('resize', computeScale);
+  function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
+
+  /* === ORDEN DE ARRANQUE (evita “Conectando…”) === */
+  initializeDOM();
+  applyDisplay();
+  // Primero cargar datos; luego calcular escala (por si algo arroja excepciones).
+  loadAndRender(true).finally(()=>{ requestAnimationFrame(computeScale); });
+  setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
+  window.addEventListener('resize', ()=>requestAnimationFrame(computeScale));
+  window.addEventListener('load', ()=>requestAnimationFrame(computeScale));
 });
 </script>
 </body>
