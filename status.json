@@ -64,7 +64,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "rivero capo",
+      "FechaFracPozo1": "",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-09T17:47:37.9281204Z",
+  "lastUpdate": "2025-09-09T17:54:04.9919009Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
