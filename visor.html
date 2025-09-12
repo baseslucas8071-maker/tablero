@@ -18,7 +18,8 @@
     --cell-font-size:19px;       /* TPN/FRACTURADO pedido: 20 */
 
     /* Anchos fijos */
-    --w-id:54px; --w-seq:50px;
+    --w-id:54px;
+    --w-seq:130px; /* ← más ancho para “dd/mm/aaaa hh:mm” (F/h TPN) */
 
     /* Reel de fechas */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
@@ -34,6 +35,7 @@
   }
 
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
+
   /* NOTA: padding usa --overscan en modo TV para evitar recortes */
   .wrap{
     padding:calc(14px + var(--overscan));
@@ -56,7 +58,7 @@
   table{border-collapse:collapse;width:100%;min-width:1280px}
   th,td{border:1px solid rgba(255,255,255,.06);padding:8px 10px;text-align:center;white-space:nowrap}
 
-  /* Encabezados stickies: cuidado con transform en ancestros (ver modo TV más abajo) */
+  /* Encabezados stickies */
   thead th{background:var(--bg);box-shadow:0 2px 0 rgba(0,0,0,.25)}
   thead tr:first-child th{position:sticky;top:0;z-index:11;height:var(--header-h-1)}
   thead tr:nth-child(2) th{position:sticky;top:var(--header-h-1);z-index:12;height:var(--header-h-2)}
@@ -70,7 +72,7 @@
   td.rowid{font-weight:800;color:#bfe8ff;background:#0c1833}
 
   th.seq,td.seq{width:var(--w-seq);min-width:var(--w-seq);max-width:var(--w-seq)}
-  td.seq{font-weight:800;color:#00ff9c;letter-spacing:.4px;text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35);background:rgba(0,255,160,.05)}
+  td.seq{font-weight:800;color:#00ff9c;letter-spacing:.3px;text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35);background:rgba(0,255,160,.05)}
 
   .pozoTop{font-size:var(--pozo-font-size);font-weight:800;letter-spacing:.6px;position:relative}
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a);color:#002}
@@ -178,11 +180,9 @@
   .pill.small{padding:4px 8px;font-size:12px}
 
   /* ============ MODO TV (Android TV / TCL) ============ */
-  /* Evita banding por sticky+transform, desactiva filtros caros */
   html.is-tv .wrap{ transform:none !important; }
   html.is-tv #saver{ backdrop-filter:none; }
   html.is-tv .bImg, html.is-tv .fallImg{ filter:none; }
-  /* Acelera capas para headers sticky en navegadores TV */
   html.is-tv thead th{ -webkit-transform:translateZ(0); transform:translateZ(0); }
 </style>
 </head>
@@ -353,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const prefs={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)); const pad2=n=>String(n).padStart(2,'0');
 
+  /* Convierte URL de GitHub a raw.githubusercontent */
   const toRawURL = u => {
     if(!u) return '';
     const m=u.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.*)$/);
@@ -441,6 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSave.onclick=()=>{saveSettings(true); fitRowsToViewport();};
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
+
   /* Test inmediato del protector sin disparar “actividad” */
   btnTestSaver.addEventListener('click', (e) => {
     e.preventDefault(); e.stopImmediatePropagation();
@@ -449,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000);
   });
 
-  /* ========= LISTENERS DE ACTIVIDAD (con filtro anti-micro-movimientos de TV) ========= */
+  /* ========= LISTENERS DE ACTIVIDAD ========= */
   const activityEvts=['mousemove','pointermove','touchmove','touchstart','click','wheel','keydown'];
   let lastInput={x:null,y:null,t:0};
   activityEvts.forEach(ev=>window.addEventListener(ev,markActivity,{passive:true}));
@@ -475,7 +477,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function initializeDOM(){
     for(let i=1;i<=POZOS;i++){
       const thTop=document.createElement('th'); thTop.className=`pozo-${i} pozoTop`; thTop.colSpan=3; thTop.innerText=`POZO #${i}`; hdrTop.appendChild(thTop);
-      const thSeq=document.createElement('th'); thSeq.className='seq'; thSeq.innerText='SEQ'; hdrSub.appendChild(thSeq);
+
+      /* Sub-encabezados: F/h TPN | TPN | FRACTURADO */
+      const thSeq=document.createElement('th'); thSeq.className='seq'; thSeq.innerText='F/h TPN'; hdrSub.appendChild(thSeq);
       const th1=document.createElement('th'); th1.innerText='TPN'; hdrSub.appendChild(th1);
       const th2=document.createElement('th'); th2.innerText='FRACTURADO'; hdrSub.appendChild(th2);
     }
@@ -515,30 +519,169 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= JSON / FECHAS ========= */
-  function transformItems(items){ if(!Array.isArray(items)) return []; return items.map(raw=>{const o={}; o.fila=(raw.Fila??raw.fila??'').toString(); for(let i=1;i<=POZOS;i++){ o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString(); o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString(); o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString(); } return o;}); }
-  const excelSerialToYMD=num=>{const base=Date.UTC(1899,11,30);const ms=base+Math.round(num)*86400000;const d=new Date(ms);return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()}};
-  function parseDateValue(val){const s=(val??'').toString().trim(); if(!s) return null; let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m){const y=+m[1],mo=+m[2],d=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};} m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m){const d=+m[1],mo=+m[2],y=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};} if(/^-?\d+(\.\d+)?$/.test(s)){const n=Number(s.replace(',','.')); if(Number.isFinite(n)&&n>=30000&&n<=70000){const {y,m:mo,d}=excelSerialToYMD(n); return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};}} return null;}
+
+  /* Excel serial (con fracción de día) → Date local */
+  function excelSerialToLocalDate(num){
+    const days = Math.floor(num);
+    const fracMs = Math.round((num - days) * 86400000);
+    const d = new Date(1899, 11, 30);     // base local 1899-12-30
+    d.setDate(d.getDate() + days);
+    d.setMilliseconds(d.getMilliseconds() + fracMs);
+    return d;
+  }
+
+  /* Parseo de valores de fecha (YYYY-MM-DD, DD/MM/YYYY o Excel serial con/ sin hora) */
+  function parseDateValue(val){
+    const s=(val??'').toString().trim();
+    if(!s) return null;
+
+    // ISO YYYY-MM-DD[ HH:MM]
+    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+    if(m){
+      const y=+m[1],mo=+m[2],d=+m[3],hh=+(m[4]??0),mm=+(m[5]??0);
+      const display=`${d}/${mo}/${y}` + (hh||mm?` ${pad2(hh)}:${pad2(mm)}`:'');
+      return {display,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};
+    }
+
+    // DD/MM/YYYY[ HH:MM]
+    m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?$/);
+    if(m){
+      const d=+m[1],mo=+m[2],y=+m[3],hh=+(m[4]??0),mm=+(m[5]??0);
+      const display=`${d}/${mo}/${y}` + (hh||mm?` ${pad2(hh)}:${pad2(mm)}`:'');
+      return {display,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};
+    }
+
+    // Excel serial (con o sin fracción de día)
+    if(/^-?\d+(\.\d+)?$/.test(s)){
+      const n=Number(s.replace(',','.'));
+      if(Number.isFinite(n) && n>=30000 && n<=75000){ // rango razonable
+        const d=excelSerialToLocalDate(n);
+        const display=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}` +
+                       ((d.getHours()||d.getMinutes())?` ${pad2(d.getHours())}:${pad2(d.getMinutes())}`:'');
+        return {display,normalized:`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`};
+      }
+    }
+    return null;
+  }
+
   const maybeFormatDate=v=>{const p=parseDateValue(v); return p?p.display:(v??'');}
   const isStop=v=>String(v??'').trim().toUpperCase()==='STOP';
   const isFechaValida=v=>parseDateValue(v)!==null;
+
+  function transformItems(items){
+    if(!Array.isArray(items)) return [];
+    return items.map(raw=>{
+      const o={};
+      o.fila=(raw.Fila??raw.fila??'').toString();
+      for(let i=1;i<=POZOS;i++){
+        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();   // ahora es Fecha/Hora (Excel serial admitido)
+        o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString();        // TPN
+        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();// FRACTURADO (fecha)
+      }
+      return o;
+    });
+  }
+
   function extractHeaderRows(c){const h=c.filter(it=>(it.fila||'').trim()===''); return {top:h[0]||null, sub:h[1]||null};}
   function itemsArrayToMap(c){const m={}; for(const it of c){const k=(it.fila||'').toString().trim(); if(!k) continue; m[k]=it;} return m;}
 
   /* ========= UI ENCABEZADOS / TABLA ========= */
   function updateHeaderNames(topRow, subRow){
     if(!topRow && !subRow) return;
-    const n=[]; for(let i=1;i<=POZOS;i++){ const pTop=topRow?.['Pozo'+i]?.trim()||'', eTop=topRow?.['Estado'+i]?.trim()||''; const pSub=subRow?.['Pozo'+i]?.trim()||'', eSub=subRow?.['Estado'+i]?.trim()||''; let t=pTop||pSub||`POZO #${i}`; let s=eTop||''; if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub; n.push((t+(s?(' '+s):'' )).trim()); }
+
+    const n=[];
+    for(let i=1;i<=POZOS;i++){
+      const pTop=topRow?.['Pozo'+i]?.trim()||'', eTop=topRow?.['Estado'+i]?.trim()||'';
+      const pSub=subRow?.['Pozo'+i]?.trim()||'', eSub=subRow?.['Estado'+i]?.trim()||'';
+      let t=pTop||pSub||`POZO #${i}`;
+      let s=eTop||'';
+      if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub;
+      n.push((t+(s?(' '+s):'' )).trim());
+    }
+
     hdrTop.querySelectorAll('th.pozoTop').forEach((th,i)=>th.innerText=n[i]||`POZO #${i+1}`);
+
     const sub=hdrSub.querySelectorAll('th');
-    for(let i=1;i<=POZOS;i++){ const pSub=subRow?.['Pozo'+i]?.trim()||'TPN', eSub=subRow?.['Estado'+i]?.trim()||'FRACTURADO'; const b=(i-1)*3+1; if(sub[b]) sub[b].innerText='SEQ'; if(sub[b+1]) sub[b+1].innerText=pSub; if(sub[b+2]) sub[b+2].innerText=eSub; }
+    for(let i=1;i<=POZOS;i++){
+      const b=(i-1)*3+1;
+      if(sub[b])   sub[b].innerText='F/h TPN';                   // ← renombrado
+      if(sub[b+1]) sub[b+1].innerText=subRow?.['Pozo'+i]?.trim()||'TPN';
+      if(sub[b+2]) sub[b+2].innerText=subRow?.['Estado'+i]?.trim()||'FRACTURADO';
+    }
   }
-  function hasVisibleData(o){ if(!o) return false; for(let i=1;i<=POZOS;i++){ const t=(o['Pozo'+i]??'').toString().trim(), e=o['Estado'+i]; if(t!=='' || (e && !isStop(e) && isFechaValida(e))) return true; } return false; }
-  function updateRowCells(rowId,data){ const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`); if(!tr) return{changed:false,cells:0}; let ch=false,c=0; for(let p=1;p<=POZOS;p++){ const tdS=tr.querySelector(`td[data-col="Seq${p}"]`), td1=tr.querySelector(`td[data-col="Pozo${p}"]`), td2=tr.querySelector(`td[data-col="Estado${p}"]`); const vS=(data?.['Seq'+p])?String(data['Seq'+p]):''; const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):''; const raw=(data?.['Estado'+p])??''; const v2=maybeFormatDate(raw); if(tdS && tdS.innerText!==vS){tdS.innerText=vS; ch=true;c++;} if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;} if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;} if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); } } return{changed:ch,cells:c}; }
-  function updateDOM(map){ let total=0; for(let i=1;i<=ROWS;i++){ const id='#'+String(i).padStart(2,'0'); const obj=map[id]||{}; const s=JSON.stringify(obj); const prev=prevDataMap[id]; if(prev===undefined){ prevDataMap[id]=s; latestDataMap[id]=obj; const {cells}=updateRowCells(id,obj); total+=cells; continue; } if(prev!==s){ const {cells}=updateRowCells(id,obj); total+=cells; prevDataMap[id]=s; latestDataMap[id]=obj; } else { latestDataMap[id]=obj; } } return {changedCellsTotal:total}; }
+
+  function hasVisibleData(o){
+    if(!o) return false;
+    for(let i=1;i<=POZOS;i++){
+      const t=(o['Pozo'+i]??'').toString().trim(), e=o['Estado'+i];
+      if(t!=='' || (e && !isStop(e) && isFechaValida(e))) return true;
+    }
+    return false;
+  }
+
+  function updateRowCells(rowId,data){
+    const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`);
+    if(!tr) return{changed:false,cells:0};
+    let ch=false,c=0;
+
+    for(let p=1;p<=POZOS;p++){
+      const tdS=tr.querySelector(`td[data-col="Seq${p}"]`),
+            td1=tr.querySelector(`td[data-col="Pozo${p}"]`),
+            td2=tr.querySelector(`td[data-col="Estado${p}"]`);
+
+      /* F/h TPN (antes SEQ): se formatea como fecha/hora si viene Excel serial o cadena de fecha */
+      const rawS=(data?.['Seq'+p])??'';
+      const vS=maybeFormatDate(rawS);
+
+      const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):'';       // TPN
+      const raw=(data?.['Estado'+p])??'';
+      const v2=maybeFormatDate(raw);                               // FRACTURADO
+
+      if(tdS && tdS.innerText!==vS){tdS.innerText=vS; ch=true;c++;}
+      if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;}
+      if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;}
+
+      if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); }
+    }
+    return{changed:ch,cells:c};
+  }
+
+  function updateDOM(map){
+    let total=0;
+    for(let i=1;i<=ROWS;i++){
+      const id='#'+String(i).padStart(2,'0');
+      const obj=map[id]||{};
+      const s=JSON.stringify(obj);
+      const prev=prevDataMap[id];
+
+      if(prev===undefined){
+        prevDataMap[id]=s; latestDataMap[id]=obj;
+        const {cells}=updateRowCells(id,obj); total+=cells; continue;
+      }
+      if(prev!==s){
+        const {cells}=updateRowCells(id,obj); total+=cells; prevDataMap[id]=s; latestDataMap[id]=obj;
+      }else{
+        latestDataMap[id]=obj;
+      }
+    }
+    return {changedCellsTotal:total};
+  }
 
   /* ========= STATS FRACTURAS ========= */
   let datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
-  function computeFractureStats(conv){ const f=new Map(); let tot=0; for(const it of conv){ if(!it.fila?.trim()) continue; for(let i=1;i<=POZOS;i++){ const p=parseDateValue(it['Estado'+i]); if(p){tot++; const cur=f.get(p.normalized); cur?cur.count++:f.set(p.normalized,{display:p.display,count:1,normalized:p.normalized}); } } } return {total:tot,freq:f}; }
+
+  function computeFractureStats(conv){
+    const f=new Map(); let tot=0;
+    for(const it of conv){
+      if(!it.fila?.trim()) continue;
+      for(let i=1;i<=POZOS;i++){
+        const p=parseDateValue(it['Estado'+i]);
+        if(p){tot++; const cur=f.get(p.normalized); cur?cur.count++:f.set(p.normalized,{display:p.display,count:1,normalized:p.normalized}); }
+      }
+    }
+    return {total:tot,freq:f};
+  }
+
   function updateDatesArray(freq){
     datesArr=Array.from(freq.values()).sort((a,b)=>a.normalized.localeCompare(b.normalized));
     const max=Math.max(0,datesArr.length-REEL_SIZE);
@@ -546,13 +689,16 @@ document.addEventListener('DOMContentLoaded', () => {
     prefs.set('reel:start',reelStart);
     renderDatesReel();
   }
+
   function renderDatesReel(){
     const el=datesReel; el.innerHTML='';
     if(!datesArr.length){ const d=document.createElement('div'); d.className='pill'; d.textContent='Sin fechas'; el.appendChild(d); return; }
+
     const max=Math.max(0,datesArr.length-REEL_SIZE);
     const prev=document.createElement('button'); prev.className='reel-btn'; prev.textContent='‹'; prev.disabled=(reelStart===0);
     prev.onclick=()=>{reelStart=Math.max(0,reelStart-REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel();};
     el.appendChild(prev);
+
     for(let k=0;k<REEL_SIZE;k++){
       const idx=reelStart+k; if(idx>=datesArr.length) break;
       const d=datesArr[idx];
@@ -561,6 +707,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const nn=document.createElement('div'); nn.className='num'; nn.textContent=d.count;
       chip.append(dd,nn); el.appendChild(chip);
     }
+
     const next=document.createElement('button'); next.className='reel-btn'; next.textContent='›'; next.disabled=(reelStart>=max);
     next.onclick=()=>{reelStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel();};
     el.appendChild(next);
@@ -584,9 +731,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function stockLevelClass(canon,val){ const rule=STOCK_RULES[canon]; if(!rule||!Number.isFinite(val)) return 'stock-mid'; if(val<rule.low) return 'stock-low'; if(val<=rule.mid) return 'stock-mid'; return 'stock-high'; }
   const themeMap=new Map();
   function renderStock(arr=[]){
-    stockCache=Array.isArray(arr)?arr:[];
-    stockBar.innerHTML='';
-    let idx=0;
+    stockCache=Array.isArray(arr)?arr:[]; stockBar.innerHTML=''; let idx=0;
     for(const it of stockCache){
       const raw=(it.ITEM??'').toString();
       const canon=canonicalizeName(raw);
@@ -780,6 +925,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
     drawRulesTable(); modal.style.display='flex';
   }
+
   function saveSettings(close){
     DISPLAY.pozoFont=clamp(+setPozoFont.value||20,12,40);
     DISPLAY.stockFont=clamp(+setStockFont.value||16,10,30);
@@ -802,8 +948,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Reglas
     const rows=[...rulesBody.querySelectorAll('.rule-row')]; const next={};
     for(const r of rows){
-      const name=r.querySelector('[data-f=name]').value, unit=r.querySelector('[data-f=unit]').value;
-      const low=+r.querySelector('[data-f=low]').value, mid=+r.querySelector('[data-f=mid]').value;
+      const name=r.querySelector('[data-f=name]')?.value ?? '',
+            unit=r.querySelector('[data-f=unit]')?.value ?? '';
+      const low=+(r.querySelector('[data-f=low]')?.value ?? NaN),
+            mid=+(r.querySelector('[data-f=mid]')?.value ?? NaN);
       if(!name) continue; const canon=canonicalizeName(name);
       next[canon]={display:name.trim(),unit:(unit||'').trim(),low:Number.isFinite(low)?low:0,mid:Number.isFinite(mid)?mid:0};
     }
@@ -813,6 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFontVars(); restartNight(); restartShift(); scheduleSaver(); renderStock(stockCache);
     if(close) modal.style.display='none';
   }
+
   function drawRulesTable(){ rulesBody.innerHTML=''; for(const [,rule] of Object.entries(STOCK_RULES)){ addRuleRow(rule); } }
   function addRuleRow(rule={}){
     const row=document.createElement('div'); row.className='rule-row';
@@ -823,6 +972,7 @@ document.addEventListener('DOMContentLoaded', () => {
                    <button class="btn secondary" type="button">Quitar</button>`;
     row.querySelector('button').onclick=()=>row.remove(); rulesBody.appendChild(row);
   }
+
   function mergeDetectedItems(){
     const detected=new Map(Object.entries(STOCK_RULES));
     for(const it of stockCache){
