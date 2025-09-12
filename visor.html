@@ -13,14 +13,15 @@
     --header-h-1:48px; --header-h-2:44px;
 
     /* Tamaños por defecto */
-    --pozo-font-size:20px;       /* pedido: 20 */
-    --stock-font-size:14px;      /* pedido: 14 */
-    --cell-font-size:19px;       /* TPN/FRACTURADO pedido: 19 */
+    --pozo-font-size:20px;
+    --stock-font-size:14px;
+    --cell-font-size:19px;
 
     /* Anchos fijos */
-    --w-id:54px;
-    --w-fhtpn:138px;             /* NUEVO: ancho “F/h TPN” (fecha + hora) */
-    --w-seq:50px;                /* (ya no se usa visualmente, conservado por compat) */
+    --w-id:54px;          /* # */
+    --w-fhtpn:138px;      /* F/h TPN */
+    --w-tpn:90px;         /* TPN */
+    --w-frac:140px;       /* FRACTURADO */
 
     /* Reel de fechas */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
@@ -31,12 +32,12 @@
     /* Pixel-shift */
     --nudge-x:0px; --nudge-y:0px;
 
-    /* Overscan para TVs que recortan bordes (ajustable) */
+    /* Overscan para TVs */
     --overscan:0px;
 
-    /* Colores para F/h (fecha/hora) */
-    --fh-green:#00ff9c;          /* fecha (verde) */
-    --fh-orange:#ffb100;         /* hora (naranja flúor) */
+    /* Colores F/h */
+    --fh-green:#00ff9c;
+    --fh-orange:#ffb100;
   }
 
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
@@ -74,15 +75,15 @@
   th.rowid,td.rowid{position:sticky;left:0;z-index:20;width:var(--w-id);min-width:var(--w-id);max-width:var(--w-id)}
   td.rowid{font-weight:800;color:#bfe8ff;background:#0c1833}
 
-  /* NUEVO: columna F/h TPN (primer subcolumna de cada pozo) */
+  /* Subcolumnas con ancho fijo */
   th.fhtpn, td.fhtpn{width:var(--w-fhtpn);min-width:var(--w-fhtpn);max-width:var(--w-fhtpn)}
+  th.tpn, td.tpn{width:var(--w-tpn);min-width:var(--w-tpn);max-width:var(--w-tpn)}
+  th.frac, td.frac{width:var(--w-frac);min-width:var(--w-frac);max-width:var(--w-frac)}
+
+  /* F/h TPN colores */
   td.fhtpn{line-height:1.15;font-weight:800}
   td.fhtpn .fh-date{display:block;color:var(--fh-green);text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35)}
   td.fhtpn .fh-time{display:block;color:var(--fh-orange);text-shadow:0 0 10px rgba(255,170,0,.6)}
-
-  /* La antigua “seq” queda disponible si hiciera falta en otro lado */
-  th.seq,td.seq{width:var(--w-seq);min-width:var(--w-seq);max-width:var(--w-seq)}
-  td.seq{font-weight:800;color:#00ff9c;letter-spacing:.4px;text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35);background:rgba(0,255,160,.05)}
 
   .pozoTop{font-size:var(--pozo-font-size);font-weight:800;letter-spacing:.6px;position:relative}
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a);color:#002}
@@ -108,7 +109,6 @@
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:6px}
 
   .bar{display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:nowrap;overflow-x:auto}
-
   .stockwrap{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0}
   .stocklabel{font-weight:800;color:#cfe8ff;opacity:.9}
   .stockbar{display:block;overflow-x:auto;overflow-y:hidden;white-space:nowrap;flex:1 1 auto}
@@ -163,10 +163,7 @@
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
-  /* Imágenes rebotando */
   .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
-
-  /* Imágenes lluvia */
   .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
 
   /* Modal */
@@ -183,7 +180,6 @@
   .modal input[type="number"], .modal input[type="range"], .modal select{width:100%}
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
 
-  /* Reglas stock */
   .rules-head{display:grid;grid-template-columns:minmax(180px,2.3fr) minmax(80px,.8fr) minmax(110px,1fr) minmax(110px,1fr) auto;gap:12px;padding:8px 10px;color:#cfe8ff;opacity:.9}
   .rule-row{display:grid;grid-template-columns:minmax(180px,2.3fr) minmax(80px,.8fr) minmax(110px,1fr) minmax(110px,1fr) auto;gap:12px;padding:6px 10px;align-items:center}
   .rule-row input{width:100%}
@@ -201,7 +197,7 @@
 <div id="dimVeil"></div>
 <div id="saver">
   <div id="saverStage"></div>
-  <div class="center"><!-- Logo opcional --></div>
+  <div class="center"></div>
   <div class="ticker" id="saverTicker"></div>
 </div>
 
@@ -322,6 +318,20 @@
         </div>
       </section>
 
+      <!-- Pozos visibles -->
+      <section>
+        <h4>Pozos visibles</h4>
+        <div class="grid g3">
+          <label class="full"><input type="radio" name="vzMode" value="all" id="vzAll"> Mostrar todos</label>
+          <label><input type="radio" name="vzMode" value="firstN" id="vzFirstN"> Primeros N</label>
+          <label><input type="number" id="setVzN" min="1" max="6" step="1"></label>
+          <label><input type="radio" name="vzMode" value="dataN" id="vzDataN"> N con datos</label>
+          <label><input type="number" id="setVzDataN" min="1" max="6" step="1"></label>
+          <label class="full"><input type="radio" name="vzMode" value="custom" id="vzCustom"> Seleccionar</label>
+          <div class="full" id="setVzCustomChecks" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+        </div>
+      </section>
+
       <!-- Reglas de stock -->
       <section>
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
@@ -351,17 +361,16 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ========= CONFIG BÁSICA ========= */
   const JSON_URL='status.json', REFRESH_SECONDS=15, ROWS=60, POZOS=6, LAST_N_TO_SHOW=8, REEL_SIZE=2;
 
-  /* Detección de Android TV / TCL para activar modo seguro */
   const UA = navigator.userAgent || '';
   const IS_TV = /\b(Android TV|SMART-TV|HBBTV|BRAVIA|AFT|MiBOX|TCL)\b/i.test(UA) || /com\.tcl\.browser/i.test(UA);
   if (IS_TV) document.documentElement.classList.add('is-tv');
 
-  /* Carpeta GitHub para “Valores” (1.png..6.png) */
   const DEFAULT_VALUES_BASE = 'https://github.com/baseslucas8071-maker/tablero/blob/main/images/';
 
   /* ========= UTILES ========= */
   const prefs={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)); const pad2=n=>String(n).padStart(2,'0');
+  const cssNum = name => parseInt(getComputedStyle(document.documentElement).getPropertyValue(name))||0;
 
   const toRawURL = u => {
     if(!u) return '';
@@ -373,7 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return [1,2,3,4,5,6].map(i=> r + i + '.png');
   };
 
-  /* ========= NORMALIZACIÓN DE NOMBRES (stock) ========= */
   function canonicalizeName(raw){
     let s=(raw??'').toString().toUpperCase();
     s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
@@ -397,7 +405,8 @@ document.addEventListener('DOMContentLoaded', () => {
     pozoFont:20, stockFont:16, cellFont:19,
     saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:2, gitBase:DEFAULT_VALUES_BASE },
     nightDim:{ enabled:true, startHour:1, endHour:6, dimLevel:0.65 },
-    pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 }
+    pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 },
+    visiblePozos:{ mode:'all', firstN:6, dataN:3, custom:[1,2,3] }
   });
 
   if (IS_TV) DISPLAY.pixelShift.enabled = false;
@@ -412,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ========= DOM ========= */
   const tbody=document.getElementById('tbody');
   const hdrTop=document.getElementById('hdrTop'), hdrSub=document.getElementById('hdrSub');
+  const table=document.getElementById('mainTable');
   const tableContainer=document.getElementById('tableContainer');
   const autoScroll=document.getElementById('autoScroll');
   const lastUpdateEl=document.getElementById('lastUpdate'), deltaEl=document.getElementById('delta'), net=document.getElementById('netStatus');
@@ -430,6 +440,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
   const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
 
+  /* Modal: pozos visibles */
+  const vzAll=document.getElementById('vzAll'), vzFirstN=document.getElementById('vzFirstN'), vzDataN=document.getElementById('vzDataN'), vzCustom=document.getElementById('vzCustom');
+  const setVzN=document.getElementById('setVzN'), setVzDataN=document.getElementById('setVzDataN'), setVzCustomChecks=document.getElementById('setVzCustomChecks');
+
+  /* Referencias por pozo (para mostrar/ocultar rápido) */
+  const topTh=[], subFh=[], subTpn=[], subFrac=[];
+
   /* ========= HEADER ACCIONES ========= */
   autoScroll.checked=prefs.get('ui:autoScroll',true);
   btnPause.innerText=paused?'Reanudar':'Pausar';
@@ -446,11 +463,9 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSettings.onclick=openSettings;
   btnClose.onclick=()=>modal.style.display='none';
   btnReset.onclick=()=>{localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload();};
-  btnSave.onclick=()=>{saveSettings(true); fitRowsToViewport();};
+  btnSave.onclick=()=>{saveSettings(true); fitRowsToViewport(); applyVisiblePozos();};
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
-
-  /* Test del protector sin marcar actividad */
   btnTestSaver.addEventListener('click', (e) => {
     e.preventDefault(); e.stopImmediatePropagation();
     saveSettings(false); modal.style.display='none';
@@ -458,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000);
   });
 
-  /* ========= LISTENERS DE ACTIVIDAD ========= */
+  /* ========= ACTIVIDAD ========= */
   const activityEvts=['mousemove','pointermove','touchmove','touchstart','click','wheel','keydown'];
   let lastInput={x:null,y:null,t:0};
   activityEvts.forEach(ev=>window.addEventListener(ev,markActivity,{passive:true}));
@@ -468,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const p = e.touches?.[0] || e; const x = p?.clientX ?? 0, y = p?.clientY ?? 0;
       if(lastInput.x!=null){
         const dx=Math.abs(x-lastInput.x), dy=Math.abs(y-lastInput.y), dt=now-lastInput.t;
-        if(dx<4 && dy<4 && dt<350) return; // ruido en TV
+        if(dx<4 && dy<4 && dt<350) return;
       }
       lastInput={x,y,t:now};
     }
@@ -479,12 +494,13 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ========= TABLA ========= */
   function initializeDOM(){
     for(let i=1;i<=POZOS;i++){
-      const thTop=document.createElement('th'); thTop.className=`pozo-${i} pozoTop`; thTop.colSpan=3; thTop.innerText=`POZO #${i}`; hdrTop.appendChild(thTop);
+      const thTop=document.createElement('th'); thTop.className=`pozo-${i} pozoTop pozo-group-${i}`; thTop.colSpan=3; thTop.innerText=`POZO #${i}`; hdrTop.appendChild(thTop);
+      topTh.push(thTop);
 
-      /* Sub-encabezados: F/h TPN | TPN | FRACTURADO */
-      const thFh=document.createElement('th'); thFh.className='fhtpn'; thFh.innerText='F/h TPN'; hdrSub.appendChild(thFh);
-      const th1=document.createElement('th'); th1.innerText='TPN'; hdrSub.appendChild(th1);
-      const th2=document.createElement('th'); th2.innerText='FRACTURADO'; hdrSub.appendChild(th2);
+      const thFh=document.createElement('th'); thFh.className=`fhtpn pozo-group-${i}`; thFh.innerText='F/h TPN'; hdrSub.appendChild(thFh);
+      const th1=document.createElement('th'); th1.className=`tpn pozo-group-${i}`; th1.innerText='TPN'; hdrSub.appendChild(th1);
+      const th2=document.createElement('th'); th2.className=`frac pozo-group-${i}`; th2.innerText='FRACTURADO'; hdrSub.appendChild(th2);
+      subFh.push(thFh); subTpn.push(th1); subFrac.push(th2);
     }
     const frag=document.createDocumentFragment();
     for(let i=1;i<=ROWS;i++){
@@ -492,12 +508,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr=document.createElement('tr'); tr.dataset.rowId=id; if(i%2===0) tr.classList.add('alt');
       const tdId=document.createElement('td'); tdId.className='rowid'; tdId.innerText=id; tr.appendChild(tdId);
       for(let p=1;p<=POZOS;p++){
-        /* Primera subcolumna = F/h TPN (reutiliza data-col="SeqN") */
-        const tdS=document.createElement('td'); tdS.dataset.col=`Seq${p}`; tdS.className='fhtpn'; tr.appendChild(tdS);
-        /* Segunda = TPN (número) */
-        const td1=document.createElement('td'); td1.dataset.col=`Pozo${p}`; tr.appendChild(td1);
-        /* Tercera = FRACTURADO (fecha) */
-        const td2=document.createElement('td'); td2.dataset.col=`Estado${p}`; tr.appendChild(td2);
+        const tdS=document.createElement('td'); tdS.dataset.col=`Seq${p}`; tdS.className=`fhtpn pozo-group-${p}`; tr.appendChild(tdS);
+        const td1=document.createElement('td'); td1.dataset.col=`Pozo${p}`; td1.className=`tpn pozo-group-${p}`; tr.appendChild(td1);
+        const td2=document.createElement('td'); td2.dataset.col=`Estado${p}`; td2.className=`frac pozo-group-${p}`; tr.appendChild(td2);
       }
       frag.appendChild(tr);
     }
@@ -511,7 +524,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.setProperty('--cell-font-size',  DISPLAY.cellFont+'px');
   }
 
-  /* Calcula --row-h para llenar alto disponible */
   function fitRowsToViewport(){
     const vvH = window.visualViewport?.height || window.innerHeight;
     const headerRect = document.querySelector('header').getBoundingClientRect();
@@ -528,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const excelSerialToParts = num => {
     const n = Number(num);
     if(!Number.isFinite(n)) return null;
-    const base=Date.UTC(1899,11,30);            // Excel epoch
+    const base=Date.UTC(1899,11,30);
     const msDate = base + Math.floor(n)*86400000;
     const frac = n - Math.floor(n);
     const sec = Math.round(frac*86400);
@@ -541,44 +553,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const s=(val??'').toString().trim();
     if(!s) return null;
 
-    /* ISO: YYYY-MM-DD[ T]HH:MM (o solo fecha) */
     let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
     if(m){
       const y=+m[1], mo=+m[2], d=+m[3], h=m[4]!=null?+m[4]:null, mi=m[5]!=null?+m[5]:null;
-      return {
-        date:`${d}/${mo}/${y}`,
-        time:(h!=null&&mi!=null)?`${pad2(h)}:${pad2(mi)}`:null
-      };
+      return {date:`${d}/${mo}/${y}`, time:(h!=null&&mi!=null)?`${pad2(h)}:${pad2(mi)}`:null};
     }
 
-    /* dd/mm/yyyy[ HH:MM] */
     m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
     if(m){
       const d=+m[1], mo=+m[2], y=+m[3], h=m[4]!=null?+m[4]:null, mi=m[5]!=null?+m[5]:null;
-      return {
-        date:`${d}/${mo}/${y}`,
-        time:(h!=null&&mi!=null)?`${pad2(h)}:${pad2(mi)}`:null
-      };
+      return {date:`${d}/${mo}/${y}`, time:(h!=null&&mi!=null)?`${pad2(h)}:${pad2(mi)}`:null};
     }
 
-    /* Serial de Excel (con fracción = hora) */
     if(/^-?\d+([.,]\d+)?$/.test(s)){
       const n=parseFloat(s.replace(',','.'));
       const parts=excelSerialToParts(n);
-      if(parts){
-        return {
-          date:`${parts.d}/${parts.mo}/${parts.y}`,
-          time:`${pad2(parts.h)}:${pad2(parts.m)}`
-        };
-      }
+      if(parts){ return {date:`${parts.d}/${parts.mo}/${parts.y}`, time:`${pad2(parts.h)}:${pad2(parts.m)}`}; }
     }
     return null;
   }
 
-  const maybeFormatDateOnly=v=>{
-    const p=parseDateTime(v);
-    return p ? p.date : (v??'');
-  };
+  const maybeFormatDateOnly=v=>{const p=parseDateTime(v); return p?p.date:(v??'');};
 
   /* ========= JSON ========= */
   function transformItems(items){
@@ -587,9 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const o={};
       o.fila=(raw.Fila??raw.fila??'').toString();
       for(let i=1;i<=POZOS;i++){
-        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();     // aquí suele venir la F/h en tu Excel
-        o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString();          // número TPN (6728/6765…)
-        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();  // fecha fracturado
+        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();     // F/h TPN
+        o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString();          // TPN
+        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();  // FRACTURADO
       }
       return o;
     });
@@ -599,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function extractHeaderRows(c){const h=c.filter(it=>(it.fila||'').trim()===''); return {top:h[0]||null, sub:h[1]||null};}
   function itemsArrayToMap(c){const m={}; for(const it of c){const k=(it.fila||'').toString().trim(); if(!k) continue; m[k]=it;} return m;}
 
-  /* ========= UI ENCABEZADOS / TABLA ========= */
+  /* ========= ENCABEZADOS / TABLA ========= */
   function updateHeaderNames(topRow, subRow){
     if(!topRow && !subRow) return;
     const n=[];
@@ -628,7 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  /* Render F/h TPN con colores y salto */
   function renderFHTPN(raw){
     const p=parseDateTime(raw);
     if(!p) return (raw??'');
@@ -642,29 +636,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`); if(!tr) return{changed:false,cells:0};
     let ch=false,c=0;
     for(let p=1;p<=POZOS;p++){
-      const tdS=tr.querySelector(`td[data-col="Seq${p}"]`);     // F/h TPN (antes “seq”)
-      const td1=tr.querySelector(`td[data-col="Pozo${p}"]`);    // TPN
-      const td2=tr.querySelector(`td[data-col="Estado${p}"]`);  // FRACTURADO
+      const tdS=tr.querySelector(`td[data-col="Seq${p}"]`);
+      const td1=tr.querySelector(`td[data-col="Pozo${p}"]`);
+      const td2=tr.querySelector(`td[data-col="Estado${p}"]`);
 
       const vS=(data?.['Seq'+p])?String(data['Seq'+p]):'';
       const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):'';
       const raw=(data?.['Estado'+p])??'';
       const v2=maybeFormatDateOnly(raw);
 
-      /* F/h TPN → innerHTML con spans de colores */
       if(tdS){
         const html=renderFHTPN(vS) || '';
-        if(tdS.getAttribute('data-last')!==html){
-          tdS.innerHTML=html;
-          tdS.setAttribute('data-last',html);
-          ch=true;c++;
-        }
+        if(tdS.getAttribute('data-last')!==html){ tdS.innerHTML=html; tdS.setAttribute('data-last',html); ch=true;c++; }
       }
-
-      /* TPN número tal cual (texto plano) */
       if(td1 && td1.innerText!==v1){ td1.innerText=v1; ch=true;c++; }
-
-      /* FRACTURADO (fecha sola, con STOP en rojo) */
       if(td2){
         if(td2.innerText!==v2){ td2.innerText=v2; ch=true;c++; }
         td2.classList.toggle('stop', isStop(raw)||isStop(v2));
@@ -693,7 +678,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return {changedCellsTotal:total};
   }
 
-  /* ========= STATS FRACTURAS ========= */
+  /* ========= FEED/REEL ========= */
   let datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
   function computeFractureStats(conv){
     const f=new Map(); let tot=0;
@@ -735,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
     el.appendChild(next);
   }
 
-  /* ========= ETAPAS RESTANTES ========= */
+  /* ========= ETAPAS RESTANTES / BADGES ========= */
   function computeRemainingStages(conv){
     const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row);
     let total=0;
@@ -747,29 +732,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return total;
   }
-
-  /* ========= STOCK ========= */
-  function numFromString(s){ if(!s) return NaN; const m=s.toString().replace(',', '.').match(/-?\d+(\.\d+)?/); return m?parseFloat(m[0]):NaN; }
-  function stockLevelClass(canon,val){ const rule=STOCK_RULES[canon]; if(!rule||!Number.isFinite(val)) return 'stock-mid'; if(val<rule.low) return 'stock-low'; if(val<=rule.mid) return 'stock-mid'; return 'stock-high'; }
-  const themeMap=new Map();
-  function renderStock(arr=[]){
-    stockCache=Array.isArray(arr)?arr:[]; stockBar.innerHTML=''; let idx=0;
-    for(const it of stockCache){
-      const raw=(it.ITEM??'').toString();
-      const canon=canonicalizeName(raw);
-      if(!themeMap.has(canon)) themeMap.set(canon,(idx++)%8);
-      const theme=`stock-theme-${themeMap.get(canon)}`;
-      const valStr=(it.STOCK??'').toString();
-      const val=numFromString(valStr);
-      const cls=stockLevelClass(canon,val);
-      const div=document.createElement('div'); div.className=`pill ${theme} ${cls}`;
-      const dot=document.createElement('span'); dot.className='dot';
-      const txt=document.createElement('span'); txt.textContent=`${raw}: ${valStr}`;
-      div.append(dot,txt); stockBar.appendChild(div);
-    }
-  }
-
-  /* ========= BADGES POR POZO ========= */
   function remainingPerPozo(conv){
     const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row);
     const res=Array(POZOS).fill(0);
@@ -782,11 +744,64 @@ document.addEventListener('DOMContentLoaded', () => {
     return res;
   }
   function paintBadgesPerPozo(arr){
-    document.querySelectorAll('#hdrTop th.pozoTop').forEach((th,i)=>{
+    hdrTop.querySelectorAll('th.pozoTop').forEach((th,i)=>{
       th.querySelectorAll('.badge').forEach(b=>b.remove());
       const val=arr[i]??0;
       if(val>0){ const b=document.createElement('span'); b.className='badge'; b.textContent=val; th.appendChild(b); }
     });
+  }
+
+  /* ========= POZOS VISIBLES ========= */
+  function activePozosWithData(){
+    const acc=new Set();
+    for(let r=1;r<=ROWS;r++){
+      const id='#'+String(r).padStart(2,'0');
+      const row=latestDataMap[id]; if(!row) continue;
+      for(let p=1;p<=POZOS;p++){
+        const fh=row['Seq'+p], tpn=row['Pozo'+p], fr=row['Estado'+p];
+        const has = (fh && parseDateTime(fh)) || (tpn && String(tpn).trim()!=='') || (fr && isFechaValida(fr));
+        if(has) acc.add(p);
+      }
+    }
+    return Array.from(acc).sort((a,b)=>a-b);
+  }
+
+  function getVisiblePozos(){
+    const cfg=DISPLAY.visiblePozos||{mode:'all'};
+    if(cfg.mode==='all') return Array.from({length:POZOS},(_,i)=>i+1);
+    if(cfg.mode==='firstN'){
+      const n=clamp(+cfg.firstN||POZOS,1,POZOS);
+      return Array.from({length:n},(_,i)=>i+1);
+    }
+    if(cfg.mode==='dataN'){
+      const base=activePozosWithData();
+      const n=clamp(+cfg.dataN||POZOS,1,POZOS);
+      if(base.length>=n) return base.slice(0,n);
+      const extras = Array.from({length:POZOS},(_,i)=>i+1).filter(x=>!base.includes(x)).slice(0, n-base.length);
+      return base.concat(extras);
+    }
+    if(cfg.mode==='custom'){
+      const set=new Set((cfg.custom||[]).map(x=>clamp(+x,1,POZOS)));
+      const arr=Array.from(set).filter(Boolean).sort((a,b)=>a-b);
+      return arr.length?arr:Array.from({length:POZOS},(_,i)=>i+1);
+    }
+    return Array.from({length:POZOS},(_,i)=>i+1);
+  }
+
+  function adjustTableMinWidth(visibleCount){
+    const w = cssNum('--w-id') + visibleCount * (cssNum('--w-fhtpn') + cssNum('--w-tpn') + cssNum('--w-frac'));
+    table.style.minWidth = Math.max(960, w+40) + 'px';
+  }
+
+  function applyVisiblePozos(){
+    const visible = new Set(getVisiblePozos());
+    for(let p=1;p<=POZOS;p++){
+      const show = visible.has(p);
+      document.querySelectorAll(`.pozo-group-${p}`).forEach(el=>{
+        el.style.display = show ? '' : 'none';
+      });
+    }
+    adjustTableMinWidth(visible.size);
   }
 
   /* ========= PROTECCIONES ========= */
@@ -796,95 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function restartShift(){ clearInterval(shiftTimer); document.documentElement.style.setProperty('--nudge-x','0px'); document.documentElement.style.setProperty('--nudge-y','0px'); if(!DISPLAY.pixelShift.enabled) return; const ms=Math.max(1,DISPLAY.pixelShift.intervalMin)*60*1000; shiftTimer=setInterval(()=>{ const m=Math.max(0,DISPLAY.pixelShift.maxOffsetPx|0); const x=(Math.floor(Math.random()*(m*2+1))-m); const y=(Math.floor(Math.random()*(m*2+1))-m); document.documentElement.style.setProperty('--nudge-x',x+'px'); document.documentElement.style.setProperty('--nudge-y',y+'px'); },ms); }
 
   function buildSaverFrame(){ const x=30+Math.random()*40, y=25+Math.random()*40; saver.style.setProperty('--blob-x',x+'%'); saver.style.setProperty('--blob-y',y+'%'); saverTicker.textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
-
-  function clearSaver(){
-    saverStage.innerHTML=''; sprites=[];
-    cancelAnimationFrame(rafAnim); rafAnim=null;
-    clearInterval(rotator); rotator=null;
-  }
-
-  function startBounce(images){
-    clearSaver();
-    const W=saverStage.clientWidth, H=saverStage.clientHeight;
-    const n=Math.min(images.length,6);
-    sprites=[];
-    for(let i=0;i<n;i++){
-      const img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img);
-      const w0=180, h0=100;
-      sprites.push({el:img,x:Math.random()*(W-w0),y:Math.random()*(H-h0),vx:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),vy:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),w:w0,h:h0});
-    }
-    const step=()=>{
-      const W=saverStage.clientWidth, H=saverStage.clientHeight;
-      for(const s of sprites){ s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; }
-      for(const s of sprites){
-        s.x+=s.vx; s.y+=s.vy;
-        if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;}
-        if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;}
-      }
-      for(let i=0;i<sprites.length;i++){
-        for(let j=i+1;j<sprites.length;j++){
-          const a=sprites[i], b=sprites[j];
-          const ox=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x);
-          const oy=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y);
-          if(ox>0 && oy>0){
-            if(ox<oy){ if(a.x<b.x){a.x-=ox/2;b.x+=ox/2;} else {a.x+=ox/2;b.x-=ox/2;} a.vx*=-1; b.vx*=-1; }
-            else{ if(a.y<b.y){a.y-=oy/2;b.y+=oy/2;} else {a.y+=oy/2;b.y-=oy/2;} a.vy*=-1; b.vy*=-1; }
-            a.x=Math.min(Math.max(0,a.x),W-a.w); a.y=Math.min(Math.max(0,a.y),H-a.h);
-            b.x=Math.min(Math.max(0,b.x),W-b.w); b.y=Math.min(Math.max(0,b.y),H-b.h);
-          }
-        }
-      }
-      for(const s of sprites){ s.el.style.transform=`translate(${s.x}px,${s.y}px)`; }
-      rafAnim=requestAnimationFrame(step);
-    };
-    step();
-  }
-
-  function startStarfall(images){
-    clearSaver();
-    const W=saverStage.clientWidth, H=saverStage.clientHeight;
-    const N=Math.min(images.length*2,14);
-    for(let i=0;i<N;i++){
-      const img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg';
-      const scale=0.55+Math.random()*0.25; const base=Math.min(window.innerWidth*0.10,160);
-      const size=base*scale; img.style.width=size+'px';
-      const x=Math.random()*(W-size); const y=-Math.random()*H*0.8 - size;
-      const sp={el:img,x,y,size,vx:(Math.random()-0.5)*0.3,vy:0.6+Math.random()*1.2,rot:(Math.random()*8-4),a:Math.random()*360};
-      saverStage.appendChild(img); sprites.push(sp);
-    }
-    const step=()=>{
-      const W=saverStage.clientWidth, H=saverStage.clientHeight;
-      for(const s of sprites){
-        s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5;
-        if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size;
-        if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); }
-        s.el.style.transform=`translate(${s.x}px,${s.y}px) rotate(${s.a}deg)`;
-      }
-      rafAnim=requestAnimationFrame(step);
-    };
-    step();
-  }
-
-  function applySaverMode(mode){
-    clearSaver();
-    const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
-    if(mode==='valores-rebotando') return startBounce(imgs);
-    if(mode==='valores-lluvia')    return startStarfall(imgs);
-  }
-
-  function showSaver(force=false){
-    const idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000;
-    if(!force && (Date.now()-lastActivityTs)<idleMs) return;
-    buildSaverFrame();
-    saver.style.display='block'; saverStatus.textContent='Mostrando';
-    const modes=['blob','valores-rebotando','valores-lluvia'];
-    if(DISPLAY.saver.mode==='rotar'){
-      let i=0; applySaverMode(modes[i]);
-      rotator=setInterval(()=>{ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000);
-    }else{
-      applySaverMode(DISPLAY.saver.mode);
-    }
-  }
+  function clearSaver(){ saverStage.innerHTML=''; sprites=[]; cancelAnimationFrame(rafAnim); rafAnim=null; clearInterval(rotator); rotator=null; }
+  function startBounce(images){ /* igual que antes */ clearSaver(); const W=saverStage.clientWidth, H=saverStage.clientHeight; const n=Math.min(images.length,6); sprites=[]; for(let i=0;i<n;i++){ const img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img); const w0=180, h0=100; sprites.push({el:img,x:Math.random()*(W-w0),y:Math.random()*(H-h0),vx:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),vy:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),w:w0,h:h0}); } const step=()=>{ const W=saverStage.clientWidth, H=saverStage.clientHeight; for(const s of sprites){ s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; } for(const s of sprites){ s.x+=s.vx; s.y+=s.vy; if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;} if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;} } for(let i=0;i<sprites.length;i++){ for(let j=i+1;j<sprites.length;j++){ const a=sprites[i], b=sprites[j]; const ox=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x); const oy=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y); if(ox>0 && oy>0){ if(ox<oy){ if(a.x<b.x){a.x-=ox/2;b.x+=ox/2;} else {a.x+=ox/2;b.x-=ox/2;} a.vx*=-1; b.vx*=-1; } else{ if(a.y<b.y){a.y-=oy/2;b.y+=oy/2;} else {a.y+=oy/2;b.y-=oy/2;} a.vy*=-1; b.vy*=-1; } a.x=Math.min(Math.max(0,a.x),W-a.w); a.y=Math.min(Math.max(0,a.y),H-a.h); b.x=Math.min(Math.max(0,b.x),W-b.w); b.y=Math.min(Math.max(0,b.y),H-b.h); } } } for(const s of sprites){ s.el.style.transform=`translate(${s.x}px,${s.y}px)`; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function startStarfall(images){ /* igual que antes */ clearSaver(); const W=saverStage.clientWidth, H=saverStage.clientHeight; const N=Math.min(images.length*2,14); for(let i=0;i<N;i++){ const img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg'; const scale=0.55+Math.random()*0.25; const base=Math.min(window.innerWidth*0.10,160); const size=base*scale; img.style.width=size+'px'; const x=Math.random()*(W-size); const y=-Math.random()*H*0.8 - size; const sp={el:img,x,y,size,vx:(Math.random()-0.5)*0.3,vy:0.6+Math.random()*1.2,rot:(Math.random()*8-4),a:Math.random()*360}; saverStage.appendChild(img); sprites.push(sp); } const step=()=>{ const W=saverStage.clientWidth, H=saverStage.clientHeight; for(const s of sprites){ s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5; if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); } s.el.style.transform=`translate(${s.x}px,${s.y}px) rotate(${s.a}deg)`; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function applySaverMode(mode){ clearSaver(); const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase); if(mode==='valores-rebotando') return startBounce(imgs); if(mode==='valores-lluvia') return startStarfall(imgs); }
+  function showSaver(force=false){ const idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; if(!force && (Date.now()-lastActivityTs)<idleMs) return; buildSaverFrame(); saver.style.display='block'; saverStatus.textContent='Mostrando'; const modes=['blob','valores-rebotando','valores-lluvia']; if(DISPLAY.saver.mode==='rotar'){ let i=0; applySaverMode(modes[i]); rotator=setInterval(()=>{ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000); }else{ applySaverMode(DISPLAY.saver.mode); } }
   function hideSaver(){ saver.style.display='none'; saverStatus.textContent='—'; clearSaver(); }
   function scheduleSaver(){ clearTimeout(saverTO); const idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; const wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(()=>showSaver(false), wait+50); }
 
@@ -915,8 +846,10 @@ document.addEventListener('DOMContentLoaded', () => {
       remainingEl.textContent=`Etapas restantes: ${computeRemainingStages(conv)}`;
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      /* Sólo salimos del saver si realmente hubo cambios */
       if(changedCellsTotal>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
+
+      /* Reaplicar visibilidad (modo N con datos puede cambiar en cada refresh) */
+      applyVisiblePozos();
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
       requestAnimationFrame(fitRowsToViewport);
@@ -937,13 +870,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= MODAL ========= */
+  function buildPozosChecks(){
+    setVzCustomChecks.innerHTML='';
+    for(let i=1;i<=POZOS;i++){
+      const id=`vzChk${i}`;
+      const w=document.createElement('label');
+      w.style.display='inline-flex'; w.style.alignItems='center'; w.style.gap='6px';
+      w.innerHTML=`<input type="checkbox" id="${id}" data-pozo="${i}"> Pozo #${i}`;
+      setVzCustomChecks.appendChild(w);
+    }
+  }
+
   function openSettings(){
     setPozoFont.value=DISPLAY.pozoFont; setStockFont.value=DISPLAY.stockFont; setCellFont.value=DISPLAY.cellFont;
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
-    drawRulesTable(); modal.style.display='flex';
+
+    /* Pozos visibles */
+    buildPozosChecks();
+    setVzN.value=DISPLAY.visiblePozos.firstN||POZOS;
+    setVzDataN.value=DISPLAY.visiblePozos.dataN||3;
+    const mode=DISPLAY.visiblePozos.mode||'all';
+    (mode==='all'?vzAll:mode==='firstN'?vzFirstN:mode==='dataN'?vzDataN:vzCustom).checked=true;
+    (DISPLAY.visiblePozos.custom||[]).forEach(p=>{
+      const el=document.getElementById(`vzChk${p}`); if(el) el.checked=true;
+    });
+
+    modal.style.display='flex';
   }
+
   function saveSettings(close){
     DISPLAY.pozoFont=clamp(+setPozoFont.value||20,12,40);
     DISPLAY.stockFont=clamp(+setStockFont.value||16,10,30);
@@ -963,7 +919,15 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.pixelShift.intervalMin=clamp(+setShiftEvery.value||2,1,60);
     DISPLAY.pixelShift.maxOffsetPx=clamp(+setShiftPixels.value||2,0,10);
 
-    // Reglas
+    /* Pozos visibles */
+    const mode = vzAll.checked ? 'all' : vzFirstN.checked ? 'firstN' : vzDataN.checked ? 'dataN' : 'custom';
+    const firstN = clamp(+setVzN.value||POZOS,1,POZOS);
+    const dataN  = clamp(+setVzDataN.value||3,1,POZOS);
+    const custom = [...setVzCustomChecks.querySelectorAll('input[type="checkbox"]')]
+                    .filter(ch=>ch.checked).map(ch=>+ch.dataset.pozo);
+    DISPLAY.visiblePozos={mode, firstN, dataN, custom};
+
+    /* Reglas */
     const rows=[...rulesBody.querySelectorAll('.rule-row')]; const next={};
     for(const r of rows){
       const name=r.querySelector('[data-f=name]').value, unit=r.querySelector('[data-f=unit]').value;
@@ -977,6 +941,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyFontVars(); restartNight(); restartShift(); scheduleSaver(); renderStock(stockCache);
     if(close) modal.style.display='none';
   }
+
   function drawRulesTable(){ rulesBody.innerHTML=''; for(const [,rule] of Object.entries(STOCK_RULES)){ addRuleRow(rule); } }
   function addRuleRow(rule={}){
     const row=document.createElement('div'); row.className='rule-row';
@@ -1002,10 +967,9 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAndRender(true);
   setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
 
-  const fitRowsRaf = ()=>requestAnimationFrame(fitRowsToViewport);
-  window.addEventListener('resize',fitRowsRaf);
-  window.addEventListener('orientationchange',fitRowsRaf);
-  ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'].forEach(ev=>document.addEventListener(ev,fitRowsRaf));
+  window.addEventListener('resize',()=>requestAnimationFrame(fitRowsToViewport));
+  window.addEventListener('orientationchange',()=>requestAnimationFrame(fitRowsToViewport));
+  ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'].forEach(ev=>document.addEventListener(ev,()=>requestAnimationFrame(fitRowsToViewport)));
 });
 </script>
 </body>
