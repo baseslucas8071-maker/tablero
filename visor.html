@@ -17,8 +17,10 @@
     --stock-font-size:14px;      /* pedido: 14 */
     --cell-font-size:19px;       /* TPN/FRACTURADO pedido: 19 */
 
-    /* Anchos fijos (w-seq ahora más ancho para F/h TPN) */
-    --w-id:54px; --w-seq:96px;
+    /* Anchos fijos */
+    --w-id:54px;
+    --w-fhtpn:138px;             /* NUEVO: ancho “F/h TPN” (fecha + hora) */
+    --w-seq:50px;                /* (ya no se usa visualmente, conservado por compat) */
 
     /* Reel de fechas */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
@@ -31,10 +33,13 @@
 
     /* Overscan para TVs que recortan bordes (ajustable) */
     --overscan:0px;
+
+    /* Colores para F/h (fecha/hora) */
+    --fh-green:#00ff9c;          /* fecha (verde) */
+    --fh-orange:#ffb100;         /* hora (naranja flúor) */
   }
 
   html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
-  /* NOTA: padding usa --overscan en modo TV para evitar recortes */
   .wrap{
     padding:calc(14px + var(--overscan));
     box-sizing:border-box;display:flex;flex-direction:column;height:100%;
@@ -56,12 +61,12 @@
   table{border-collapse:collapse;width:100%;min-width:1280px}
   th,td{border:1px solid rgba(255,255,255,.06);padding:8px 10px;text-align:center;white-space:nowrap}
 
-  /* Encabezados stickies: cuidado con transform en ancestros (ver modo TV más abajo) */
+  /* Encabezados stickies */
   thead th{background:var(--bg);box-shadow:0 2px 0 rgba(0,0,0,.25)}
   thead tr:first-child th{position:sticky;top:0;z-index:11;height:var(--header-h-1)}
   thead tr:nth-child(2) th{position:sticky;top:var(--header-h-1);z-index:12;height:var(--header-h-2)}
 
-  /* Altura de filas: ocupan todo el alto visible vía --row-h */
+  /* Altura de filas */
   tbody td{height:var(--row-h);background:transparent;color:#e6f7ff;transition:background .15s ease}
   tbody tr.alt td{background:rgba(255,255,255,.01)}
   tbody tr:hover td{background:rgba(255,255,255,.03)}
@@ -69,9 +74,15 @@
   th.rowid,td.rowid{position:sticky;left:0;z-index:20;width:var(--w-id);min-width:var(--w-id);max-width:var(--w-id)}
   td.rowid{font-weight:800;color:#bfe8ff;background:#0c1833}
 
+  /* NUEVO: columna F/h TPN (primer subcolumna de cada pozo) */
+  th.fhtpn, td.fhtpn{width:var(--w-fhtpn);min-width:var(--w-fhtpn);max-width:var(--w-fhtpn)}
+  td.fhtpn{line-height:1.15;font-weight:800}
+  td.fhtpn .fh-date{display:block;color:var(--fh-green);text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35)}
+  td.fhtpn .fh-time{display:block;color:var(--fh-orange);text-shadow:0 0 10px rgba(255,170,0,.6)}
+
+  /* La antigua “seq” queda disponible si hiciera falta en otro lado */
   th.seq,td.seq{width:var(--w-seq);min-width:var(--w-seq);max-width:var(--w-seq)}
-  /* IMPORTANTE: quitamos color/halo verde general para no interferir con fecha/hora coloreadas dentro */
-  td.seq{font-weight:800;letter-spacing:.4px;background:rgba(0,255,160,.05)}
+  td.seq{font-weight:800;color:#00ff9c;letter-spacing:.4px;text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35);background:rgba(0,255,160,.05)}
 
   .pozoTop{font-size:var(--pozo-font-size);font-weight:800;letter-spacing:.6px;position:relative}
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a);color:#002}
@@ -158,11 +169,6 @@
   /* Imágenes lluvia */
   .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
 
-  /* Bloque fecha/hora en la celda F/h TPN */
-  .fh{display:flex;flex-direction:column;line-height:1.05}
-  .fh .d{color:#00ff9c;font-weight:900}     /* fecha en verde */
-  .fh .t{color:#ffb300;font-weight:900}     /* hora en naranja “fluor” */
-
   /* Modal */
   .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
   .modal-card{width:min(860px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -184,11 +190,9 @@
   .pill.small{padding:4px 8px;font-size:12px}
 
   /* ============ MODO TV (Android TV / TCL) ============ */
-  /* Evita banding por sticky+transform, desactiva filtros caros */
   html.is-tv .wrap{ transform:none !important; }
   html.is-tv #saver{ backdrop-filter:none; }
   html.is-tv .bImg, html.is-tv .fallImg{ filter:none; }
-  /* Acelera capas para headers sticky en navegadores TV */
   html.is-tv thead th{ -webkit-transform:translateZ(0); transform:translateZ(0); }
 </style>
 </head>
@@ -396,7 +400,6 @@ document.addEventListener('DOMContentLoaded', () => {
     pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 }
   });
 
-  /* En TVs desactivamos pixel-shift (sticky + transform puede generar rayas) */
   if (IS_TV) DISPLAY.pixelShift.enabled = false;
 
   /* ========= ESTADO RUNTIME ========= */
@@ -436,7 +439,6 @@ document.addEventListener('DOMContentLoaded', () => {
   btnPause.onclick=()=>{paused=!paused;prefs.set('ui:paused',paused);btnPause.innerText=paused?'Reanudar':'Pausar';};
   autoScroll.onchange=()=>{prefs.set('ui:autoScroll',autoScroll.checked); if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));};
 
-  /* Fullscreen cross-browser */
   function enterFull(){ const el=document.documentElement; (el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen||el.mozRequestFullScreen)?.call(el); }
   function exitFull(){ (document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen||document.mozCancelFullScreen)?.call(document); }
   btnFull.onclick=()=>{ const fs=document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement||document.mozFullScreenElement; fs?exitFull():enterFull(); };
@@ -448,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnLoadDetected.onclick=mergeDetectedItems;
   btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
 
-  /* Test inmediato del protector sin disparar “actividad” */
+  /* Test del protector sin marcar actividad */
   btnTestSaver.addEventListener('click', (e) => {
     e.preventDefault(); e.stopImmediatePropagation();
     saveSettings(false); modal.style.display='none';
@@ -456,35 +458,31 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000);
   });
 
-  /* ========= LISTENERS DE ACTIVIDAD (con filtro anti-micro-movimientos de TV) ========= */
+  /* ========= LISTENERS DE ACTIVIDAD ========= */
   const activityEvts=['mousemove','pointermove','touchmove','touchstart','click','wheel','keydown'];
   let lastInput={x:null,y:null,t:0};
   activityEvts.forEach(ev=>window.addEventListener(ev,markActivity,{passive:true}));
-
   function markActivity(e){
     const now=Date.now();
-    // Filtro: ignora vibraciones mínimas de mouse/IR (típicas en TV)
     if(e && ('mousemove pointermove touchmove'.includes(e.type))){
-      const p = e.touches?.[0] || e;
-      const x = p?.clientX ?? 0, y = p?.clientY ?? 0;
+      const p = e.touches?.[0] || e; const x = p?.clientX ?? 0, y = p?.clientY ?? 0;
       if(lastInput.x!=null){
         const dx=Math.abs(x-lastInput.x), dy=Math.abs(y-lastInput.y), dt=now-lastInput.t;
-        if(dx<4 && dy<4 && dt<350) return; // demasiado chico/rápido => ruido
+        if(dx<4 && dy<4 && dt<350) return; // ruido en TV
       }
       lastInput={x,y,t:now};
     }
     lastActivityTs=now; hideSaver(); scheduleSaver();
   }
-
   window.addEventListener('keydown',e=>{ if(e.key==='Escape'){modal.style.display='none'; hideSaver();}});
 
-  /* ========= TABLA (construcción y tamaños) ========= */
+  /* ========= TABLA ========= */
   function initializeDOM(){
     for(let i=1;i<=POZOS;i++){
-      // Encabezado superior por pozo
       const thTop=document.createElement('th'); thTop.className=`pozo-${i} pozoTop`; thTop.colSpan=3; thTop.innerText=`POZO #${i}`; hdrTop.appendChild(thTop);
-      // Sub-encabezados: F/h TPN, TPN, FRACTURADO
-      const thSeq=document.createElement('th'); thSeq.className='seq'; thSeq.innerText='F/h TPN'; hdrSub.appendChild(thSeq);
+
+      /* Sub-encabezados: F/h TPN | TPN | FRACTURADO */
+      const thFh=document.createElement('th'); thFh.className='fhtpn'; thFh.innerText='F/h TPN'; hdrSub.appendChild(thFh);
       const th1=document.createElement('th'); th1.innerText='TPN'; hdrSub.appendChild(th1);
       const th2=document.createElement('th'); th2.innerText='FRACTURADO'; hdrSub.appendChild(th2);
     }
@@ -494,8 +492,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr=document.createElement('tr'); tr.dataset.rowId=id; if(i%2===0) tr.classList.add('alt');
       const tdId=document.createElement('td'); tdId.className='rowid'; tdId.innerText=id; tr.appendChild(tdId);
       for(let p=1;p<=POZOS;p++){
-        const tdS=document.createElement('td'); tdS.dataset.col=`Seq${p}`; tdS.className='seq'; tr.appendChild(tdS);
+        /* Primera subcolumna = F/h TPN (reutiliza data-col="SeqN") */
+        const tdS=document.createElement('td'); tdS.dataset.col=`Seq${p}`; tdS.className='fhtpn'; tr.appendChild(tdS);
+        /* Segunda = TPN (número) */
         const td1=document.createElement('td'); td1.dataset.col=`Pozo${p}`; tr.appendChild(td1);
+        /* Tercera = FRACTURADO (fecha) */
         const td2=document.createElement('td'); td2.dataset.col=`Estado${p}`; tr.appendChild(td2);
       }
       frag.appendChild(tr);
@@ -510,85 +511,111 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.setProperty('--cell-font-size',  DISPLAY.cellFont+'px');
   }
 
-  /* Calcula --row-h para que todas las filas llenen el alto disponible */
+  /* Calcula --row-h para llenar alto disponible */
   function fitRowsToViewport(){
     const vvH = window.visualViewport?.height || window.innerHeight;
     const headerRect = document.querySelector('header').getBoundingClientRect();
     const footerH = document.querySelector('footer').offsetHeight || 0;
-    const available = Math.max(120, vvH - headerRect.height - 12 /*gap*/ - footerH - 12);
+    const available = Math.max(120, vvH - headerRect.height - 12 - footerH - 12);
     const headH = hdrTop.offsetHeight + hdrSub.offsetHeight;
     const inner = Math.max(60, available - headH);
     const target = Math.floor(inner / ROWS);
-    const rowH = clamp(target, 26, 72);           // límites razonables para TV
+    const rowH = clamp(target, 26, 72);
     document.documentElement.style.setProperty('--row-h', rowH+'px');
   }
 
-  /* ========= JSON / FECHAS ========= */
-  function transformItems(items){ if(!Array.isArray(items)) return []; return items.map(raw=>{const o={}; o.fila=(raw.Fila??raw.fila??'').toString(); for(let i=1;i<=POZOS;i++){ o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString(); o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString(); o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString(); } return o;}); }
-  const excelSerialToYMD=num=>{const base=Date.UTC(1899,11,30);const ms=base+Math.round(num)*86400000;const d=new Date(ms);return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()}};
-  function parseDateValue(val){const s=(val??'').toString().trim(); if(!s) return null; let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m){const y=+m[1],mo=+m[2],d=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};} m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/); if(m){const d=+m[1],mo=+m[2],y=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};} if(/^-?\d+(\.\d+)?$/.test(s)){const n=Number(s.replace(',','.')); if(Number.isFinite(n)&&n>=30000&&n<=70000){const {y,m:mo,d}=excelSerialToYMD(n); return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};}} return null;}
-  const maybeFormatDate=v=>{const p=parseDateValue(v); return p?p.display:(v??'');}
+  /* ========= FECHAS ========= */
+  const excelSerialToParts = num => {
+    const n = Number(num);
+    if(!Number.isFinite(n)) return null;
+    const base=Date.UTC(1899,11,30);            // Excel epoch
+    const msDate = base + Math.floor(n)*86400000;
+    const frac = n - Math.floor(n);
+    const sec = Math.round(frac*86400);
+    const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60);
+    const d=new Date(msDate);
+    return {y:d.getUTCFullYear(), mo:d.getUTCMonth()+1, d:d.getUTCDate(), h, m};
+  };
+
+  function parseDateTime(val){
+    const s=(val??'').toString().trim();
+    if(!s) return null;
+
+    /* ISO: YYYY-MM-DD[ T]HH:MM (o solo fecha) */
+    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
+    if(m){
+      const y=+m[1], mo=+m[2], d=+m[3], h=m[4]!=null?+m[4]:null, mi=m[5]!=null?+m[5]:null;
+      return {
+        date:`${d}/${mo}/${y}`,
+        time:(h!=null&&mi!=null)?`${pad2(h)}:${pad2(mi)}`:null
+      };
+    }
+
+    /* dd/mm/yyyy[ HH:MM] */
+    m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+    if(m){
+      const d=+m[1], mo=+m[2], y=+m[3], h=m[4]!=null?+m[4]:null, mi=m[5]!=null?+m[5]:null;
+      return {
+        date:`${d}/${mo}/${y}`,
+        time:(h!=null&&mi!=null)?`${pad2(h)}:${pad2(mi)}`:null
+      };
+    }
+
+    /* Serial de Excel (con fracción = hora) */
+    if(/^-?\d+([.,]\d+)?$/.test(s)){
+      const n=parseFloat(s.replace(',','.'));
+      const parts=excelSerialToParts(n);
+      if(parts){
+        return {
+          date:`${parts.d}/${parts.mo}/${parts.y}`,
+          time:`${pad2(parts.h)}:${pad2(parts.m)}`
+        };
+      }
+    }
+    return null;
+  }
+
+  const maybeFormatDateOnly=v=>{
+    const p=parseDateTime(v);
+    return p ? p.date : (v??'');
+  };
+
+  /* ========= JSON ========= */
+  function transformItems(items){
+    if(!Array.isArray(items)) return [];
+    return items.map(raw=>{
+      const o={};
+      o.fila=(raw.Fila??raw.fila??'').toString();
+      for(let i=1;i<=POZOS;i++){
+        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();     // aquí suele venir la F/h en tu Excel
+        o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString();          // número TPN (6728/6765…)
+        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();  // fecha fracturado
+      }
+      return o;
+    });
+  }
   const isStop=v=>String(v??'').trim().toUpperCase()==='STOP';
-  const isFechaValida=v=>parseDateValue(v)!==null;
+  const isFechaValida=v=>parseDateTime(v)!==null;
   function extractHeaderRows(c){const h=c.filter(it=>(it.fila||'').trim()===''); return {top:h[0]||null, sub:h[1]||null};}
   function itemsArrayToMap(c){const m={}; for(const it of c){const k=(it.fila||'').toString().trim(); if(!k) continue; m[k]=it;} return m;}
-
-  /* ========= Helpers F/h TPN ========= */
-  // Extrae fecha (dd/mm/yyyy o yyyy-mm-dd) y hora (hh:mm[:ss]) de un texto
-  function splitDateTime(txt){
-    if(!txt) return null;
-    const s = String(txt);
-    const dateRe1 = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/;       // dd/mm/yyyy
-    const dateRe2 = /(\d{4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2})/;         // yyyy-mm-dd
-    const timeRe  = /(\d{1,2}:\d{2}(?::\d{2})?)/;                    // hh:mm[:ss]
-    const dm = s.match(dateRe1) || s.match(dateRe2);
-    const tm = s.match(timeRe);
-    if(!dm || !tm) return null;
-    return { date: dm[1], time: tm[1] };
-  }
-  // Normaliza fecha a dd/mm/yyyy
-  function normDate(dstr){
-    let m = dstr.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
-    if(m) return `${pad2(+m[3])}/${pad2(+m[2])}/${m[1]}`;
-    m = dstr.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
-    if(m){ let y=+m[3]; if(y<100) y=2000+y; return `${pad2(+m[1])}/${pad2(+m[2])}/${y}`; }
-    return dstr;
-  }
-  // Normaliza hora a HH:mm
-  function normTime(tstr){
-    const m = tstr.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
-    if(!m) return tstr;
-    return `${pad2(+m[1])}:${m[2]}`;
-  }
-  // Genera HTML para la celda F/h TPN: fecha (verde) y hora (naranja) en dos líneas
-  function formatFhTPNFrom(primary, fallback){
-    const c1 = splitDateTime(primary);
-    const c2 = c1 ? null : splitDateTime(fallback);
-    const c = c1 || c2;
-    if(!c) return '';
-    return `<div class="fh"><span class="d">${normDate(c.date)}</span><span class="t">${normTime(c.time)}</span></div>`;
-  }
 
   /* ========= UI ENCABEZADOS / TABLA ========= */
   function updateHeaderNames(topRow, subRow){
     if(!topRow && !subRow) return;
-    const n=[]; 
+    const n=[];
     for(let i=1;i<=POZOS;i++){
       const pTop=topRow?.['Pozo'+i]?.trim()||'', eTop=topRow?.['Estado'+i]?.trim()||'';
       const pSub=subRow?.['Pozo'+i]?.trim()||'', eSub=subRow?.['Estado'+i]?.trim()||'';
-      let t=pTop||pSub||`POZO #${i}`;
-      let s=eTop||'';
-      if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub;
+      let t=pTop||pSub||`POZO #${i}`; let s=eTop||''; if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub;
       n.push((t+(s?(' '+s):'' )).trim());
     }
     hdrTop.querySelectorAll('th.pozoTop').forEach((th,i)=>th.innerText=n[i]||`POZO #${i+1}`);
     const sub=hdrSub.querySelectorAll('th');
     for(let i=1;i<=POZOS;i++){
-      const pSub=subRow?.['Pozo'+i]?.trim()||'TPN', eSub=subRow?.['Estado'+i]?.trim()||'FRACTURADO';
       const b=(i-1)*3+1;
-      if(sub[b])   sub[b].innerText='F/h TPN';  // ← encabezado actualizado
-      if(sub[b+1]) sub[b+1].innerText=pSub;
-      if(sub[b+2]) sub[b+2].innerText=eSub;
+      if(sub[b])   sub[b].innerText='F/h TPN';
+      if(sub[b+1]) sub[b+1].innerText='TPN';
+      if(sub[b+2]) sub[b+2].innerText='FRACTURADO';
     }
   }
 
@@ -601,30 +628,47 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
+  /* Render F/h TPN con colores y salto */
+  function renderFHTPN(raw){
+    const p=parseDateTime(raw);
+    if(!p) return (raw??'');
+    if(p.time){
+      return `<span class="fh-date">${p.date}</span><span class="fh-time">${p.time}</span>`;
+    }
+    return `<span class="fh-date">${p.date}</span>`;
+  }
+
   function updateRowCells(rowId,data){
-    const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`);
-    if(!tr) return{changed:false,cells:0};
+    const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`); if(!tr) return{changed:false,cells:0};
     let ch=false,c=0;
     for(let p=1;p<=POZOS;p++){
-      const tdS=tr.querySelector(`td[data-col="Seq${p}"]`),
-            td1=tr.querySelector(`td[data-col="Pozo${p}"]`),
-            td2=tr.querySelector(`td[data-col="Estado${p}"]`);
+      const tdS=tr.querySelector(`td[data-col="Seq${p}"]`);     // F/h TPN (antes “seq”)
+      const td1=tr.querySelector(`td[data-col="Pozo${p}"]`);    // TPN
+      const td2=tr.querySelector(`td[data-col="Estado${p}"]`);  // FRACTURADO
+
       const vS=(data?.['Seq'+p])?String(data['Seq'+p]):'';
       const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):'';
       const raw=(data?.['Estado'+p])??'';
-      const v2=maybeFormatDate(raw);
+      const v2=maybeFormatDateOnly(raw);
 
-      /* Celda F/h TPN: intenta formatear desde Pozo (v1); si no hay fecha+hora, intenta con Estado (raw) */
-      const fhHTML = formatFhTPNFrom(v1, raw);
-      const curS = tdS?.innerHTML ?? '';
+      /* F/h TPN → innerHTML con spans de colores */
       if(tdS){
-        const nextHTML = fhHTML || vS; // si no hay fecha+hora, cae al valor original (seq)
-        if(curS !== nextHTML){ tdS.innerHTML = nextHTML; ch=true; c++; }
+        const html=renderFHTPN(vS) || '';
+        if(tdS.getAttribute('data-last')!==html){
+          tdS.innerHTML=html;
+          tdS.setAttribute('data-last',html);
+          ch=true;c++;
+        }
       }
 
-      if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;}
-      if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;}
-      if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); }
+      /* TPN número tal cual (texto plano) */
+      if(td1 && td1.innerText!==v1){ td1.innerText=v1; ch=true;c++; }
+
+      /* FRACTURADO (fecha sola, con STOP en rojo) */
+      if(td2){
+        if(td2.innerText!==v2){ td2.innerText=v2; ch=true;c++; }
+        td2.classList.toggle('stop', isStop(raw)||isStop(v2));
+      }
     }
     return{changed:ch,cells:c};
   }
@@ -642,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if(prev!==s){
         const {cells}=updateRowCells(id,obj); total+=cells; prevDataMap[id]=s; latestDataMap[id]=obj;
-      } else {
+      }else{
         latestDataMap[id]=obj;
       }
     }
@@ -656,11 +700,9 @@ document.addEventListener('DOMContentLoaded', () => {
     for(const it of conv){
       if(!it.fila?.trim()) continue;
       for(let i=1;i<=POZOS;i++){
-        const p=parseDateValue(it['Estado'+i]);
-        if(p){
-          tot++;
-          const cur=f.get(p.normalized);
-          cur?cur.count++:f.set(p.normalized,{display:p.display,count:1,normalized:p.normalized});
+        const p=parseDateTime(it['Estado'+i]);
+        if(p){ tot++; const k=p.date.split('/').reverse().map(v=>pad2(v)).join('-');
+          const cur=f.get(k); cur?cur.count++:f.set(k,{display:p.date,count:1,normalized:k});
         }
       }
     }
@@ -669,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateDatesArray(freq){
     datesArr=Array.from(freq.values()).sort((a,b)=>a.normalized.localeCompare(b.normalized));
     const max=Math.max(0,datesArr.length-REEL_SIZE);
-    reelStart=userMovedReel?Math.min(reelStart,max):max; // si no movió el usuario, vamos a la última fecha
+    reelStart=userMovedReel?Math.min(reelStart,max):max;
     prefs.set('reel:start',reelStart);
     renderDatesReel();
   }
@@ -711,9 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function stockLevelClass(canon,val){ const rule=STOCK_RULES[canon]; if(!rule||!Number.isFinite(val)) return 'stock-mid'; if(val<rule.low) return 'stock-low'; if(val<=rule.mid) return 'stock-mid'; return 'stock-high'; }
   const themeMap=new Map();
   function renderStock(arr=[]){
-    stockCache=Array.isArray(arr)?arr:[];
-    stockBar.innerHTML='';
-    let idx=0;
+    stockCache=Array.isArray(arr)?arr:[]; stockBar.innerHTML=''; let idx=0;
     for(const it of stockCache){
       const raw=(it.ITEM??'').toString();
       const canon=canonicalizeName(raw);
@@ -749,7 +789,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ========= PROTECCIONES: atenuación / shift / saver ========= */
+  /* ========= PROTECCIONES ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
   function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } const h=new Date().getHours(); const on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
   function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
@@ -763,7 +803,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearInterval(rotator); rotator=null;
   }
 
-  /* Rebote con 6 imágenes y colisiones entre sí */
   function startBounce(images){
     clearSaver();
     const W=saverStage.clientWidth, H=saverStage.clientHeight;
@@ -801,7 +840,6 @@ document.addEventListener('DOMContentLoaded', () => {
     step();
   }
 
-  /* Lluvia de valores (modo liviano) */
   function startStarfall(images){
     clearSaver();
     const W=saverStage.clientWidth, H=saverStage.clientHeight;
@@ -832,7 +870,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
     if(mode==='valores-rebotando') return startBounce(imgs);
     if(mode==='valores-lluvia')    return startStarfall(imgs);
-    /* 'blob' usa sólo el fondo radial */
   }
 
   function showSaver(force=false){
@@ -878,11 +915,11 @@ document.addEventListener('DOMContentLoaded', () => {
       remainingEl.textContent=`Etapas restantes: ${computeRemainingStages(conv)}`;
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      /* IMPORTANTE: sólo salimos del saver si REALMENTE hubo cambios */
+      /* Sólo salimos del saver si realmente hubo cambios */
       if(changedCellsTotal>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
-      requestAnimationFrame(fitRowsToViewport); // asegura altura tras render
+      requestAnimationFrame(fitRowsToViewport);
     }catch(e){
       console.error(e); lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
       deltaEl.textContent=''; net.textContent='ERROR'; net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
@@ -932,8 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const name=r.querySelector('[data-f=name]').value, unit=r.querySelector('[data-f=unit]').value;
       const low=+r.querySelector('[data-f=low]').value, mid=+r.querySelector('[data-f=mid]').value;
       if(!name) continue; const canon=canonicalizeName(name);
-      // ← FIX: colon tras 'low'
-      next[canon]={display:name.trim(),unit:(unit||'').trim(),low: (Number.isFinite(low)?low:0), mid: (Number.isFinite(mid)?mid:0)};
+      next[canon]={display:name.trim(),unit:(unit||'').trim(),low:Number.isFinite(low)?low:0,mid:Number.isFinite(mid)?mid:0};
     }
     STOCK_RULES=next;
 
@@ -966,7 +1002,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAndRender(true);
   setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
 
-  /* Recalcular filas al redimensionar / cambiar a fullscreen */
   const fitRowsRaf = ()=>requestAnimationFrame(fitRowsToViewport);
   window.addEventListener('resize',fitRowsRaf);
   window.addEventListener('orientationchange',fitRowsRaf);
