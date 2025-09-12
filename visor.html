@@ -9,27 +9,21 @@
   :root{
     --bg:#071027; --card:#08203a; --muted:#cfe8ff;
 
-    /* Altos de encabezados stickies */
     --header-h-1:48px; --header-h-2:44px;
 
-    /* Tamaños por defecto */
-    --pozo-font-size:20px;     /* pedido: 20 */
-    --stock-font-size:14px;    /* pedido: 14 */
-    --cell-font-size:19px;     /* TPN/FRACTURADO pedido: 20 */
+    --pozo-font-size:20px;
+    --stock-font-size:14px;
+    --cell-font-size:19px;
 
-    /* Anchos fijos */
-    --w-id:54px; --w-seq:110px; /* más ancho para F/h */
+    --w-id:54px;
+    --w-seq:110px;
 
-    /* Reel de fechas */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
 
-    /* Altura de fila calculada dinámicamente (fallback 44px) */
     --row-h:44px;
 
-    /* Pixel-shift */
     --nudge-x:0px; --nudge-y:0px;
 
-    /* Overscan para TVs (ajustable) */
     --overscan:0px;
   }
 
@@ -55,12 +49,10 @@
   table{border-collapse:collapse;width:100%;min-width:1280px}
   th,td{border:1px solid rgba(255,255,255,.06);padding:8px 10px;text-align:center;white-space:nowrap}
 
-  /* Encabezados stickies */
   thead th{background:var(--bg);box-shadow:0 2px 0 rgba(0,0,0,.25)}
   thead tr:first-child th{position:sticky;top:0;z-index:11;height:var(--header-h-1)}
   thead tr:nth-child(2) th{position:sticky;top:var(--header-h-1);z-index:12;height:var(--header-h-2)}
 
-  /* Altura de filas */
   tbody td{height:var(--row-h);background:transparent;color:#e6f7ff;transition:background .15s ease}
   tbody tr.alt td{background:rgba(255,255,255,.01)}
   tbody tr:hover td{background:rgba(255,255,255,.03)}
@@ -68,11 +60,9 @@
   th.rowid,td.rowid{position:sticky;left:0;z-index:20;width:var(--w-id);min-width:var(--w-id);max-width:var(--w-id)}
   td.rowid{font-weight:800;color:#bfe8ff;background:#0c1833}
 
-  /* Primera subcolumna (F/h) ahora más ancha y sin glow */
   th.seq,td.seq{width:var(--w-seq);min-width:var(--w-seq);max-width:var(--w-seq)}
   td.seq{font-weight:800;letter-spacing:.2px;background:rgba(0,255,160,.05)}
 
-  /* Formato F/h dentro de td.seq */
   .fh{line-height:1.1}
   .fh .d{color:#2fffd2;font-weight:900;display:inline-block}
   .fh .t{color:#ffb357;font-weight:900;display:inline-block}
@@ -144,10 +134,8 @@
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:#cfe8ff;gap:10px}
   #footerLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-  /* Atenuación nocturna */
   #dimVeil{position:fixed;inset:0;pointer-events:none;background:#000;opacity:0;transition:opacity .4s ease;z-index:9996}
 
-  /* Protector */
   #saver{position:fixed;inset:0;display:none;z-index:9997;
     background:radial-gradient(1200px 700px at var(--blob-x,40%) var(--blob-y,35%),rgba(0,163,255,.12),rgba(0,0,0,.85) 70%);
     backdrop-filter:blur(1px)
@@ -156,11 +144,9 @@
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
-  /* Imágenes rebotando/lluvia */
   .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
   .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
 
-  /* Modal */
   .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
   .modal-card{width:min(900px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -175,12 +161,10 @@
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
   .pill.small{padding:4px 8px;font-size:12px}
 
-  /* Pozos visibles (checkboxes) */
   #wellChooser{display:grid;grid-template-columns:repeat(6,minmax(100px,1fr));gap:10px}
   #wellChooser label{display:flex;align-items:center;gap:8px;font-weight:600;color:#cfe8ff}
   #wellChooser input{transform:scale(1.15)}
 
-  /* ============ MODO TV (Android TV / TCL) ============ */
   html.is-tv .wrap{ transform:none !important; }
   html.is-tv #saver{ backdrop-filter:none; }
   html.is-tv .bImg, html.is-tv .fallImg{ filter:none; }
@@ -192,7 +176,7 @@
 <div id="dimVeil"></div>
 <div id="saver">
   <div id="saverStage"></div>
-  <div class="center"><!-- Logo opcional --></div>
+  <div class="center"></div>
   <div class="ticker" id="saverTicker"></div>
 </div>
 
@@ -254,7 +238,6 @@
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
     <div class="modal-body">
-      <!-- Tamaños -->
       <section class="grid g3">
         <label>Tamaño “POZO #n”
           <input type="number" id="setPozoFont" min="12" max="40" step="1">
@@ -267,7 +250,6 @@
         </label>
       </section>
 
-      <!-- Protector -->
       <section>
         <h4>Protector de pantalla</h4>
         <div class="grid g3">
@@ -292,7 +274,6 @@
         </div>
       </section>
 
-      <!-- Atenuación nocturna -->
       <section>
         <h4>Atenuación nocturna</h4>
         <div class="grid g3">
@@ -303,7 +284,6 @@
         </div>
       </section>
 
-      <!-- Pixel-shift -->
       <section>
         <h4>Pixel-shift</h4>
         <div class="grid g3">
@@ -313,14 +293,12 @@
         </div>
       </section>
 
-      <!-- Pozos visibles -->
       <section>
         <h4>Pozos visibles</h4>
         <div id="wellChooser" class="full"></div>
         <small style="opacity:.75">Tip: siempre queda al menos 1 pozo visible.</small>
       </section>
 
-      <!-- Reglas de stock -->
       <section>
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
           <h4>Reglas de stock <small style="opacity:.65">(umbral bajo/medio y unidad)</small></h4>
@@ -345,35 +323,41 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function(){
   /* ========= CONFIG ========= */
-  const JSON_URL='https://baseslucas8071-maker.github.io/tablero/status.json';
-  const REFRESH_SECONDS=15, ROWS=60, POZOS=6, LAST_N_TO_SHOW=8, REEL_SIZE=2;
+  var JSON_CANDIDATES=[
+    'https://baseslucas8071-maker.github.io/tablero/status.json',
+    'status.json'
+  ];
+  var JSON_URL=JSON_CANDIDATES[0];
+  var REFRESH_SECONDS=15, ROWS=60, POZOS=6, LAST_N_TO_SHOW=8, REEL_SIZE=2;
 
-  /* Detección Android TV / TCL */
-  const UA = navigator.userAgent || '';
-  const IS_TV = /\b(Android TV|SMART-TV|HBBTV|BRAVIA|AFT|MiBOX|TCL)\b/i.test(UA) || /com\.tcl\.browser/i.test(UA);
+  var UA = navigator.userAgent || '';
+  var IS_TV = /\b(Android TV|SMART-TV|HBBTV|BRAVIA|AFT|MiBOX|TCL)\b/i.test(UA) || /com\.tcl\.browser/i.test(UA);
   if (IS_TV) document.documentElement.classList.add('is-tv');
 
-  const DEFAULT_VALUES_BASE = 'https://github.com/baseslucas8071-maker/tablero/blob/main/images/';
+  var DEFAULT_VALUES_BASE = 'https://github.com/baseslucas8071-maker/tablero/blob/main/images/';
 
   /* ========= UTILES ========= */
-  const prefs={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
-  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)); const pad2=n=>String(n).padStart(2,'0');
+  var prefs={
+    get:function(k,d){ try{ var v=localStorage.getItem(k); return v!==null?JSON.parse(v):d; }catch(_){ return d; } },
+    set:function(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(_){} }
+  };
+  var clamp=function(v,a,b){ return Math.min(b,Math.max(a,v)); };
+  var pad2=function(n){ return String(n).padStart(2,'0'); };
 
-  const toRawURL = u => {
+  var toRawURL=function(u){
     if(!u) return '';
-    const m=u.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.*)$/);
-    return m ? `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}/${m[4]}` : u;
+    var m=u.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.*)$/);
+    return m ? ('https://raw.githubusercontent.com/'+m[1]+'/'+m[2]+'/'+m[3]+'/'+m[4]) : u;
   };
-  const VALUES_IMAGES = base=>{
-    const b=(base||DEFAULT_VALUES_BASE); const raw=(b.endsWith('/')?b:(b+'/')); const r=toRawURL(raw);
-    return [1,2,3,4,5,6].map(i=> r + i + '.png');
+  var VALUES_IMAGES=function(base){
+    var b=(base||DEFAULT_VALUES_BASE); var raw=(b.endsWith('/')?b:(b+'/')); var r=toRawURL(raw);
+    return [1,2,3,4,5,6].map(function(i){ return r + i + '.png'; });
   };
 
-  /* ========= NORMALIZACIÓN (stock) ========= */
   function canonicalizeName(raw){
-    let s=(raw??'').toString().toUpperCase();
+    var s=(raw==null?'':String(raw)).toUpperCase();
     s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
     s=s.replace(/\s*:\s*$/,'');
     s=s.replace(/ARENA\s*MALLA\s*/g,'ARENA ');
@@ -383,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= ESTADO PERSISTENTE ========= */
-  let STOCK_RULES=prefs.get('stock:rules',{
+  var STOCK_RULES=prefs.get('stock:rules',{
     [canonicalizeName('GAS OIL')]:{display:'GAS OIL',unit:'M3',low:50,mid:150},
     [canonicalizeName('ARENA #100')]:{display:'ARENA #100',unit:'Tn',low:100,mid:300},
     [canonicalizeName('ARENA #30/70')]:{display:'ARENA #30/70',unit:'Tn',low:300,mid:800},
@@ -391,119 +375,142 @@ document.addEventListener('DOMContentLoaded', () => {
     [canonicalizeName('GEL TOTE')]:{display:'GEL TOTE',unit:'ud',low:5,mid:15},
   });
 
-  let DISPLAY=prefs.get('display:cfg',{
+  var DISPLAY=prefs.get('display:cfg',{
     pozoFont:20, stockFont:16, cellFont:19,
     saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:2, gitBase:DEFAULT_VALUES_BASE },
     nightDim:{ enabled:true, startHour:1, endHour:6, dimLevel:0.65 },
     pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 },
-    /* Nueva sección de vista */
     view:{ visibleWells:[1,2,3,4,5,6] }
   });
 
-  /* --- MIGRACIÓN: asegurar DISPLAY.view.visibleWells para configs viejas --- */
   if (!DISPLAY.view || !Array.isArray(DISPLAY.view.visibleWells)) {
-    DISPLAY.view = { visibleWells: [1,2,3,4,5,6] };
-    try { prefs.set('display:cfg', DISPLAY); } catch {}
+    DISPLAY.view = { visibleWells:[1,2,3,4,5,6] };
+    prefs.set('display:cfg', DISPLAY);
   }
-
   if (IS_TV) DISPLAY.pixelShift.enabled = false;
 
   /* ========= ESTADO RUNTIME ========= */
-  let paused=prefs.get('ui:paused',false);
-  let prevDataMap={}, latestDataMap={}, isFetching=false;
-  let lastActivityTs=Date.now(); let stockCache=[];
-  let shiftTimer=null, nightTimer=null, saverTO=null, rotator=null;
-  let rafAnim=null; let sprites=[]; let testingTO=null;
+  var paused=prefs.get('ui:paused',false);
+  var prevDataMap={}, latestDataMap={}, isFetching=false;
+  var lastActivityTs=Date.now(); var stockCache=[];
+  var shiftTimer=null, nightTimer=null, saverTO=null, rotator=null;
+  var rafAnim=null; var sprites=[]; var testingTO=null;
 
   /* ========= DOM ========= */
-  const tbody=document.getElementById('tbody');
-  const hdrTop=document.getElementById('hdrTop'), hdrSub=document.getElementById('hdrSub');
-  const tableContainer=document.getElementById('tableContainer');
-  const autoScroll=document.getElementById('autoScroll');
-  const lastUpdateEl=document.getElementById('lastUpdate'), deltaEl=document.getElementById('delta'), net=document.getElementById('netStatus');
-  const stockBar=document.getElementById('stockBar');
-  const btnRefresh=document.getElementById('btnRefresh'), btnPause=document.getElementById('btnPause'), btnFull=document.getElementById('btnFull'), btnSettings=document.getElementById('btnSettings');
-  const fractureTotalEl=document.getElementById('fractureTotal'), datesReel=document.getElementById('datesReel'), remainingEl=document.getElementById('remainingStages');
-  const dimVeil=document.getElementById('dimVeil'), saver=document.getElementById('saver'), saverTicker=document.getElementById('saverTicker'), saverStage=document.getElementById('saverStage');
+  var tbody=document.getElementById('tbody');
+  var hdrTop=document.getElementById('hdrTop'), hdrSub=document.getElementById('hdrSub');
+  var tableContainer=document.getElementById('tableContainer');
+  var autoScroll=document.getElementById('autoScroll');
+  var lastUpdateEl=document.getElementById('lastUpdate'), deltaEl=document.getElementById('delta'), net=document.getElementById('netStatus');
+  var stockBar=document.getElementById('stockBar');
+  var btnRefresh=document.getElementById('btnRefresh'), btnPause=document.getElementById('btnPause'), btnFull=document.getElementById('btnFull'), btnSettings=document.getElementById('btnSettings');
+  var fractureTotalEl=document.getElementById('fractureTotal'), datesReel=document.getElementById('datesReel'), remainingEl=document.getElementById('remainingStages');
+  var dimVeil=document.getElementById('dimVeil'), saver=document.getElementById('saver'), saverTicker=document.getElementById('saverTicker'), saverStage=document.getElementById('saverStage');
 
-  /* Modal */
-  const modal=document.getElementById('settingsModal');
-  const setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
-  const setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
-  const setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
-  const setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
-  const btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
-  const btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
-  const btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
-  const wellChooser=document.getElementById('wellChooser');
+  var modal=document.getElementById('settingsModal');
+  var setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
+  var setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
+  var setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
+  var setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
+  var btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
+  var btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
+  var btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
+  var wellChooser=document.getElementById('wellChooser');
 
   /* ========= HEADER ACCIONES ========= */
   autoScroll.checked=prefs.get('ui:autoScroll',true);
   btnPause.innerText=paused?'Reanudar':'Pausar';
   document.getElementById('refreshSec').innerText=REFRESH_SECONDS;
 
-  btnRefresh.onclick=()=>forceRefresh();
-  btnPause.onclick=()=>{paused=!paused;prefs.set('ui:paused',paused);btnPause.innerText=paused?'Reanudar':'Pausar';};
-  autoScroll.onchange=()=>{prefs.set('ui:autoScroll',autoScroll.checked); if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));};
+  btnRefresh.onclick=function(){ forceRefresh(); };
+  btnPause.onclick=function(){ paused=!paused;prefs.set('ui:paused',paused);btnPause.innerText=paused?'Reanudar':'Pausar'; };
+  autoScroll.onchange=function(){ prefs.set('ui:autoScroll',autoScroll.checked); if(autoScroll.checked) requestAnimationFrame(function(){ scrollToLastWithData(LAST_N_TO_SHOW); }); };
 
-  /* Fullscreen cross-browser */
-  function enterFull(){ const el=document.documentElement; (el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen||el.mozRequestFullScreen)?.call(el); }
-  function exitFull(){ (document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen||document.mozCancelFullScreen)?.call(document); }
-  btnFull.onclick=()=>{ const fs=document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement||document.mozFullScreenElement; fs?exitFull():enterFull(); };
+  function enterFull(){
+    var el=document.documentElement;
+    (el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen||el.mozRequestFullScreen||function(){}).call(el);
+  }
+  function exitFull(){
+    (document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen||document.mozCancelFullScreen||function(){}).call(document);
+  }
+  btnFull.onclick=function(){
+    var fs=document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement||document.mozFullScreenElement;
+    fs?exitFull():enterFull();
+  };
 
   btnSettings.onclick=openSettings;
-  btnClose.onclick=()=>modal.style.display='none';
-  btnReset.onclick=()=>{localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload();};
-  btnSave.onclick=()=>{saveSettings(true); fitRowsToViewport(); applyWellVisibility();};
-  btnLoadDetected.onclick=mergeDetectedItems;
-  btnAddRule.onclick=()=>addRuleRow({display:'',unit:'',low:'',mid:''});
+  btnClose.onclick=function(){ modal.style.display='none'; };
+  btnReset.onclick=function(){ localStorage.removeItem('stock:rules'); localStorage.removeItem('display:cfg'); location.reload(); };
 
-  /* Test del protector */
-  btnTestSaver.addEventListener('click', (e) => {
+  btnSave.onclick=function(){
+    try{
+      saveSettings(true);
+      fitRowsToViewport();
+      applyWellVisibility();
+      net.textContent='Ajustes guardados';
+      net.style.background='rgba(0,180,60,.25)';
+      net.style.borderColor='rgba(0,180,60,.35)';
+    }catch(err){
+      console.error(err);
+      net.textContent='Error guardando ajustes';
+      net.style.background='rgba(220,60,60,.25)';
+      net.style.borderColor='rgba(220,60,60,.4)';
+      // Aun así cierro para no “bloquear” al usuario
+      modal.style.display='none';
+    }
+  };
+
+  btnLoadDetected.onclick=mergeDetectedItems;
+  btnAddRule.onclick=function(){ addRuleRow({display:'',unit:'',low:'',mid:''}); };
+
+  btnTestSaver.addEventListener('click', function(e){
     e.preventDefault(); e.stopImmediatePropagation();
     saveSettings(false); modal.style.display='none';
-    setTimeout(()=>{ showSaver(true); },0);
+    setTimeout(function(){ showSaver(true); },0);
     clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000);
   });
 
-  /* ========= LISTENERS DE ACTIVIDAD ========= */
-  const activityEvts=['mousemove','pointermove','touchmove','touchstart','click','wheel','keydown'];
-  let lastInput={x:null,y:null,t:0};
-  activityEvts.forEach(ev=>window.addEventListener(ev,markActivity,{passive:true}));
+  /* ========= LISTENERS ACTIVIDAD ========= */
+  var activityEvts=['mousemove','pointermove','touchmove','touchstart','click','wheel','keydown'];
+  var lastInput={x:null,y:null,t:0};
+  activityEvts.forEach(function(ev){
+    window.addEventListener(ev,markActivity,{passive:true});
+  });
 
   function markActivity(e){
-    const now=Date.now();
-    if(e && ('mousemove pointermove touchmove'.includes(e.type))){
-      const p = e.touches?.[0] || e;
-      const x = p?.clientX ?? 0, y = p?.clientY ?? 0;
+    var now=Date.now();
+    if(e && (e.type==='mousemove' || e.type==='pointermove' || e.type==='touchmove')){
+      var p = (e && e.touches && e.touches[0]) ? e.touches[0] : e;
+      var x = p && typeof p.clientX==='number' ? p.clientX : 0;
+      var y = p && typeof p.clientY==='number' ? p.clientY : 0;
       if(lastInput.x!=null){
-        const dx=Math.abs(x-lastInput.x), dy=Math.abs(y-lastInput.y), dt=now-lastInput.t;
+        var dx=Math.abs(x-lastInput.x), dy=Math.abs(y-lastInput.y), dt=now-lastInput.t;
         if(dx<4 && dy<4 && dt<350) return;
       }
-      lastInput={x,y,t:now};
+      lastInput={x:x,y:y,t:now};
     }
     lastActivityTs=now; hideSaver(); scheduleSaver();
   }
 
-  window.addEventListener('keydown',e=>{ if(e.key==='Escape'){modal.style.display='none'; hideSaver();}});
+  window.addEventListener('keydown',function(e){ if(e.key==='Escape'){modal.style.display='none'; hideSaver();}});
 
   /* ========= TABLA ========= */
   function initializeDOM(){
-    for(let i=1;i<=POZOS;i++){
-      const thTop=document.createElement('th'); thTop.className=`pozo-${i} pozoTop`; thTop.dataset.p=i; thTop.colSpan=3; thTop.innerText=`POZO #${i}`; hdrTop.appendChild(thTop);
-      const thSeq=document.createElement('th'); thSeq.className='seq'; thSeq.dataset.p=i; thSeq.innerText='F/h TPN'; hdrSub.appendChild(thSeq);
-      const th1=document.createElement('th'); th1.dataset.p=i; th1.innerText='TPN'; hdrSub.appendChild(th1);
-      const th2=document.createElement('th'); th2.dataset.p=i; th2.innerText='FRACTURADO'; hdrSub.appendChild(th2);
+    for(var i=1;i<=POZOS;i++){
+      var thTop=document.createElement('th'); thTop.className='pozo-'+i+' pozoTop'; thTop.dataset.p=i; thTop.colSpan=3; thTop.innerText='POZO #'+i; hdrTop.appendChild(thTop);
+      var thSeq=document.createElement('th'); thSeq.className='seq'; thSeq.dataset.p=i; thSeq.innerText='F/h TPN'; hdrSub.appendChild(thSeq);
+      var th1=document.createElement('th'); th1.dataset.p=i; th1.innerText='TPN'; hdrSub.appendChild(th1);
+      var th2=document.createElement('th'); th2.dataset.p=i; th2.innerText='FRACTURADO'; hdrSub.appendChild(th2);
     }
-    const frag=document.createDocumentFragment();
-    for(let i=1;i<=ROWS;i++){
-      const id='#'+String(i).padStart(2,'0');
-      const tr=document.createElement('tr'); tr.dataset.rowId=id; if(i%2===0) tr.classList.add('alt');
-      const tdId=document.createElement('td'); tdId.className='rowid'; tdId.innerText=id; tr.appendChild(tdId);
-      for(let p=1;p<=POZOS;p++){
-        const tdS=document.createElement('td'); tdS.dataset.col=`Seq${p}`; tdS.className='seq'; tr.appendChild(tdS);
-        const td1=document.createElement('td'); td1.dataset.col=`Pozo${p}`; tr.appendChild(td1);
-        const td2=document.createElement('td'); td2.dataset.col=`Estado${p}`; tr.appendChild(td2);
+    var frag=document.createDocumentFragment();
+    for(var r=1;r<=ROWS;r++){
+      var id='#'+String(r).padStart(2,'0');
+      var tr=document.createElement('tr'); tr.dataset.rowId=id; if(r%2===0) tr.classList.add('alt');
+      var tdId=document.createElement('td'); tdId.className='rowid'; tdId.innerText=id; tr.appendChild(tdId);
+      for(var p=1;p<=POZOS;p++){
+        var tdS=document.createElement('td'); tdS.dataset.col='Seq'+p; tdS.className='seq'; tr.appendChild(tdS);
+        var td1=document.createElement('td'); td1.dataset.col='Pozo'+p; tr.appendChild(td1);
+        var td2=document.createElement('td'); td2.dataset.col='Estado'+p; tr.appendChild(td2);
       }
       frag.appendChild(tr);
     }
@@ -517,112 +524,106 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.setProperty('--cell-font-size',  DISPLAY.cellFont+'px');
   }
 
-  /* Altura de filas para llenar viewport */
   function fitRowsToViewport(){
-    const vvH = window.visualViewport?.height || window.innerHeight;
-    const headerRect = document.querySelector('header').getBoundingClientRect();
-    const footerH = document.querySelector('footer').offsetHeight || 0;
-    const available = Math.max(120, vvH - headerRect.height - 12 - footerH - 12);
-    const headH = hdrTop.offsetHeight + hdrSub.offsetHeight;
-    const inner = Math.max(60, available - headH);
-    const target = Math.floor(inner / ROWS);
-    const rowH = clamp(target, 26, 72);
+    var vvH = (window.visualViewport&&window.visualViewport.height) || window.innerHeight;
+    var headerRect = document.querySelector('header').getBoundingClientRect();
+    var footerH = (document.querySelector('footer') && document.querySelector('footer').offsetHeight) || 0;
+    var available = Math.max(120, vvH - headerRect.height - 12 - footerH - 12);
+    var headH = hdrTop.offsetHeight + hdrSub.offsetHeight;
+    var inner = Math.max(60, available - headH);
+    var target = Math.floor(inner / ROWS);
+    var rowH = clamp(target, 26, 72);
     document.documentElement.style.setProperty('--row-h', rowH+'px');
   }
 
   /* ========= FECHAS ========= */
-  const excelSerialToDateTime = num => {
-    const baseUTC = Date.UTC(1899,11,30); // Excel epoch
-    const ms = Math.round(num * 86400000);
-    const d = new Date(baseUTC + ms);
-    return {
-      y:d.getUTCFullYear(), m:d.getUTCMonth()+1, d:d.getUTCDate(),
-      hh:d.getUTCHours(), mm:d.getUTCMinutes()
-    };
+  var excelSerialToDateTime = function(num){
+    var baseUTC = Date.UTC(1899,11,30);
+    var ms = Math.round(num * 86400000);
+    var d = new Date(baseUTC + ms);
+    return { y:d.getUTCFullYear(), m:d.getUTCMonth()+1, d:d.getUTCDate(), hh:d.getUTCHours(), mm:d.getUTCMinutes() };
   };
 
   function parseDateTimeAny(val){
-    const s=(val??'').toString().trim();
+    var s=(val==null?'':String(val)).trim();
     if(!s) return null;
 
-    // dd/mm/yyyy [hh:mm]
-    let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
+    var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/);
     if(m){
-      const d=+m[1], mo=+m[2], y=+m[3], hh=+(m[4]??0), mm=+(m[5]??0);
-      return {date:`${d}/${mo}/${y}`, time:`${pad2(hh)}:${pad2(mm)}`};
+      var d=+m[1], mo=+m[2], y=+m[3], hh=+(m[4]||0), mm=+(m[5]||0);
+      return {date:(d+'/'+mo+'/'+y), time:(pad2(hh)+':'+pad2(mm))};
     }
 
-    // ISO / variantes
-    const dIso = new Date(s);
+    var dIso = new Date(s);
     if(!Number.isNaN(+dIso)){
-      return {date:`${dIso.getDate()}/${dIso.getMonth()+1}/${dIso.getFullYear()}`, time:`${pad2(dIso.getHours())}:${pad2(dIso.getMinutes())}`};
+      return {date:(dIso.getDate()+'/'+(dIso.getMonth()+1)+'/'+dIso.getFullYear()), time:(pad2(dIso.getHours())+':'+pad2(dIso.getMinutes()))};
     }
 
-    // Serial Excel (con/ sin decimales)
     if(/^-?\d+(\.\d+)?$/.test(s)){
-      const n=Number(s.replace(',','.'));
+      var n=Number(s.replace(',','.'));
       if(Number.isFinite(n)&&n>=30000&&n<=70000){
-        const o=excelSerialToDateTime(n);
-        return {date:`${o.d}/${o.m}/${o.y}`, time:`${pad2(o.hh)}:${pad2(o.mm)}`};
+        var o=excelSerialToDateTime(n);
+        return {date:(o.d+'/'+o.m+'/'+o.y), time:(pad2(o.hh)+':'+pad2(o.mm))};
       }
     }
     return null;
   }
 
-  const excelSerialToYMD=num=>{
-    const base=Date.UTC(1899,11,30);
-    const ms=base+Math.round(num)*86400000;
-    const d=new Date(ms);
+  var excelSerialToYMD=function(num){
+    var base=Date.UTC(1899,11,30);
+    var ms=base+Math.round(num)*86400000;
+    var d=new Date(ms);
     return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()};
   };
 
-  function parseDateValue(val){ // sólo fecha para FRACTURADO
-    const s=(val??'').toString().trim(); if(!s) return null;
-    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if(m){const y=+m[1],mo=+m[2],d=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};}
+  function parseDateValue(val){
+    var s=(val==null?'':String(val)).trim(); if(!s) return null;
+    var m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(m){var y=+m[1],mo=+m[2],d=+m[3]; return {display:(d+'/'+mo+'/'+y),normalized:(y+'-'+pad2(mo)+'-'+pad2(d))};}
     m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if(m){const d=+m[1],mo=+m[2],y=+m[3]; return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};}
-    if(/^-?\d+(\.\d+)?$/.test(s)){const n=Number(s.replace(',','.')); if(Number.isFinite(n)&&n>=30000&&n<=70000){const {y,m:mo,d}=excelSerialToYMD(n); return {display:`${d}/${mo}/${y}`,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};}}
+    if(m){var d2=+m[1],mo2=+m[2],y2=+m[3]; return {display:(d2+'/'+mo2+'/'+y2),normalized:(y2+'-'+pad2(mo2)+'-'+pad2(d2))};}
+    if(/^-?\d+(\.\d+)?$/.test(s)){var n=Number(s.replace(',','.')); if(Number.isFinite(n)&&n>=30000&&n<=70000){var ymd=excelSerialToYMD(n); return {display:(ymd.d+'/'+ymd.m+'/'+ymd.y),normalized:(ymd.y+'-'+pad2(ymd.m)+'-'+pad2(ymd.d))};}}
     return null;
   }
 
-  const maybeFormatDate=v=>{const p=parseDateValue(v); return p?p.display:(v??'');}
-  const isStop=v=>String(v??'').trim().toUpperCase()==='STOP';
-  const isFechaValida=v=>parseDateValue(v)!==null;
+  var maybeFormatDate=function(v){ var p=parseDateValue(v); return p?p.display:(v==null?'':v); };
+  var isStop=function(v){ return String(v==null?'':v).trim().toUpperCase()==='STOP'; };
+  var isFechaValida=function(v){ return parseDateValue(v)!==null; };
 
-  /* ========= JSON ========= */
   function transformItems(items){
     if(!Array.isArray(items)) return [];
-    return items.map(raw=>{
-      const o={};
-      o.fila=(raw.Fila??raw.fila??'').toString();
-      for(let i=1;i<=POZOS;i++){
-        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();      // ← F/h TPN (fecha+hora en Excel o texto)
-        o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString();          // ← TPN
-        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();  // ← FRACTURADO (fecha)
+    return items.map(function(raw){
+      var o={};
+      o.fila=String((raw.Fila!=null?raw.Fila:(raw.fila!=null?raw.fila:'')));
+      for(var i=1;i<=POZOS;i++){
+        o['Seq'+i]=String((raw['SecuenciaPozo'+i]!=null?raw['SecuenciaPozo'+i]:''));
+        o['Pozo'+i]=String((raw['TPNPozo'+i]!=null?raw['TPNPozo'+i]:''));
+        o['Estado'+i]=String((raw['FechaFracPozo'+i]!=null?raw['FechaFracPozo'+i]:''));
       }
       return o;
     });
   }
-  function extractHeaderRows(c){const h=c.filter(it=>(it.fila||'').trim()===''); return {top:h[0]||null, sub:h[1]||null};}
-  function itemsArrayToMap(c){const m={}; for(const it of c){const k=(it.fila||'').toString().trim(); if(!k) continue; m[k]=it;} return m;}
+  function extractHeaderRows(c){ var h=c.filter(function(it){return (it.fila||'').trim()==='';}); return {top:h[0]||null, sub:h[1]||null}; }
+  function itemsArrayToMap(c){ var m={}; for(var i=0;i<c.length;i++){ var it=c[i]; var k=(it.fila||'').toString().trim(); if(!k) continue; m[k]=it; } return m; }
 
-  /* ========= UI ENCABEZADOS / TABLA ========= */
   function updateHeaderNames(topRow, subRow){
     if(!topRow && !subRow) return;
-    const n=[];
-    for(let i=1;i<=POZOS;i++){
-      const pTop=topRow?.['Pozo'+i]?.trim()||'', eTop=topRow?.['Estado'+i]?.trim()||'';
-      const pSub=subRow?.['Pozo'+i]?.trim()||'', eSub=subRow?.['Estado'+i]?.trim()||'';
-      let t=pTop||pSub||`POZO #${i}`; let s=eTop||'';
+    var n=[];
+    for(var i=1;i<=POZOS;i++){
+      var pTop=topRow && topRow['Pozo'+i] ? String(topRow['Pozo'+i]).trim() : '';
+      var eTop=topRow && topRow['Estado'+i] ? String(topRow['Estado'+i]).trim() : '';
+      var pSub=subRow && subRow['Pozo'+i] ? String(subRow['Pozo'+i]).trim() : '';
+      var eSub=subRow && subRow['Estado'+i] ? String(subRow['Estado'+i]).trim() : '';
+      var t=pTop||pSub||('POZO #'+i); var s=eTop||'';
       if(!s && eSub && !/^TPN$/i.test(eSub)) s=eSub;
       n.push((t+(s?(' '+s):'' )).trim());
     }
-    hdrTop.querySelectorAll('th.pozoTop').forEach((th,i)=>th.innerText=n[i]||`POZO #${i+1}`);
+    var pozoTops=hdrTop.querySelectorAll('th.pozoTop');
+    for(var j=0;j<pozoTops.length;j++){ pozoTops[j].innerText=n[j]||('POZO #'+(j+1)); }
 
-    const sub=hdrSub.querySelectorAll('th');
-    for(let i=1;i<=POZOS;i++){
-      const b=(i-1)*3+1;
+    var sub=hdrSub.querySelectorAll('th');
+    for(var p=1;p<=POZOS;p++){
+      var b=(p-1)*3+1;
       if(sub[b])   sub[b].innerText='F/h TPN';
       if(sub[b+1]) sub[b+1].innerText='TPN';
       if(sub[b+2]) sub[b+2].innerText='FRACTURADO';
@@ -631,33 +632,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function hasVisibleData(o){
     if(!o) return false;
-    for(let i=1;i<=POZOS;i++){
-      const t=(o['Pozo'+i]??'').toString().trim(), e=o['Estado'+i];
+    for(var i=1;i<=POZOS;i++){
+      var t=(o['Pozo'+i]||'').toString().trim(), e=o['Estado'+i];
       if(t!=='' || (e && !isStop(e) && isFechaValida(e))) return true;
     }
     return false;
   }
 
   function renderFHCell(val){
-    const dt = parseDateTimeAny(val);
+    var dt = parseDateTimeAny(val);
     if(!dt) return '';
-    return `<div class="fh"><span class="d">${dt.date}</span><br><span class="t">${dt.time}</span></div>`;
+    return '<div class="fh"><span class="d">'+dt.date+'</span><br><span class="t">'+dt.time+'</span></div>';
   }
 
   function updateRowCells(rowId,data){
-    const tr=tbody.querySelector(`tr[data-row-id="${rowId}"]`); if(!tr) return{changed:false,cells:0};
-    let ch=false,c=0;
-    for(let p=1;p<=POZOS;p++){
-      const tdS=tr.querySelector(`td[data-col="Seq${p}"]`),
-            td1=tr.querySelector(`td[data-col="Pozo${p}"]`),
-            td2=tr.querySelector(`td[data-col="Estado${p}"]`);
+    var tr=tbody.querySelector('tr[data-row-id="'+rowId+'"]'); if(!tr) return{changed:false,cells:0};
+    var ch=false,c=0;
+    for(var p=1;p<=POZOS;p++){
+      var tdS=tr.querySelector('td[data-col="Seq'+p+'"]'),
+          td1=tr.querySelector('td[data-col="Pozo'+p+'"]'),
+          td2=tr.querySelector('td[data-col="Estado'+p+'"]');
 
-      const vS=(data?.['Seq'+p])?String(data['Seq'+p]):'';
-      const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):'';
-      const raw=(data?.['Estado'+p])??'';
-      const v2=maybeFormatDate(raw);
+      var vS=data && data['Seq'+p] ? String(data['Seq'+p]) : '';
+      var v1=data && data['Pozo'+p] ? String(data['Pozo'+p]) : '';
+      var raw=(data && data['Estado'+p]!=null)?data['Estado'+p]:'';
+      var v2=maybeFormatDate(raw);
 
-      const fhHTML = renderFHCell(vS);
+      var fhHTML = renderFHCell(vS);
       if(tdS && tdS.innerHTML!==fhHTML){tdS.innerHTML=fhHTML; ch=true;c++;}
 
       if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;}
@@ -668,18 +669,18 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateDOM(map){
-    let total=0;
-    for(let i=1;i<=ROWS;i++){
-      const id='#'+String(i).padStart(2,'0');
-      const obj=map[id]||{};
-      const s=JSON.stringify(obj);
-      const prev=prevDataMap[id];
+    var total=0;
+    for(var i=1;i<=ROWS;i++){
+      var id='#'+String(i).padStart(2,'0');
+      var obj=map[id]||{};
+      var s=JSON.stringify(obj);
+      var prev=prevDataMap[id];
       if(prev===undefined){
         prevDataMap[id]=s; latestDataMap[id]=obj;
-        const {cells}=updateRowCells(id,obj); total+=cells; continue;
+        var r1=updateRowCells(id,obj); total+=r1.cells; continue;
       }
       if(prev!==s){
-        const {cells}=updateRowCells(id,obj); total+=cells; prevDataMap[id]=s; latestDataMap[id]=obj;
+        var r2=updateRowCells(id,obj); total+=r2.cells; prevDataMap[id]=s; latestDataMap[id]=obj;
       } else {
         latestDataMap[id]=obj;
       }
@@ -688,122 +689,130 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========= STATS / REEL ========= */
-  let datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
+  var datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
   function computeFractureStats(conv){
-    const f=new Map(); let tot=0;
-    for(const it of conv){
-      if(!it.fila?.trim()) continue;
-      for(let i=1;i<=POZOS;i++){
-        const p=parseDateValue(it['Estado'+i]);
-        if(p){tot++; const cur=f.get(p.normalized); cur?cur.count++:f.set(p.normalized,{display:p.display,count:1,normalized:p.normalized}); }
+    var f=new Map(); var tot=0;
+    for(var i=0;i<conv.length;i++){
+      var it=conv[i];
+      if(!it.fila||!it.fila.trim()) continue;
+      for(var p=1;p<=POZOS;p++){
+        var pdt=parseDateValue(it['Estado'+p]);
+        if(pdt){tot++; var cur=f.get(pdt.normalized); if(cur) cur.count++; else f.set(pdt.normalized,{display:pdt.display,count:1,normalized:pdt.normalized});}
       }
     }
     return {total:tot,freq:f};
   }
   function updateDatesArray(freq){
-    datesArr=Array.from(freq.values()).sort((a,b)=>a.normalized.localeCompare(b.normalized));
-    const max=Math.max(0,datesArr.length-REEL_SIZE);
+    datesArr=Array.from(freq.values()).sort(function(a,b){ return a.normalized.localeCompare(b.normalized); });
+    var max=Math.max(0,datesArr.length-REEL_SIZE);
     reelStart=userMovedReel?Math.min(reelStart,max):max;
     prefs.set('reel:start',reelStart);
     renderDatesReel();
   }
   function renderDatesReel(){
-    const el=datesReel; el.innerHTML='';
-    if(!datesArr.length){ const d=document.createElement('div'); d.className='pill'; d.textContent='Sin fechas'; el.appendChild(d); return; }
-    const max=Math.max(0,datesArr.length-REEL_SIZE);
-    const prev=document.createElement('button'); prev.className='reel-btn'; prev.textContent='‹'; prev.disabled=(reelStart===0);
-    prev.onclick=()=>{reelStart=Math.max(0,reelStart-REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel();};
+    var el=datesReel; el.innerHTML='';
+    if(!datesArr.length){ var d=document.createElement('div'); d.className='pill'; d.textContent='Sin fechas'; el.appendChild(d); return; }
+    var max=Math.max(0,datesArr.length-REEL_SIZE);
+    var prev=document.createElement('button'); prev.className='reel-btn'; prev.textContent='‹'; prev.disabled=(reelStart===0);
+    prev.onclick=function(){ reelStart=Math.max(0,reelStart-REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel(); };
     el.appendChild(prev);
-    for(let k=0;k<REEL_SIZE;k++){
-      const idx=reelStart+k; if(idx>=datesArr.length) break;
-      const d=datesArr[idx];
-      const chip=document.createElement('div'); chip.className='date-chip'+(idx===datesArr.length-1?' latest':'');
-      const dd=document.createElement('div'); dd.className='date'; dd.textContent=d.display;
-      const nn=document.createElement('div'); nn.className='num'; nn.textContent=d.count;
-      chip.append(dd,nn); el.appendChild(chip);
+    for(var k=0;k<REEL_SIZE;k++){
+      var idx=reelStart+k; if(idx>=datesArr.length) break;
+      var d2=datesArr[idx];
+      var chip=document.createElement('div'); chip.className='date-chip'+(idx===datesArr.length-1?' latest':'');
+      var dd=document.createElement('div'); dd.className='date'; dd.textContent=d2.display;
+      var nn=document.createElement('div'); nn.className='num'; nn.textContent=d2.count;
+      chip.appendChild(dd); chip.appendChild(nn); el.appendChild(chip);
     }
-    const next=document.createElement('button'); next.className='reel-btn'; next.textContent='›'; next.disabled=(reelStart>=max);
-    next.onclick=()=>{reelStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel();};
+    var next=document.createElement('button'); next.className='reel-btn'; next.textContent='›'; next.disabled=(reelStart>=max);
+    next.onclick=function(){ reelStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel(); };
     el.appendChild(next);
   }
 
-  /* ========= ETAPAS RESTANTES / BADGES ========= */
   function computeRemainingStages(conv){
-    const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row);
-    let total=0;
-    for(let p=1;p<=POZOS;p++){
-      let stop=null;
-      for(const r of rows){ const v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} }
+    var rows=conv.filter(function(it){return it.fila&&it.fila.trim();})
+                 .map(function(it){var m=it.fila.trim().match(/^#?(\d+)/);return Object.assign({},it,{_row:m?parseInt(m[1],10):NaN});})
+                 .filter(function(it){return Number.isFinite(it._row);})
+                 .sort(function(a,b){return a._row-b._row;});
+    var total=0;
+    for(var p=1;p<=POZOS;p++){
+      var stop=null;
+      for(var i=0;i<rows.length;i++){ var r=rows[i]; var v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} }
       if(!stop) continue;
-      for(const r of rows){ if(r._row>=stop) break; if((r['Estado'+p]||'').toString().trim()==='') total++; }
+      for(var j=0;j<rows.length;j++){ var r2=rows[j]; if(r2._row>=stop) break; if((r2['Estado'+p]||'').toString().trim()==='') total++; }
     }
     return total;
   }
   function remainingPerPozo(conv){
-    const rows=conv.filter(it=>it.fila?.trim()).map(it=>{const m=it.fila.trim().match(/^#?(\d+)/);return {...it,_row:m?parseInt(m[1],10):NaN};}).filter(it=>Number.isFinite(it._row)).sort((a,b)=>a._row-b._row);
-    const res=Array(POZOS).fill(0);
-    for(let p=1;p<=POZOS;p++){
-      let stop=null;
-      for(const r of rows){ const v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} }
+    var rows=conv.filter(function(it){return it.fila&&it.fila.trim();})
+                 .map(function(it){var m=it.fila.trim().match(/^#?(\d+)/);return Object.assign({},it,{_row:m?parseInt(m[1],10):NaN});})
+                 .filter(function(it){return Number.isFinite(it._row);})
+                 .sort(function(a,b){return a._row-b._row;});
+    var res=new Array(POZOS).fill(0);
+    for(var p=1;p<=POZOS;p++){
+      var stop=null;
+      for(var i=0;i<rows.length;i++){ var r=rows[i]; var v=(r['Estado'+p]||'').toString().trim().toUpperCase(); if(v==='STOP'){stop=r._row; break;} }
       if(!stop) continue;
-      for(const r of rows){ if(r._row>=stop) break; if((r['Estado'+p]||'').toString().trim()==='') res[p-1]++; }
+      for(var j=0;j<rows.length;j++){ var r2=rows[j]; if(r2._row>=stop) break; if((r2['Estado'+p]||'').toString().trim()==='') res[p-1]++; }
     }
     return res;
   }
   function paintBadgesPerPozo(arr){
-    document.querySelectorAll('#hdrTop th.pozoTop').forEach((th,i)=>{
-      th.querySelectorAll('.badge').forEach(b=>b.remove());
-      const val=arr[i]??0;
-      if(val>0){ const b=document.createElement('span'); b.className='badge'; b.textContent=val; th.appendChild(b); }
-    });
+    var ths=document.querySelectorAll('#hdrTop th.pozoTop');
+    for(var i=0;i<ths.length;i++){
+      var th=ths[i];
+      [].slice.call(th.querySelectorAll('.badge')).forEach(function(b){ b.remove(); });
+      var val=arr[i]||0;
+      if(val>0){ var b=document.createElement('span'); b.className='badge'; b.textContent=val; th.appendChild(b); }
+    }
   }
 
-  /* ========= PROTECCIONES ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
-  function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } const h=new Date().getHours(); const on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
+  function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } var h=new Date().getHours(); var on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
   function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
-  function restartShift(){ clearInterval(shiftTimer); document.documentElement.style.setProperty('--nudge-x','0px'); document.documentElement.style.setProperty('--nudge-y','0px'); if(!DISPLAY.pixelShift.enabled) return; const ms=Math.max(1,DISPLAY.pixelShift.intervalMin)*60*1000; shiftTimer=setInterval(()=>{ const m=Math.max(0,DISPLAY.pixelShift.maxOffsetPx|0); const x=(Math.floor(Math.random()*(m*2+1))-m); const y=(Math.floor(Math.random()*(m*2+1))-m); document.documentElement.style.setProperty('--nudge-x',x+'px'); document.documentElement.style.setProperty('--nudge-y',y+'px'); },ms); }
+  function restartShift(){ clearInterval(shiftTimer); document.documentElement.style.setProperty('--nudge-x','0px'); document.documentElement.style.setProperty('--nudge-y','0px'); if(!DISPLAY.pixelShift.enabled) return; var ms=Math.max(1,DISPLAY.pixelShift.intervalMin)*60*1000; shiftTimer=setInterval(function(){ var m=Math.max(0,DISPLAY.pixelShift.maxOffsetPx|0); var x=(Math.floor(Math.random()*(m*2+1))-m); var y=(Math.floor(Math.random()*(m*2+1))-m); document.documentElement.style.setProperty('--nudge-x',x+'px'); document.documentElement.style.setProperty('--nudge-y',y+'px'); },ms); }
 
-  function buildSaverFrame(){ const x=30+Math.random()*40, y=25+Math.random()*40; saver.style.setProperty('--blob-x',x+'%'); saver.style.setProperty('--blob-y',y+'%'); saverTicker.textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
+  function buildSaverFrame(){ var x=30+Math.random()*40, y=25+Math.random()*40; saver.style.setProperty('--blob-x',x+'%'); saver.style.setProperty('--blob-y',y+'%'); saverTicker.textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
 
   function clearSaver(){
     saverStage.innerHTML=''; sprites=[];
-    cancelAnimationFrame(rafAnim); rafAnim=null;
-    clearInterval(rotator); rotator=null;
+    if(rafAnim){ cancelAnimationFrame(rafAnim); rafAnim=null; }
+    if(rotator){ clearInterval(rotator); rotator=null; }
   }
 
   function startBounce(images){
     clearSaver();
-    const W=saverStage.clientWidth, H=saverStage.clientHeight;
-    const n=Math.min(images.length,6);
+    var W=saverStage.clientWidth, H=saverStage.clientHeight;
+    var n=Math.min(images.length,6);
     sprites=[];
-    for(let i=0;i<n;i++){
-      const img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img);
-      const w0=180, h0=100;
+    for(var i=0;i<n;i++){
+      var img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img);
+      var w0=180, h0=100;
       sprites.push({el:img,x:Math.random()*(W-w0),y:Math.random()*(H-h0),vx:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),vy:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),w:w0,h:h0});
     }
-    const step=()=>{
-      const W=saverStage.clientWidth, H=saverStage.clientHeight;
-      for(const s of sprites){ s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; }
-      for(const s of sprites){
-        s.x+=s.vx; s.y+=s.vy;
-        if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;}
-        if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;}
+    var step=function(){
+      var W=saverStage.clientWidth, H=saverStage.clientHeight;
+      for(var s_i=0;s_i<sprites.length;s_i++){ var s=sprites[s_i]; s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; }
+      for(var s_j=0;s_j<sprites.length;s_j++){
+        var s2=sprites[s_j];
+        s2.x+=s2.vx; s2.y+=s2.vy;
+        if(s2.x<=0){s2.x=0;s2.vx*=-1;} if(s2.y<=0){s2.y=0;s2.vy*=-1;}
+        if(s2.x+s2.w>=W){s2.x=W-s2.w;s2.vx*=-1;} if(s2.y+s2.h>=H){s2.y=H-s2.h;s2.vy*=-1;}
       }
-      for(let i=0;i<sprites.length;i++){
-        for(let j=i+1;j<sprites.length;j++){
-          const a=sprites[i], b=sprites[j];
-          const ox=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x);
-          const oy=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y);
+      for(var a=0;a<sprites.length;a++){
+        for(var b=a+1;b<sprites.length;b++){
+          var A=sprites[a], B=sprites[b];
+          var ox=Math.min(A.x+A.w,B.x+B.w)-Math.max(A.x,B.x);
+          var oy=Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y);
           if(ox>0 && oy>0){
-            if(ox<oy){ if(a.x<b.x){a.x-=ox/2;b.x+=ox/2;} else {a.x+=ox/2;b.x-=ox/2;} a.vx*=-1; b.vx*=-1; }
-            else{ if(a.y<b.y){a.y-=oy/2;b.y+=oy/2;} else {a.y+=oy/2;b.y-=oy/2;} a.vy*=-1; b.vy*=-1; }
-            a.x=Math.min(Math.max(0,a.x),W-a.w); a.y=Math.min(Math.max(0,a.y),H-a.h);
-            b.x=Math.min(Math.max(0,b.x),W-b.w); b.y=Math.min(Math.max(0,b.y),H-b.h);
+            if(ox<oy){ if(A.x<B.x){A.x-=ox/2;B.x+=ox/2;} else {A.x+=ox/2;B.x-=ox/2;} A.vx*=-1; B.vx*=-1; }
+            else{ if(A.y<B.y){A.y-=oy/2;B.y+=oy/2;} else {A.y+=oy/2;B.y-=oy/2;} A.vy*=-1; B.vy*=-1; }
+            A.x=Math.min(Math.max(0,A.x),W-A.w); A.y=Math.min(Math.max(0,A.y),H-A.h);
+            B.x=Math.min(Math.max(0,B.x),W-B.w); B.y=Math.min(Math.max(0,B.y),H-B.h);
           }
         }
       }
-      for(const s of sprites){ s.el.style.transform=`translate(${s.x}px,${s.y}px)`; }
+      for(var s_k=0;s_k<sprites.length;s_k++){ var s3=sprites[s_k]; s3.el.style.transform='translate('+s3.x+'px,'+s3.y+'px)'; }
       rafAnim=requestAnimationFrame(step);
     };
     step();
@@ -811,23 +820,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startStarfall(images){
     clearSaver();
-    const W=saverStage.clientWidth, H=saverStage.clientHeight;
-    const N=Math.min(images.length*2,14);
-    for(let i=0;i<N;i++){
-      const img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg';
-      const scale=0.55+Math.random()*0.25; const base=Math.min(window.innerWidth*0.10,160);
-      const size=base*scale; img.style.width=size+'px';
-      const x=Math.random()*(W-size); const y=-Math.random()*H*0.8 - size;
-      const sp={el:img,x,y,size,vx:(Math.random()-0.5)*0.3,vy:0.6+Math.random()*1.2,rot:(Math.random()*8-4),a:Math.random()*360};
+    var W=saverStage.clientWidth, H=saverStage.clientHeight;
+    var N=Math.min(images.length*2,14);
+    for(var i=0;i<N;i++){
+      var img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg';
+      var scale=0.55+Math.random()*0.25; var base=Math.min(window.innerWidth*0.10,160);
+      var size=base*scale; img.style.width=size+'px';
+      var x=Math.random()*(W-size); var y=-Math.random()*H*0.8 - size;
+      var sp={el:img,x:x,y:y,size:size,vx:(Math.random()-0.5)*0.3,vy:0.6+Math.random()*1.2,rot:(Math.random()*8-4),a:Math.random()*360};
       saverStage.appendChild(img); sprites.push(sp);
     }
-    const step=()=>{
-      const W=saverStage.clientWidth, H=saverStage.clientHeight;
-      for(const s of sprites){
+    var step=function(){
+      var W=saverStage.clientWidth, H=saverStage.clientHeight;
+      for(var i=0;i<sprites.length;i++){
+        var s=sprites[i];
         s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5;
         if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size;
         if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); }
-        s.el.style.transform=`translate(${s.x}px,${s.y}px) rotate(${s.a}deg)`;
+        s.el.style.transform='translate('+s.x+'px,'+s.y+'px) rotate('+s.a+'deg)';
       }
       rafAnim=requestAnimationFrame(step);
     };
@@ -836,131 +846,161 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function applySaverMode(mode){
     clearSaver();
-    const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
+    var imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
     if(mode==='valores-rebotando') return startBounce(imgs);
     if(mode==='valores-lluvia')    return startStarfall(imgs);
-    /* 'blob' usa sólo el fondo radial */
+    // 'blob' solo fondo radial
   }
 
-  function showSaver(force=false){
-    const idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000;
+  function showSaver(force){
+    if(force!==true) force=false;
+    var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000;
     if(!force && (Date.now()-lastActivityTs)<idleMs) return;
     buildSaverFrame();
     saver.style.display='block'; saverStatus.textContent='Mostrando';
-    const modes=['blob','valores-rebotando','valores-lluvia'];
+    var modes=['blob','valores-rebotando','valores-lluvia'];
     if(DISPLAY.saver.mode==='rotar'){
-      let i=0; applySaverMode(modes[i]);
-      rotator=setInterval(()=>{ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000);
+      var i=0; applySaverMode(modes[i]);
+      rotator=setInterval(function(){ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000);
     }else{
       applySaverMode(DISPLAY.saver.mode);
     }
   }
   function hideSaver(){ saver.style.display='none'; saverStatus.textContent='—'; clearSaver(); }
-  function scheduleSaver(){ clearTimeout(saverTO); const idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; const wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(()=>showSaver(false), wait+50); }
+  function scheduleSaver(){ clearTimeout(saverTO); var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; var wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(function(){ showSaver(false); }, wait+50); }
 
   /* ========= CARGA Y RENDER ========= */
-  async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; const t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
+  function tryFetch(url){
+    return fetch(url,{cache:'no-store',mode:'cors'}).then(function(res){
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      JSON_URL=url; // memoriza el que funcionó
+      return res.json();
+    });
+  }
 
-  async function loadAndRender(isForced=false){
+  function fetchJSON(){
+    // intenta URL principal y, si falla, prueba relativa
+    return tryFetch(JSON_CANDIDATES[0]).catch(function(){
+      return tryFetch(JSON_CANDIDATES[1]);
+    });
+  }
+
+  function setNet(status, ok, extra){
+    net.textContent = (status || '') + (extra?(' '+extra):'');
+    if(ok){
+      net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)';
+    }else{
+      net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
+    }
+  }
+
+  async function forceRefresh(){
+    if(isFetching) return;
+    btnRefresh.disabled=true; var t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...';
+    await loadAndRender(true);
+    btnRefresh.textContent=t; btnRefresh.disabled=false;
+  }
+
+  async function loadAndRender(isForced){
+    if(isForced!==true) isForced=false;
     if(paused && !isForced) return; if(isFetching) return; isFetching=true;
     try{
-      const t0=performance.now();
-      const res=await fetch(`${JSON_URL}?_=${Date.now()}`,{cache:'no-store'});
-      const t1=performance.now();
-      if(!res.ok) throw new Error('HTTP '+res.status);
-      net.textContent=`OK ${Math.round(t1-t0)}ms`;
-      net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)';
+      var t0=performance.now();
+      var json=await fetchJSON();
+      var t1=performance.now();
+      setNet('OK', true, Math.round(t1-t0)+'ms');
 
-      const json=await res.json();
       lastUpdateEl.innerText=(json.lastUpdate?new Date(json.lastUpdate):new Date()).toLocaleString();
 
       renderStock(json.stock||[]);
-      const conv=transformItems(json.items||[]);
-      const {top,sub}=extractHeaderRows(conv); updateHeaderNames(top,sub);
-      const map=itemsArrayToMap(conv);
-      const {changedCellsTotal}=updateDOM(map);
-      deltaEl.textContent=changedCellsTotal>0?`• ${changedCellsTotal} cambio(s)`:'';
+      var conv=transformItems(json.items||[]);
+      var hdr=extractHeaderRows(conv); updateHeaderNames(hdr.top,hdr.sub);
+      var map=itemsArrayToMap(conv);
+      var changed=updateDOM(map).changedCellsTotal;
+      deltaEl.textContent=changed>0?('• '+changed+' cambio(s)'):'';
 
-      const stats=computeFractureStats(conv);
-      fractureTotalEl.textContent=`Total fracturas: ${stats.total}`;
+      var stats=computeFractureStats(conv);
+      fractureTotalEl.textContent='Total fracturas: '+stats.total;
       updateDatesArray(stats.freq);
 
-      remainingEl.textContent=`Etapas restantes: ${computeRemainingStages(conv)}`;
+      remainingEl.textContent='Etapas restantes: '+computeRemainingStages(conv);
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      if(changedCellsTotal>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
+      if(changed>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
 
-      if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
+      if(autoScroll.checked) requestAnimationFrame(function(){ scrollToLastWithData(LAST_N_TO_SHOW); });
       requestAnimationFrame(fitRowsToViewport);
     }catch(e){
       console.error(e);
+      setNet('ERROR:', false, (e&&e.message?e.message:''));
       lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
-      deltaEl.textContent=''; net.textContent='ERROR';
-      net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
+      deltaEl.textContent='';
     }finally{ isFetching=false; }
   }
 
-  function scrollToLastWithData(n=LAST_N_TO_SHOW){
+  function scrollToLastWithData(n){
+    if(typeof n!=='number') n=LAST_N_TO_SHOW;
     if(!autoScroll.checked) return;
-    const rows=[...tbody.querySelectorAll('tr')]; const idx=[];
-    rows.forEach((tr,i)=>{const id=tr.dataset.rowId; if(hasVisibleData(latestDataMap[id])) idx.push(i);});
+    var rows=[].slice.call(tbody.querySelectorAll('tr')); var idx=[];
+    rows.forEach(function(tr,i){ var id=tr.dataset.rowId; if(hasVisibleData(latestDataMap[id])) idx.push(i);});
     if(!idx.length) return;
-    const startIdx=idx[Math.max(0,idx.length-n)], startRow=rows[startIdx]; if(!startRow) return;
-    const headerH=hdrTop.offsetHeight+hdrSub.offsetHeight;
+    var startIdx=idx[Math.max(0,idx.length-n)], startRow=rows[startIdx]; if(!startRow) return;
+    var headerH=hdrTop.offsetHeight+hdrSub.offsetHeight;
     tableContainer.scrollTo({top:Math.max(0,startRow.offsetTop-headerH-8),behavior:'smooth'});
   }
 
   /* ========= VISTA: Pozos visibles ========= */
   function buildWellChooser(){
+    if(!wellChooser) return;
     wellChooser.innerHTML='';
-    const current = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
-      ? DISPLAY.view.visibleWells
+    var current = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
+      ? DISPLAY.view.visibleWells.slice()
       : [1,2,3,4,5,6];
 
-    for(let p=1;p<=POZOS;p++){
-      const lab=document.createElement('label');
-      const chk=document.createElement('input'); chk.type='checkbox'; chk.value=String(p);
-      chk.checked = current.includes(p);
-      chk.onchange=()=>{
-        const set = new Set(DISPLAY.view?.visibleWells || []);
-        if(chk.checked) set.add(p); else set.delete(p);
-        let arr=[...set].sort((a,b)=>a-b);
-        if(arr.length===0){ arr=[1]; chk.checked=true; } // al menos 1
-        DISPLAY.view = { visibleWells: arr };
-      };
-      lab.append(chk, document.createTextNode(` Pozo ${p}`));
-      wellChooser.appendChild(lab);
+    for(var p=1;p<=POZOS;p++){
+      (function(pp){
+        var lab=document.createElement('label');
+        var chk=document.createElement('input'); chk.type='checkbox'; chk.value=String(pp);
+        chk.checked = current.indexOf(pp)>=0;
+        chk.onchange=function(){
+          var set = new Set(DISPLAY.view && DISPLAY.view.visibleWells || []);
+          if(chk.checked) set.add(pp); else set.delete(pp);
+          var arr=Array.from(set).sort(function(a,b){return a-b;});
+          if(arr.length===0){ arr=[1]; chk.checked=true; }
+          DISPLAY.view = { visibleWells: arr };
+        };
+        lab.appendChild(chk); lab.appendChild(document.createTextNode(' Pozo '+pp));
+        wellChooser.appendChild(lab);
+      })(p);
     }
   }
 
   function applyWellVisibility(){
-    const visible = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
+    var visible = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
       ? new Set(DISPLAY.view.visibleWells)
       : new Set([1,2,3,4,5,6]);
 
-    // Encabezado superior (colSpan=3 por pozo)
-    hdrTop.querySelectorAll('th.pozoTop').forEach((th,i)=>{
-      const p=i+1; th.style.display = visible.has(p)?'':'none';
-    });
+    var topThs=hdrTop.querySelectorAll('th.pozoTop');
+    for(var i=0;i<topThs.length;i++){ var p=i+1; topThs[i].style.display = visible.has(p)?'':'none'; }
 
-    // Encabezado inferior (tres th por pozo)
-    const ths = hdrSub.querySelectorAll('th');
-    for(let p=1;p<=POZOS;p++){
-      const b=(p-1)*3+1;
-      for(let k=0;k<3;k++){
-        const el=ths[b+k]; if(el) el.style.display = visible.has(p)?'':'none';
+    var ths = hdrSub.querySelectorAll('th');
+    for(var p=1;p<=POZOS;p++){
+      var b=(p-1)*3+1;
+      for(var k=0;k<3;k++){
+        var el=ths[b+k]; if(el) el.style.display = visible.has(p)?'':'none';
       }
     }
 
-    // Cuerpo
-    tbody.querySelectorAll('tr').forEach(tr=>{
-      for(let p=1;p<=POZOS;p++){
-        ['Seq','Pozo','Estado'].forEach(type=>{
-          const td=tr.querySelector(`td[data-col="${type}${p}"]`);
-          if(td) td.style.display = visible.has(p)?'':'none';
+    var trs=tbody.querySelectorAll('tr');
+    for(var r=0;r<trs.length;r++){
+      var tr=trs[r];
+      for(var p2=1;p2<=POZOS;p2++){
+        ['Seq','Pozo','Estado'].forEach(function(type){
+          var td=tr.querySelector('td[data-col="'+type+p2+'"]');
+          if(td) td.style.display = visible.has(p2)?'':'none';
         });
       }
-    });
+    }
   }
 
   /* ========= MODAL ========= */
@@ -970,11 +1010,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
     drawRulesTable();
-    buildWellChooser();                      // ← importante
+    buildWellChooser();
     modal.style.display='flex';
   }
 
   function saveSettings(close){
+    if(close!==false) close=true;
+
     DISPLAY.pozoFont=clamp(+setPozoFont.value||20,12,40);
     DISPLAY.stockFont=clamp(+setStockFont.value||16,10,30);
     DISPLAY.cellFont=clamp(+setCellFont.value||19,12,32);
@@ -984,47 +1026,52 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.saver.idleMinutes=clamp(+setSaverIdle.value||2,1,120);
     DISPLAY.saver.gitBase = DISPLAY.saver.gitBase || DEFAULT_VALUES_BASE;
 
-    DISPLAY.nightDim.enabled=setNightEnabled.checked;
+    DISPLAY.nightDim.enabled=!!setNightEnabled.checked;
     DISPLAY.nightDim.startHour=clamp(+setNightStart.value||1,0,23);
     DISPLAY.nightDim.endHour=clamp(+setNightEnd.value||6,0,23);
     DISPLAY.nightDim.dimLevel=clamp((+setNightDim.value||65)/100,0.2,1);
 
-    DISPLAY.pixelShift.enabled=setShiftEnabled.checked;
+    DISPLAY.pixelShift.enabled=!!setShiftEnabled.checked;
     DISPLAY.pixelShift.intervalMin=clamp(+setShiftEvery.value||2,1,60);
     DISPLAY.pixelShift.maxOffsetPx=clamp(+setShiftPixels.value||2,0,10);
 
-    // Reglas
-    const rows=[...rulesBody.querySelectorAll('.rule-row')]; const next={};
-    for(const r of rows){
-      const name=r.querySelector('[data-f=name]').value, unit=r.querySelector('[data-f=unit]').value;
-      const low=+r.querySelector('[data-f=low]').value, mid=+r.querySelector('[data-f=mid]').value;
-      if(!name) continue; const canon=canonicalizeName(name);
-      next[canon]={display:name.trim(),unit:(unit||'').trim(),low:Number.isFinite(low)?low:0,mid:Number.isFinite(mid)?mid:0};
+    var rows=[].slice.call(rulesBody.querySelectorAll('.rule-row')); var next={};
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i];
+      var name=r.querySelector('[data-f=name]').value, unit=r.querySelector('[data-f=unit]').value;
+      var low=+r.querySelector('[data-f=low]').value, mid=+r.querySelector('[data-f=mid]').value;
+      if(!name) continue; var canon=canonicalizeName(name);
+      next[canon]={display:name.trim(),unit:(unit||'').trim(),low:(Number.isFinite(low)?low:0),mid:(Number.isFinite(mid)?mid:0)};
     }
     STOCK_RULES=next;
-
-    // Pozos visibles ya se actualiza en buildWellChooser() onchange
 
     prefs.set('display:cfg',DISPLAY); prefs.set('stock:rules',STOCK_RULES);
     applyFontVars(); restartNight(); restartShift(); scheduleSaver(); renderStock(stockCache);
     if(close) modal.style.display='none';
   }
 
-  function drawRulesTable(){ rulesBody.innerHTML=''; for(const [,rule] of Object.entries(STOCK_RULES)){ addRuleRow(rule); } }
-  function addRuleRow(rule={}){
-    const row=document.createElement('div'); row.className='rule-row';
-    row.innerHTML=`<input data-f="name" value="${rule.display??''}" placeholder="Nombre visible">
-                   <input data-f="unit" value="${rule.unit??''}" placeholder="ud/Tn/M3">
-                   <input data-f="low" value="${rule.low??''}" type="number" step="any">
-                   <input data-f="mid" value="${rule.mid??''}" type="number" step="any">
-                   <button class="btn secondary" type="button">Quitar</button>`;
-    row.querySelector('button').onclick=()=>row.remove(); rulesBody.appendChild(row);
+  function drawRulesTable(){
+    rulesBody.innerHTML='';
+    var entries=Object.entries(STOCK_RULES);
+    for(var i=0;i<entries.length;i++){ addRuleRow(entries[i][1]); }
+  }
+  function addRuleRow(rule){
+    rule=rule||{};
+    var row=document.createElement('div'); row.className='rule-row';
+    row.innerHTML='<input data-f="name" value="'+(rule.display||'')+'" placeholder="Nombre visible">'+
+                   '<input data-f="unit" value="'+(rule.unit||'')+'" placeholder="ud/Tn/M3">'+
+                   '<input data-f="low" value="'+(rule.low!=null?rule.low:'')+'" type="number" step="any">'+
+                   '<input data-f="mid" value="'+(rule.mid!=null?rule.mid:'')+'" type="number" step="any">'+
+                   '<button class="btn secondary" type="button">Quitar</button>';
+    row.querySelector('button').onclick=function(){ row.remove(); };
+    rulesBody.appendChild(row);
   }
   function mergeDetectedItems(){
-    const detected=new Map(Object.entries(STOCK_RULES));
-    for(const it of stockCache){
-      const canon=canonicalizeName(it.ITEM);
-      if(!detected.has(canon)) detected.set(canon,{display:(it.ITEM||'').toString(),unit:'',low:0,mid:0});
+    var detected=new Map(Object.entries(STOCK_RULES));
+    for(var i=0;i<stockCache.length;i++){
+      var it=stockCache[i];
+      var canon=canonicalizeName(it.ITEM);
+      if(!detected.has(canon)) detected.set(canon,{display:String(it.ITEM||''),unit:'',low:0,mid:0});
     }
     STOCK_RULES=Object.fromEntries(detected.entries()); drawRulesTable();
   }
@@ -1033,13 +1080,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
   initializeDOM(); applyDisplay(); fitRowsToViewport(); applyWellVisibility();
   loadAndRender(true);
-  setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
+  setInterval(function(){ loadAndRender(false); }, REFRESH_SECONDS*1000);
 
-  /* Recalcular filas al redimensionar / fullscreen */
-  const fitRowsRaf = ()=>requestAnimationFrame(fitRowsToViewport);
+  var fitRowsRaf = function(){ requestAnimationFrame(fitRowsToViewport); };
   window.addEventListener('resize',fitRowsRaf);
   window.addEventListener('orientationchange',fitRowsRaf);
-  ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'].forEach(ev=>document.addEventListener(ev,fitRowsRaf));
+  ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange'].forEach(function(ev){ document.addEventListener(ev,fitRowsRaf); });
 });
 </script>
 </body>
