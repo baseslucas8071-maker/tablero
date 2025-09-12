@@ -19,7 +19,8 @@
 
     /* Anchos fijos */
     --w-id:54px;
-    --w-seq:130px; /* ← más ancho para “dd/mm/aaaa hh:mm” (F/h TPN) */
+    /* Más ancho para “dd/mm/aaaa” + salto + “hh:mm” */
+    --w-seq:160px;
 
     /* Reel de fechas */
     --reel-gap:8px; --reel-pad:10px; --reel-num-size:20px; --reel-date-size:18px;
@@ -72,7 +73,12 @@
   td.rowid{font-weight:800;color:#bfe8ff;background:#0c1833}
 
   th.seq,td.seq{width:var(--w-seq);min-width:var(--w-seq);max-width:var(--w-seq)}
-  td.seq{font-weight:800;color:#00ff9c;letter-spacing:.3px;text-shadow:0 0 6px rgba(0,255,160,.7),0 0 12px rgba(0,255,160,.35);background:rgba(0,255,160,.05)}
+  /* Quitamos el verde global; ahora pintamos fecha/hora por span */
+  td.seq{font-weight:800;background:rgba(0,255,160,.05)}
+
+  .dt{display:flex;flex-direction:column;align-items:center;line-height:1.06}
+  .dt-date{color:#00f2a9;text-shadow:0 0 6px rgba(0,255,160,.75),0 0 10px rgba(0,255,160,.35)}
+  .dt-time{color:#ffb300;text-shadow:0 0 6px rgba(255,179,0,.8),0 0 12px rgba(255,179,0,.45);font-weight:900}
 
   .pozoTop{font-size:var(--pozo-font-size);font-weight:800;letter-spacing:.6px;position:relative}
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a);color:#002}
@@ -353,7 +359,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const prefs={get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v))};
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)); const pad2=n=>String(n).padStart(2,'0');
 
-  /* Convierte URL de GitHub a raw.githubusercontent */
   const toRawURL = u => {
     if(!u) return '';
     const m=u.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.*)$/);
@@ -391,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
     pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 }
   });
 
-  /* En TVs desactivamos pixel-shift (sticky + transform puede generar rayas) */
   if (IS_TV) DISPLAY.pixelShift.enabled = false;
 
   /* ========= ESTADO RUNTIME ========= */
@@ -458,13 +462,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function markActivity(e){
     const now=Date.now();
-    // Filtro: ignora vibraciones mínimas de mouse/IR (típicas en TV)
     if(e && ('mousemove pointermove touchmove'.includes(e.type))){
       const p = e.touches?.[0] || e;
       const x = p?.clientX ?? 0, y = p?.clientY ?? 0;
       if(lastInput.x!=null){
         const dx=Math.abs(x-lastInput.x), dy=Math.abs(y-lastInput.y), dt=now-lastInput.t;
-        if(dx<4 && dy<4 && dt<350) return; // demasiado chico/rápido => ruido
+        if(dx<4 && dy<4 && dt<350) return;
       }
       lastInput={x,y,t:now};
     }
@@ -510,63 +513,65 @@ document.addEventListener('DOMContentLoaded', () => {
     const vvH = window.visualViewport?.height || window.innerHeight;
     const headerRect = document.querySelector('header').getBoundingClientRect();
     const footerH = document.querySelector('footer').offsetHeight || 0;
-    const available = Math.max(120, vvH - headerRect.height - 12 /*gap*/ - footerH - 12);
+    const available = Math.max(120, vvH - headerRect.height - 12 - footerH - 12);
     const headH = hdrTop.offsetHeight + hdrSub.offsetHeight;
     const inner = Math.max(60, available - headH);
     const target = Math.floor(inner / ROWS);
-    const rowH = clamp(target, 26, 72);           // límites razonables para TV
+    const rowH = clamp(target, 26, 72);
     document.documentElement.style.setProperty('--row-h', rowH+'px');
   }
 
-  /* ========= JSON / FECHAS ========= */
-
-  /* Excel serial (con fracción de día) → Date local */
+  /* ========= FECHAS ========= */
   function excelSerialToLocalDate(num){
     const days = Math.floor(num);
     const fracMs = Math.round((num - days) * 86400000);
-    const d = new Date(1899, 11, 30);     // base local 1899-12-30
+    const d = new Date(1899, 11, 30);
     d.setDate(d.getDate() + days);
     d.setMilliseconds(d.getMilliseconds() + fracMs);
     return d;
   }
 
-  /* Parseo de valores de fecha (YYYY-MM-DD, DD/MM/YYYY o Excel serial con/ sin hora) */
-  function parseDateValue(val){
+  /* Devuelve {date:'d/m/yyyy', time:'hh:mm', hasTime:true/false} o null */
+  function parseDateTimeParts(val){
     const s=(val??'').toString().trim();
     if(!s) return null;
 
-    // ISO YYYY-MM-DD[ HH:MM]
-    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/);
+    // YYYY-MM-DD[ HH:MM]
+    let m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
     if(m){
       const y=+m[1],mo=+m[2],d=+m[3],hh=+(m[4]??0),mm=+(m[5]??0);
-      const display=`${d}/${mo}/${y}` + (hh||mm?` ${pad2(hh)}:${pad2(mm)}`:'');
-      return {display,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};
+      const hasTime = m[4]!==undefined;
+      return {date:`${d}/${mo}/${y}`, time:`${pad2(hh)}:${pad2(mm)}`, hasTime};
     }
 
     // DD/MM/YYYY[ HH:MM]
     m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?$/);
     if(m){
       const d=+m[1],mo=+m[2],y=+m[3],hh=+(m[4]??0),mm=+(m[5]??0);
-      const display=`${d}/${mo}/${y}` + (hh||mm?` ${pad2(hh)}:${pad2(mm)}`:'');
-      return {display,normalized:`${y}-${pad2(mo)}-${pad2(d)}`};
+      const hasTime = m[4]!==undefined;
+      return {date:`${d}/${mo}/${y}`, time:`${pad2(hh)}:${pad2(mm)}`, hasTime};
     }
 
-    // Excel serial (con o sin fracción de día)
+    // Excel serial
     if(/^-?\d+(\.\d+)?$/.test(s)){
       const n=Number(s.replace(',','.'));
-      if(Number.isFinite(n) && n>=30000 && n<=75000){ // rango razonable
+      if(Number.isFinite(n) && n>=30000 && n<=75000){
         const d=excelSerialToLocalDate(n);
-        const display=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}` +
-                       ((d.getHours()||d.getMinutes())?` ${pad2(d.getHours())}:${pad2(d.getMinutes())}`:'');
-        return {display,normalized:`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`};
+        const hasTime = (n % 1)!==0; // tiene parte fraccionaria → hora
+        return {date:`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`, time:`${pad2(d.getHours())}:${pad2(d.getMinutes())}`, hasTime};
       }
     }
     return null;
   }
 
-  const maybeFormatDate=v=>{const p=parseDateValue(v); return p?p.display:(v??'');}
+  const maybeFormatDate=v=>{
+    const p=parseDateTimeParts(v);
+    if(!p) return v??'';
+    return p.hasTime ? `${p.date} ${p.time}` : p.date;
+  };
+
   const isStop=v=>String(v??'').trim().toUpperCase()==='STOP';
-  const isFechaValida=v=>parseDateValue(v)!==null;
+  const isFechaValida=v=>parseDateTimeParts(v)!==null;
 
   function transformItems(items){
     if(!Array.isArray(items)) return [];
@@ -574,9 +579,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const o={};
       o.fila=(raw.Fila??raw.fila??'').toString();
       for(let i=1;i<=POZOS;i++){
-        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();   // ahora es Fecha/Hora (Excel serial admitido)
+        o['Seq'+i]=(raw['SecuenciaPozo'+i]??'').toString();   // F/h TPN
         o['Pozo'+i]=(raw['TPNPozo'+i]??'').toString();        // TPN
-        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();// FRACTURADO (fecha)
+        o['Estado'+i]=(raw['FechaFracPozo'+i]??'').toString();// FRACTURADO
       }
       return o;
     });
@@ -604,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sub=hdrSub.querySelectorAll('th');
     for(let i=1;i<=POZOS;i++){
       const b=(i-1)*3+1;
-      if(sub[b])   sub[b].innerText='F/h TPN';                   // ← renombrado
+      if(sub[b])   sub[b].innerText='F/h TPN';
       if(sub[b+1]) sub[b+1].innerText=subRow?.['Pozo'+i]?.trim()||'TPN';
       if(sub[b+2]) sub[b+2].innerText=subRow?.['Estado'+i]?.trim()||'FRACTURADO';
     }
@@ -629,18 +634,32 @@ document.addEventListener('DOMContentLoaded', () => {
             td1=tr.querySelector(`td[data-col="Pozo${p}"]`),
             td2=tr.querySelector(`td[data-col="Estado${p}"]`);
 
-      /* F/h TPN (antes SEQ): se formatea como fecha/hora si viene Excel serial o cadena de fecha */
+      /* --- F/h TPN (fecha + salto + hora en naranja fluor) --- */
       const rawS=(data?.['Seq'+p])??'';
-      const vS=maybeFormatDate(rawS);
+      const parts=parseDateTimeParts(rawS);
 
-      const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):'';       // TPN
+      if(tdS){
+        if(parts && (parts.hasTime || parts.date)){
+          const html = parts.hasTime
+            ? `<div class="dt"><span class="dt-date">${parts.date}</span><span class="dt-time">${parts.time}</span></div>`
+            : `<div class="dt"><span class="dt-date">${parts.date}</span></div>`;
+          if(tdS.dataset.fmt!=='dt' || tdS.innerHTML!==html){
+            tdS.dataset.fmt='dt'; tdS.innerHTML=html; ch=true; c++;
+          }
+        }else{
+          if(tdS.dataset.fmt!=='raw' || tdS.textContent!==String(rawS)){
+            tdS.dataset.fmt='raw'; tdS.textContent=String(rawS); ch=true; c++;
+          }
+        }
+      }
+
+      /* TPN y FRACTURADO (fecha simple) */
+      const v1=(data?.['Pozo'+p])?String(data['Pozo'+p]):'';
       const raw=(data?.['Estado'+p])??'';
-      const v2=maybeFormatDate(raw);                               // FRACTURADO
+      const v2=maybeFormatDate(raw);
 
-      if(tdS && tdS.innerText!==vS){tdS.innerText=vS; ch=true;c++;}
-      if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;}
-      if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;}
-
+      if(td1 && td1.textContent!==v1){td1.textContent=v1; ch=true;c++;}
+      if(td2 && td2.textContent!==v2){td2.textContent=v2; ch=true;c++;}
       if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); }
     }
     return{changed:ch,cells:c};
@@ -667,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return {changedCellsTotal:total};
   }
 
-  /* ========= STATS FRACTURAS ========= */
+  /* ========= STATS / REEL ========= */
   let datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
 
   function computeFractureStats(conv){
@@ -675,8 +694,8 @@ document.addEventListener('DOMContentLoaded', () => {
     for(const it of conv){
       if(!it.fila?.trim()) continue;
       for(let i=1;i<=POZOS;i++){
-        const p=parseDateValue(it['Estado'+i]);
-        if(p){tot++; const cur=f.get(p.normalized); cur?cur.count++:f.set(p.normalized,{display:p.display,count:1,normalized:p.normalized}); }
+        const p=parseDateTimeParts(it['Estado'+i]);
+        if(p){tot++; const cur=f.get(p.date); cur?cur.count++:f.set(p.date,{display:p.date,count:1,normalized:p.date}); }
       }
     }
     return {total:tot,freq:f};
@@ -685,7 +704,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateDatesArray(freq){
     datesArr=Array.from(freq.values()).sort((a,b)=>a.normalized.localeCompare(b.normalized));
     const max=Math.max(0,datesArr.length-REEL_SIZE);
-    reelStart=userMovedReel?Math.min(reelStart,max):max; // si no movió el usuario, vamos a la última fecha
+    reelStart=userMovedReel?Math.min(reelStart,max):max;
     prefs.set('reel:start',reelStart);
     renderDatesReel();
   }
@@ -767,7 +786,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* ========= PROTECCIONES: atenuación / shift / saver ========= */
+  /* ========= PROTECCIONES ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
   function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } const h=new Date().getHours(); const on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
   function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
@@ -781,7 +800,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearInterval(rotator); rotator=null;
   }
 
-  /* Rebote con 6 imágenes y colisiones entre sí */
   function startBounce(images){
     clearSaver();
     const W=saverStage.clientWidth, H=saverStage.clientHeight;
@@ -819,7 +837,6 @@ document.addEventListener('DOMContentLoaded', () => {
     step();
   }
 
-  /* Lluvia de valores (modo liviano) */
   function startStarfall(images){
     clearSaver();
     const W=saverStage.clientWidth, H=saverStage.clientHeight;
@@ -850,7 +867,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
     if(mode==='valores-rebotando') return startBounce(imgs);
     if(mode==='valores-lluvia')    return startStarfall(imgs);
-    /* 'blob' usa sólo el fondo radial */
   }
 
   function showSaver(force=false){
@@ -896,11 +912,10 @@ document.addEventListener('DOMContentLoaded', () => {
       remainingEl.textContent=`Etapas restantes: ${computeRemainingStages(conv)}`;
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      /* IMPORTANTE: sólo salimos del saver si REALMENTE hubo cambios */
       if(changedCellsTotal>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
 
       if(autoScroll.checked) requestAnimationFrame(()=>scrollToLastWithData(LAST_N_TO_SHOW));
-      requestAnimationFrame(fitRowsToViewport); // asegura altura tras render
+      requestAnimationFrame(fitRowsToViewport);
     }catch(e){
       console.error(e); lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
       deltaEl.textContent=''; net.textContent='ERROR'; net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
@@ -945,7 +960,6 @@ document.addEventListener('DOMContentLoaded', () => {
     DISPLAY.pixelShift.intervalMin=clamp(+setShiftEvery.value||2,1,60);
     DISPLAY.pixelShift.maxOffsetPx=clamp(+setShiftPixels.value||2,0,10);
 
-    // Reglas
     const rows=[...rulesBody.querySelectorAll('.rule-row')]; const next={};
     for(const r of rows){
       const name=r.querySelector('[data-f=name]')?.value ?? '',
@@ -953,7 +967,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const low=+(r.querySelector('[data-f=low]')?.value ?? NaN),
             mid=+(r.querySelector('[data-f=mid]')?.value ?? NaN);
       if(!name) continue; const canon=canonicalizeName(name);
-      next[canon]={display:name.trim(),unit:(unit||'').trim(),low:Number.isFinite(low)?low:0,mid:Number.isFinite(mid)?mid:0};
+      next[canon]={display:name.trim(),unit:(unit||'').trim(),low(Number.isFinite(low)?low:0),mid:Number.isFinite(mid)?mid:0};
     }
     STOCK_RULES=next;
 
@@ -988,7 +1002,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAndRender(true);
   setInterval(()=>loadAndRender(false), REFRESH_SECONDS*1000);
 
-  /* Recalcular filas al redimensionar / cambiar a fullscreen */
   const fitRowsRaf = ()=>requestAnimationFrame(fitRowsToViewport);
   window.addEventListener('resize',fitRowsRaf);
   window.addEventListener('orientationchange',fitRowsRaf);
