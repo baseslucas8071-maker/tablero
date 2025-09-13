@@ -845,7 +845,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if(!idx.length) return;
     var startIdx=idx[Math.max(0,idx.length-n)], startRow=rows[startIdx]; if(!startRow) return;
     var headerH=hdrTop.offsetHeight+hdrSub.offsetHeight;
-    tableContainer.scrollTo({top:Math.max(0,startRow.offsetTop-headerH-8),behavior:'smooth'});
+    tableContainer.scrollTo({top:Math.max(0,startRow.offsetTop-headerH-5),behavior:'smooth'});
   }
 
   /* ========= VISTA (Pozos visibles) ========= */
