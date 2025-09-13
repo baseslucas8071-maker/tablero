@@ -108,7 +108,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "*",
+      "FechaFracPozo3": "45913",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -583,7 +583,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "C. Orient.",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-13T16:29:44.2850169Z",
+  "lastUpdate": "2025-09-13T18:52:12.1040702Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
