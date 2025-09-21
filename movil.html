@@ -120,95 +120,85 @@ const fmt = n => new Intl.NumberFormat('es-AR').format(n);
 
 function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
 
+// Excel serial → Date (base 1899-12-30)
+function excelSerialToDate(x){
+  const n = Number(x);
+  if(!isFinite(n)) return null;
+  const ms = (n - 25569) * 86400 * 1000; // 25569 = days to 1970-01-01
+  const d = new Date(ms);
+  return isNaN(d) ? null : d;
+}
+function isExcelSerial(v){
+  const n = Number(String(v).trim());
+  return isFinite(n) && n >= 20000 && n <= 80000;
+}
+
 function isValidDateCell(v){
   const s = String(v).trim();
   if(!s) return false;
-  if(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.test(s)) return true;  // dd/mm/yy(yy)
-  if(/^(\d{1,2})-(\d{1,2})-(\d{4})$/.test(s)) return true;          // dd-mm-yyyy
-  if(/^(\d{4})-(\d{2})-(\d{2})$/.test(s)) return true;              // yyyy-mm-dd
+  if(isExcelSerial(s)) return true;
+  if(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.test(s)) return true;
+  if(/^(\d{1,2})-(\d{1,2})-(\d{4})$/.test(s)) return true;
+  if(/^(\d{4})-(\d{2})-(\d{2})$/.test(s)) return true;
   return false;
 }
 
 function parseToYMD(v){
   const s = String(v).trim();
+  if(isExcelSerial(s)){
+    const d = excelSerialToDate(s);
+    if(!d) return null;
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth()+1).padStart(2,'0');
+    const dd= String(d.getUTCDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
   let d,m,y;
   let m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-  if(m1){ d=+m1[1]; m=+m1[2]; y=+m1[3]; if(y<100) y+=2000;
-    return `${y.toString().padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  }
+  if(m1){ d=+m1[1]; m=+m1[2]; y=+m1[3]; if(y<100) y+=2000; return `${y.toString().padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
   let m2 = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if(m2){ d=+m2[1]; m=+m2[2]; y=+m2[3];
-    return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  }
+  if(m2){ d=+m2[1]; m=+m2[2]; y=+m2[3]; return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
   let m3 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(m3){ return s; }
   return null;
 }
 
 /* ========= EXTRACCIÓN DE COLUMNAS =========
-   Detecta columnas de FRACTURADO por pozo con varias heurísticas.
+   Detecta columnas tipo "FechaFracPozoN" y opcionalmente "SecuenciaPozoN".
 */
 function extractFracturadoColumns(rows){
   const byPozo = {};
-  if(!rows || !rows.length){
-    console.warn('status.json sin filas');
+  if(!rows || !rows.length){ return byPozo; }
+
+  const keys = Object.keys(rows[0] || {});
+  const fechaCols = keys.filter(k => /^FechaFracPozo\d+$/i.test(k));
+  if (!fechaCols.length){
+    console.error('No se encontraron columnas FechaFracPozoN. Claves:', keys);
+    alert('No se detectaron columnas FechaFracPozoN en status.json.');
     return byPozo;
   }
-  const keys = Object.keys(rows[0] || {});
 
-  // 1) Claves que contengan POZO y FRACTURADO
-  const direct = keys.filter(k => /pozo/i.test(k) && /fracturado/i.test(k));
-  for(const k of direct){
-    const m = String(k).match(/pozo\s*#?\s*(\d+)/i);
-    if(m){
-      const pozoKey = `pozo-${m[1]}`;
-      byPozo[pozoKey] = rows.map(r => r[k] ?? "");
-    }
+  for (const fk of fechaCols){
+    const n = fk.match(/(\d+)/)[1];
+    const pk = `pozo-${n}`;
+    const seqKey = keys.find(k => new RegExp(`^SecuenciaPozo${n}$`, 'i').test(k));
+    byPozo[pk] = rows.map(r => ({
+      fecha: r[fk] ?? "",
+      sec:   seqKey ? (r[seqKey] ?? "") : ""
+    }));
   }
-
-  // 2) Fallback: “Pozo1 FRACTURADO” (sin #)
-  if(Object.keys(byPozo).length === 0){
-    const alt = keys.filter(k => /pozo\s*\d+/i.test(k) && /fracturado/i.test(k));
-    for(const k of alt){
-      const m = String(k).match(/pozo\s*(\d+)/i);
-      if(m){
-        const pozoKey = `pozo-${m[1]}`;
-        byPozo[pozoKey] = rows.map(r => r[k] ?? "");
-      }
-    }
-  }
-
-  // 3) Fallback: columnas separadas por número (POZO n / FRACTURADO n)
-  if(Object.keys(byPozo).length === 0){
-    const pozos = keys.filter(k => /pozo/i.test(k) && /\d+/.test(k));
-    const fracs = keys.filter(k => /fracturado/i.test(k) && /\d+/.test(k));
-    for(const p of pozos){
-      const m = String(p).match(/(\d+)/);
-      if(!m) continue;
-      const n = m[1];
-      const fkey = fracs.find(f => new RegExp(`\\b${n}\\b`).test(f));
-      if(fkey){
-        const pozoKey = `pozo-${n}`;
-        byPozo[pozoKey] = rows.map(r => r[fkey] ?? "");
-      }
-    }
-  }
-
-  if(Object.keys(byPozo).length === 0){
-    console.error('No se detectaron columnas FRACTURADO. Claves:', keys);
-    alert('No se detectaron columnas FRACTURADO en status.json. Revisá la consola (F12) para ver las claves.');
-  }
-  return byPozo;
+  return byPozo; // { 'pozo-1': [{fecha,sec},...], ... }
 }
 
 /* ========= CÓMPUTO ========= */
 function computeStats(byPozo){
   const stats = {};
-  for(const [pozo, serieRaw] of Object.entries(byPozo)){
-    const stopIdx = serieRaw.findIndex(isStop);
-    const totalCells = (stopIdx >= 0) ? stopIdx : Math.min(serieRaw.length, CONFIG.MAX_ETAPAS);
-    const considered = serieRaw.slice(0, totalCells);
-    const realizadas = considered.filter(isValidDateCell).length;
+  for(const [pozo, serieObjs] of Object.entries(byPozo)){
+    const stopIdx = serieObjs.findIndex(o => isStop(o.fecha));
+    const totalCells = (stopIdx >= 0) ? stopIdx : Math.min(serieObjs.length, CONFIG.MAX_ETAPAS);
+    const considered = serieObjs.slice(0, totalCells);
+
+    const realizadas = considered.filter(o => isValidDateCell(o.fecha)).length;
     const restantes  = Math.max(0, totalCells - realizadas);
     stats[pozo] = { total: totalCells, realizadas, restantes, serie: considered };
   }
@@ -218,11 +208,12 @@ function computeStats(byPozo){
 function aggregateByDay(byPozo){
   const map = new Map(); // ymd -> count
   for(const serie of Object.values(byPozo)){
-    for(const v of serie){
+    for(const o of serie){
+      const v = o.sec || o.fecha; // priorizar secuencia (fecha/hora Excel)
       if(isValidDateCell(v)){
         const ymd = parseToYMD(v);
         if(ymd){ map.set(ymd, (map.get(ymd)||0)+1); }
-      }else if(isStop(v)){
+      } else if(isStop(o.fecha)){
         break;
       }
     }
@@ -312,7 +303,7 @@ async function load(){
     const stats = computeStats(byPozo);
     const dias  = aggregateByDay(byPozo);
 
-    const lu = data.meta?.lastUpdate || new Date().toISOString();
+    const lu = (data.meta?.lastUpdate) || data.lastUpdate || new Date().toISOString();
     const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
@@ -321,7 +312,7 @@ async function load(){
     renderDias(dias);
   }catch(err){
     console.error(err);
-    alert('Error cargando datos: '+err.message+'\n• Verificá que movil.html y status.json estén en la MISMA carpeta\n• Abrí status.json en el navegador para confirmar que existe\n• Mirá la consola (F12) para ver las claves detectadas');
+    alert('Error cargando datos: '+err.message+'\n• Verificá que movil.html y status.json estén en la MISMA carpeta\n• Abrí status.json en el navegador para confirmar que existe\n• Mirá la consola (F12) para ver detalles');
   }
 }
 
@@ -338,8 +329,8 @@ $('#btnInst').addEventListener('click', ()=>{
   alert(`Cómo usar:
 1) Alojá movil.html junto a visor.html y status.json.
 2) Lee status.json de la misma carpeta (GitHub Pages).
-3) Las columnas de FRACTURADO deben incluir 'POZO' y 'FRACTURADO' (o quedar detectables por las heurísticas).
-4) STOP define el total por pozo. Sólo fechas cuentan como realizadas.`);
+3) Columnas esperadas: FechaFracPozoN (y opcional SecuenciaPozoN).
+4) STOP define el total por pozo. Sólo fechas (incluye seriales Excel) cuentan como realizadas.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
