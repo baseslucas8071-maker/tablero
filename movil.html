@@ -74,7 +74,7 @@
         </div>
         <div class="grow"></div>
         <div class="toolbar">
-          <button id="btnDemo" title="Cargar demo">Demo</button>
+          
           <button id="btnRefresh" title="Actualizar datos">Actualizar</button>
         </div>
       </div>
@@ -108,8 +108,7 @@
 <script>
 /**
  * CONFIGURACIÓN BÁSICA
- * - DATA_URL: endpoint JSON público (GitHub/SharePoint/Flow) o dejar vacío para usar SAMPLE.
- * - MAX_ETAPAS: cantidad total por pozo si no aparece 'STOP' (p. ej., 12, 24, 30)
+ * - DATA_URL: 'status.json', 12, 24, 30)
  */
 const CONFIG = {
   DATA_URL: (location.hostname.includes('github.io') ? 'status.json' : ''), // Ej.: "https://tu-dominio/etapas.json"
@@ -125,26 +124,6 @@ const CONFIG = {
  *  - 'STOP' (cualquier mayúsc./minúsc.), detiene el total para ese pozo
  *  - otro texto ('F1', notas, vacío), NO cuenta como realizada
  */
-
-// === DEMO embebido ===
-const SAMPLE = {
-  meta: { lastUpdate: new Date().toISOString() },
-  rows: [
-    // #01 … #12
-    { "POZO #1 FRACTURADO": "01/09/2025", "POZO #2 FRACTURADO": "01/09/2025", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "F1", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "01/09/2025" },
-    { "POZO #1 FRACTURADO": "02/09/2025", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "03/09/2025", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "STOP" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "05-09-2025", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "2025-09-07", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "STOP", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
-    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "STOP", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" }
-  ]
-};
 
 // === Utilidades ===
 const $ = sel => document.querySelector(sel);
@@ -304,7 +283,10 @@ function setActiveView(view){
 }
 
 async function fetchData(){
-  if(!CONFIG.DATA_URL){ return JSON.parse(JSON.stringify(SAMPLE)); }
+  const res = await fetch(CONFIG.DATA_URL, { cache:'no-store' });
+  if(!res.ok){ throw new Error('No se pudo cargar el JSON: '+res.status); }
+  return await res.json();
+}
   const res = await fetch(CONFIG.DATA_URL, { cache:'no-store' });
   if(!res.ok){ throw new Error('No se pudo cargar el JSON: '+res.status); }
   return await res.json();
@@ -327,29 +309,30 @@ async function load(){
     renderDias(dias);
   }catch(err){
     console.error(err);
-    alert('Error cargando datos: '+err.message+'\nSe mostrará la DEMO.');
-    CONFIG.DATA_URL = '';
-    return load();
+    alert('Error cargando datos: '+err.message+'
+Verifica que status.json esté accesible en la misma carpeta.');
   }
 }
 
 // Eventos UI
 $$('.tab').forEach(t => t.addEventListener('click', ()=> setActiveView(t.dataset.view)));
 $('#btnRefresh').addEventListener('click', load);
-$('#btnDemo').addEventListener('click', ()=>{ CONFIG.DATA_URL=''; load(); });
 $('#btnInst').addEventListener('click', ()=>{
-  alert(`Cómo usar:\n\n1) Reemplazá CONFIG.DATA_URL con el enlace público del JSON.\n2) Asegurate de que las columnas de FRACTURADO incluyan 'POZO' y 'FRACTURADO'.\n3) STOP define el total por pozo. Sólo fechas cuentan como realizadas.\n4) Botón Demo carga datos de ejemplo.`);
+  alert(`Cómo usar:
+
+1) Alojá este archivo como movil.html junto a visor.html y status.json.
+2) El archivo lee status.json de la misma carpeta (GitHub Pages).
+3) Las columnas de FRACTURADO deben incluir 'POZO' y 'FRACTURADO'.
+4) STOP define el total por pozo. Sólo fechas cuentan como realizadas.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{
-    await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas (demo)', url: location.href });
+    await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href });
   }catch(_){ /* ignorar */ }
 });
 
-// Carga inicial (soporta ?demo=1)
-if(new URLSearchParams(location.search).get('demo')==='1') CONFIG.DATA_URL='';
+// Carga inicial
 load();
 </script>
 </body>
 </html>
-
