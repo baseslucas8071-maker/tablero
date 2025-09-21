@@ -37,16 +37,20 @@
     .kpi.warn .value{color:var(--warn)}
     .kpi.bad .value{color:var(--bad)}
 
+    .speed{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
+    .speed .box{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
+    .speed .h{font-size:11px; opacity:.8}
+    .speed .v{font-size:18px; font-weight:800; margin-top:2px}
+
     .pozo{display:grid; gap:8px}
     .pozo-title{display:flex; align-items:center; justify-content:space-between}
     .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
     .meta{display:flex; gap:8px}
-
-    .row{display:flex; align-items:center; gap:10px}
     .badge{font-size:13px; background:#090909; border:1px solid #222; padding:5px 10px; border-radius:999px; font-weight:700}
-    .progress{height:12px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden}
+    .row{display:flex; align-items:center; gap:14px}
+    .progress{height:12px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden; flex:1}
     .progress > i{display:block; height:100%; background:linear-gradient(90deg, #47a3ff, #60dbfb)}
-    .pct{width:54px; text-align:right; font-size:14px; font-weight:800}
+    .pct{width:58px; text-align:right; font-size:14px; font-weight:800}
 
     .list{display:grid; gap:10px}
     .item{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; border:1px solid #161616; background:#0a0a0a}
@@ -90,6 +94,16 @@
           <div class="kpi ok" id="kpiRealizadas"><div class="label">Realizadas</div><div class="value">—</div></div>
           <div class="kpi warn" id="kpiRestantes"><div class="label">Restantes</div><div class="value">—</div></div>
         </div>
+        <div class="speed">
+          <div class="box">
+            <div class="h">Promedio (últ. 3 días)</div>
+            <div class="v" id="avgPace">—</div>
+          </div>
+          <div class="box">
+            <div class="h">Fin estimado</div>
+            <div class="v" id="etaFinish">—</div>
+          </div>
+        </div>
       </section>
 
       <section id="viewPozos" class="pozos"></section>
@@ -110,7 +124,8 @@
 /* ========= CONFIG ========= */
 const CONFIG = {
   DATA_URL: 'status.json',   // Debe estar junto a movil.html
-  MAX_ETAPAS: 12             // Usado si no se encuentra STOP
+  MAX_ETAPAS: 12,            // Usado si no se encuentra STOP
+  AVG_WINDOW_DAYS: 3         // ventana para promedio de velocidad
 };
 
 /* ========= HELPERS ========= */
@@ -124,7 +139,7 @@ function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
 function excelSerialToDate(x){
   const n = Number(x);
   if(!isFinite(n)) return null;
-  const ms = (n - 25569) * 86400 * 1000; // 25569 = days to 1970-01-01
+  const ms = (n - 25569) * 86400 * 1000;
   const d = new Date(ms);
   return isNaN(d) ? null : d;
 }
@@ -162,10 +177,11 @@ function parseToYMD(v){
   if(m3){ return s; }
   return null;
 }
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 
 /* ========= EXTRACCIÓN =========
-   1) Columnas FechaFracPozoN / SecuenciaPozoN → series.
-   2) Nombres de pozo desde la PRIMERA fila (FechaFracPozoN) y filtrado (sin "X" o vacío).
+   - Nombres desde PRIMERA fila (FechaFracPozoN) y se descartan "X"/vacío.
+   - Series SOLO con filas de datos: Fila = "#nn" (se ignoran encabezados), como en el TV.
 */
 function extractFracturadoColumns(rows){
   const byPozo = {};
@@ -179,32 +195,33 @@ function extractFracturadoColumns(rows){
     return byPozo;
   }
 
-  // nombres desde la primera fila
+  // nombres
   const namesMap = {};
   const nameRow = rows[0] || {};
   for (const fk of fechaCols){
     const n = fk.match(/(\d+)/)[1];
     const val = String(nameRow[fk] ?? "").trim();
-    if(val && val.toUpperCase() !== "X"){           // filtra X/vacío
-      namesMap[`pozo-${n}`] = val;
-    }
+    if(val && val.toUpperCase() !== "X"){ namesMap[`pozo-${n}`] = val; }
   }
 
-  // armar series SOLO de pozos con nombre válido
+  // solo filas con Fila tipo "#nn"
+  const dataRows = rows
+    .map(r => ({...r, _fila:String(r.Fila||'').trim()}))
+    .filter(r => /^#?\d+$/i.test(r._fila));
+
   for (const fk of fechaCols){
     const n = fk.match(/(\d+)/)[1];
     const pk = `pozo-${n}`;
-    if(!(pk in namesMap)) continue;                 // ocultar pozos sin nombre
+    if(!(pk in namesMap)) continue; // ocultar pozos sin nombre
     const seqKey = keys.find(k => new RegExp(`^SecuenciaPozo${n}$`, 'i').test(k));
-    byPozo[pk] = rows.map(r => ({
+    byPozo[pk] = dataRows.map(r => ({
       fecha: r[fk] ?? "",
       sec:   seqKey ? (r[seqKey] ?? "") : ""
     }));
   }
 
-  // adjuntar nombres detectados
   byPozo.__names = namesMap;
-  return byPozo; // { 'pozo-1': [{fecha,sec},...], ..., __names:{pozo-1:'BdC-...', ...} }
+  return byPozo;
 }
 
 /* ========= CÓMPUTO ========= */
@@ -228,7 +245,7 @@ function aggregateByDay(byPozo){
   for(const [key, serie] of Object.entries(byPozo)){
     if(key === "__names") continue;
     for(const o of serie){
-      const v = o.sec || o.fecha; // priorizar secuencia (fecha/hora Excel)
+      const v = o.sec || o.fecha;
       if(isValidDateCell(v)){
         const ymd = parseToYMD(v);
         if(ymd){ map.set(ymd, (map.get(ymd)||0)+1); }
@@ -240,6 +257,20 @@ function aggregateByDay(byPozo){
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
+/* ========= VELOCIDAD Y ETA ========= */
+function computeAvgAndETA(daysArr, restantesTot){
+  // daysArr: [['YYYY-MM-DD', count], ...] ordenado desc
+  if(!daysArr.length) return {avg:null, etaDays:null, etaDate:null};
+  const N = Math.min(CONFIG.AVG_WINDOW_DAYS, daysArr.length);
+  let sum = 0;
+  for(let i=0;i<N;i++) sum += daysArr[i][1];
+  const avg = sum / N;
+  if(!avg || avg<=0 || !isFinite(avg)) return {avg:0, etaDays:null, etaDate:null};
+  const etaDays = Math.ceil(restantesTot / avg);
+  const etaDate = addDays(new Date(), etaDays);
+  return {avg, etaDays, etaDate};
+}
+
 /* ========= RENDER ========= */
 function renderKPIs(stats){
   const all = Object.values(stats);
@@ -249,6 +280,13 @@ function renderKPIs(stats){
   $('#kpiTotales .value').textContent   = fmt(totales);
   $('#kpiRealizadas .value').textContent= fmt(hechas);
   $('#kpiRestantes .value').textContent = fmt(rest);
+  return {totales, hechas, rest};
+}
+function renderSpeed(avg, etaDays, etaDate){
+  $('#avgPace').textContent = (avg && avg>0) ? `${avg.toFixed(1)} etapas/día` : '—';
+  $('#etaFinish').textContent = (etaDate)
+    ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
+    : '—';
 }
 
 function renderPozos(stats, names){
@@ -269,8 +307,8 @@ function renderPozos(stats, names){
           <span class="badge">Rest: ${s.restantes}</span>
         </div>
       </div>
-      <div class="row" style="gap:14px">
-        <div class="progress" style="flex:1"><i style="width:${pct}%"></i></div>
+      <div class="row">
+        <div class="progress"><i style="width:${pct}%"></i></div>
         <div class="pct">${pct}%</div>
       </div>
     `;
@@ -308,7 +346,6 @@ function renderDias(arr){
 
 /* ========= DATA LOAD ========= */
 async function fetchData(){
-  // cache-buster para evitar caché en GitHub Pages
   const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`, { cache:'no-store' });
   if(!res.ok){ throw new Error('No se pudo cargar el JSON: '+res.status); }
   return await res.json();
@@ -317,7 +354,7 @@ async function fetchData(){
 async function load(){
   try{
     const data = await fetchData();
-    const rows = data.rows || data.items || data || [];
+    const rows = data.items || data.rows || data || [];
 
     const byPozo = extractFracturadoColumns(rows);
     const names  = byPozo.__names || {};
@@ -328,7 +365,11 @@ async function load(){
     const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
-    renderKPIs(stats);
+    const totals = renderKPIs(stats);
+    // Promedio + ETA
+    const pace = computeAvgAndETA(dias, totals.rest);
+    renderSpeed(pace.avg, pace.etaDays, pace.etaDate);
+
     renderPozos(stats, names);
     renderDias(dias);
   }catch(err){
@@ -348,8 +389,9 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
 $('#btnRefresh').addEventListener('click', load);
 $('#btnInst').addEventListener('click', ()=>{
   alert(`Notas:
-• Los nombres de pozo se leen de la primera fila (FechaFracPozoN). Si es "X" o vacío, el pozo se oculta.
-• STOP define el total por pozo. Sólo fechas (incluye seriales Excel) cuentan como realizadas.`);
+• Nombres de pozo desde la primera fila (FechaFracPozoN). Si es "X" o vacío, el pozo se oculta.
+• Cómputo como el visor TV: sólo filas con Fila "#nn" cuentan; STOP define el total por pozo.
+• Promedio = últimos ${CONFIG.AVG_WINDOW_DAYS} días con actividad. ETA = restantes / promedio.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
