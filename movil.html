@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Visor móvil de etapas</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#131a2a; --muted:#cfe8ff; --ok:#1ad598; --warn:#ffc857; --bad:#ff6b6b; --ink:#e8f0ff;
+      --accent:#47a3ff; --soft:#1b243a; --ring:#2d3b57; --shadow: 0 6px 20px rgba(0,0,0,.35);
+    }
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;}
+    .wrap{min-height:100%; display:flex; flex-direction:column;}
+    header{position:sticky; top:0; z-index:10; background:linear-gradient(180deg, #0b1020, rgba(11,16,32,.85)); border-bottom:1px solid #1e2740;}
+    .bar{display:flex; align-items:center; gap:10px; padding:12px 14px;}
+    .title{font-size:18px; font-weight:700; letter-spacing:.2px}
+    .sub{font-size:12px; opacity:.8}
+    .grow{flex:1}
+    button, .chip{appearance:none; border:1px solid var(--ring); background:var(--soft); color:var(--ink); border-radius:12px; padding:8px 12px; font:inherit; font-weight:600}
+    button:active{transform:scale(.98)}
+    .chip{border-radius:999px; font-size:12px; padding:6px 10px;}
+    .toolbar{display:flex; gap:8px}
+
+    .tabs{display:flex; gap:8px; padding:8px 14px; border-bottom:1px solid #1e2740}
+    .tab{flex:1; text-align:center; padding:10px 0; border-radius:12px; background:var(--soft); border:1px solid var(--ring); cursor:pointer; font-weight:700;}
+    .tab.active{background:#1d2a43; border-color:#345085; color:#dff0ff}
+
+    main{padding:14px; display:grid; gap:12px}
+    .card{background:var(--card); border:1px solid #1e2740; border-radius:16px; box-shadow:var(--shadow)}
+    .card.pad{padding:14px}
+
+    .kpis{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px}
+    .kpi{background:#0f1628; border:1px solid #1e2740; border-radius:12px; padding:10px}
+    .kpi .label{font-size:11px; opacity:.8}
+    .kpi .value{font-size:20px; font-weight:800; margin-top:2px}
+    .kpi.ok .value{color:var(--ok)}
+    .kpi.warn .value{color:var(--warn)}
+    .kpi.bad .value{color:var(--bad)}
+
+    .pozo{display:grid; gap:8px}
+    .pozo header{position:static; background:none; border:0;}
+    .pozo-title{display:flex; align-items:center; justify-content:space-between}
+    .pozo-title .name{font-weight:800; letter-spacing:.3px}
+    .meta{display:flex; gap:8px}
+
+    .row{display:flex; align-items:center; gap:10px}
+    .badge{font-size:11px; background:#0f1628; border:1px solid #27324e; padding:4px 8px; border-radius:999px}
+    .progress{height:10px; background:#0f1628; border:1px solid #27324e; border-radius:999px; overflow:hidden}
+    .progress > i{display:block; height:100%; background:linear-gradient(90deg, #47a3ff, #60dbfb)}
+
+    .list{display:grid; gap:10px}
+    .item{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; border:1px solid #1e2740; background:#0f1628}
+    .item .left{display:flex; flex-direction:column}
+    .item .left .h{font-weight:700}
+    .item .right{font-weight:800}
+
+    .muted{opacity:.75}
+    .tiny{font-size:11px}
+
+    footer.nav{position:sticky; bottom:0; background:linear-gradient(0deg, #0b1020, rgba(11,16,32,.85)); border-top:1px solid #1e2740;}
+    .nav-inner{display:flex; gap:8px; padding:10px 14px}
+    .nav-inner button{flex:1}
+
+    @media (min-width:720px){ main{max-width:720px; margin:0 auto} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="bar">
+        <div>
+          <div class="title">Visor móvil – Etapas</div>
+          <div class="sub" id="lastUpdate">—</div>
+        </div>
+        <div class="grow"></div>
+        <div class="toolbar">
+          <button id="btnDemo" title="Cargar demo">Demo</button>
+          <button id="btnRefresh" title="Actualizar datos">Actualizar</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" data-view="pozos">Por pozo</div>
+        <div class="tab" data-view="dias">Por día</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="card pad">
+        <div class="kpis">
+          <div class="kpi" id="kpiTotales"><div class="label">Etapas totales</div><div class="value">—</div></div>
+          <div class="kpi ok" id="kpiRealizadas"><div class="label">Realizadas</div><div class="value">—</div></div>
+          <div class="kpi warn" id="kpiRestantes"><div class="label">Restantes</div><div class="value">—</div></div>
+        </div>
+      </section>
+
+      <section id="viewPozos" class="pozos"></section>
+      <section id="viewDias" class="dias" style="display:none"></section>
+    </main>
+
+    <footer class="nav">
+      <div class="nav-inner">
+        <button id="btnShare">Compartir</button>
+        <button id="btnInst">Instrucciones</button>
+      </div>
+    </footer>
+  </div>
+
+<script>
+/**
+ * CONFIGURACIÓN BÁSICA
+ * - DATA_URL: endpoint JSON público (GitHub/SharePoint/Flow) o dejar vacío para usar SAMPLE.
+ * - MAX_ETAPAS: cantidad total por pozo si no aparece 'STOP' (p. ej., 12, 24, 30)
+ */
+const CONFIG = {
+  DATA_URL: (location.hostname.includes('github.io') ? 'status.json' : ''), // Ej.: "https://tu-dominio/etapas.json"
+  MAX_ETAPAS: 12
+};
+
+/**
+ * FORMATO DE ENTRADA ESPERADO (flexible):
+ * Un arreglo de filas. En cada fila las claves de FRACTURADO por pozo deben contener ambas palabras: 'POZO' y 'FRACTURADO'.
+ * Ejemplo de claves válidas: 'POZO #1 FRACTURADO', 'Pozo1_FRACTURADO', 'Pozo 2 - Fracturado'.
+ * El valor de cada celda puede ser:
+ *  - una FECHA (dd/mm/aaaa, dd/mm/aa, dd-mm-aaaa, yyyy-mm-dd), cuenta como REALIZADA
+ *  - 'STOP' (cualquier mayúsc./minúsc.), detiene el total para ese pozo
+ *  - otro texto ('F1', notas, vacío), NO cuenta como realizada
+ */
+
+// === DEMO embebido ===
+const SAMPLE = {
+  meta: { lastUpdate: new Date().toISOString() },
+  rows: [
+    // #01 … #12
+    { "POZO #1 FRACTURADO": "01/09/2025", "POZO #2 FRACTURADO": "01/09/2025", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "F1", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "01/09/2025" },
+    { "POZO #1 FRACTURADO": "02/09/2025", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "03/09/2025", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "STOP" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "05-09-2025", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "2025-09-07", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "STOP", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" },
+    { "POZO #1 FRACTURADO": "", "POZO #2 FRACTURADO": "STOP", "POZO #3 FRACTURADO": "", "POZO #4 FRACTURADO": "", "POZO #5 FRACTURADO": "", "POZO #6 FRACTURADO": "" }
+  ]
+};
+
+// === Utilidades ===
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const fmt = n => new Intl.NumberFormat('es-AR').format(n);
+
+function toPozoKey(raw){
+  // Normaliza nombre de pozo a 'pozo-1', 'pozo-2'
+  const m = String(raw).match(/pozo\s*#?\s*(\d+)/i);
+  return m ? `pozo-${m[1]}` : null;
+}
+function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
+function isValidDateCell(v){
+  const s = String(v).trim();
+  if(!s) return false;
+  // dd/mm/yyyy or dd/mm/yy
+  if(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.test(s)) return true;
+  // dd-mm-yyyy
+  if(/^(\d{1,2})-(\d{1,2})-(\d{4})$/.test(s)) return true;
+  // ISO yyyy-mm-dd
+  if(/^(\d{4})-(\d{2})-(\d{2})$/.test(s)) return true;
+  return false;
+}
+function parseToYMD(v){
+  // Devuelve 'YYYY-MM-DD' para agrupar por día
+  const s = String(v).trim();
+  let d,m,y;
+  let m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  if(m1){ d=+m1[1]; m=+m1[2]; y=+m1[3]; if(y<100) y+=2000; return `${y.toString().padStart(4,'0')}-${m.toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`; }
+  let m2 = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+  if(m2){ d=+m2[1]; m=+m2[2]; y=+m2[3]; return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+  let m3 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(m3){ return s; }
+  return null;
+}
+
+function extractFracturadoColumns(rows){
+  // Devuelve { pozo-1: [celdas...], pozo-2:[...], ... }
+  const pozoCols = new Map(); // key-> array
+  const keys = Object.keys(rows?.[0] || {});
+  const candidates = keys.filter(k => /pozo/i.test(k) && /fracturado/i.test(k));
+  // Si no detecta, tratar keys que incluyan FRACTURADO y número en cualquier parte
+  (candidates.length?candidates:keys.filter(k=>/fracturado/i.test(k))).forEach(k => {
+    const key = toPozoKey(k);
+    if(key){ pozoCols.set(key, k); }
+  });
+  // Construir arrays por pozo manteniendo el orden de las filas
+  const byPozo = {};
+  for(const [pozoKey, colName] of pozoCols){
+    byPozo[pozoKey] = rows.map(r => r[colName] ?? "");
+  }
+  return byPozo;
+}
+
+function computeStats(byPozo){
+  const stats = {}; // {pozo-1:{total, realizadas, restantes, serie:[...]}}
+  for(const [pozo, serie] of Object.entries(byPozo)){
+    let totalCells = CONFIG.MAX_ETAPAS;
+    const stopIdx = serie.findIndex(v => isStop(v));
+    if(stopIdx >= 0){ totalCells = stopIdx; }
+    // Tomamos solo hasta STOP (excluido)
+    const considered = serie.slice(0, totalCells);
+    const realizadas = considered.filter(isValidDateCell).length;
+    const restantes = Math.max(0, totalCells - realizadas);
+    stats[pozo] = { total: totalCells, realizadas, restantes, serie: considered };
+  }
+  return stats;
+}
+
+function aggregateByDay(byPozo){
+  const map = new Map(); // ymd -> count
+  for(const serie of Object.values(byPozo)){
+    for(const v of serie){
+      if(isValidDateCell(v)){
+        const ymd = parseToYMD(v);
+        if(ymd){ map.set(ymd, (map.get(ymd)||0)+1); }
+      } else if(isStop(v)){
+        break; // no contar más luego de STOP
+      }
+    }
+  }
+  // ordenar por fecha desc
+  const arr = Array.from(map.entries()).sort((a,b)=> a[0]<b[0]?1:-1);
+  return arr; // [[ymd, count], ...]
+}
+
+function renderKPIs(stats){
+  const all = Object.values(stats);
+  const totales = all.reduce((a,b)=>a+b.total,0);
+  const hechas = all.reduce((a,b)=>a+b.realizadas,0);
+  const rest = all.reduce((a,b)=>a+b.restantes,0);
+  $('#kpiTotales .value').textContent = fmt(totales);
+  $('#kpiRealizadas .value').textContent = fmt(hechas);
+  $('#kpiRestantes .value').textContent = fmt(rest);
+}
+
+function renderPozos(stats){
+  const cont = $('#viewPozos');
+  cont.innerHTML = '';
+  const entries = Object.entries(stats).sort((a,b)=> a[0].localeCompare(b[0]));
+  for(const [pozo, s] of entries){
+    const pct = s.total>0 ? Math.round((s.realizadas/s.total)*100) : 0;
+    const el = document.createElement('section');
+    el.className = 'card pad pozo';
+    el.innerHTML = `
+      <div class="pozo-title">
+        <div class="name">${pozo.toUpperCase().replace('-', ' ')}</div>
+        <div class="meta">
+          <span class="badge">Tot: ${s.total}</span>
+          <span class="badge">Hechas: ${s.realizadas}</span>
+          <span class="badge">Rest: ${s.restantes}</span>
+        </div>
+      </div>
+      <div class="row" style="gap:14px">
+        <div class="progress" style="flex:1"><i style="width:${pct}%"></i></div>
+        <div class="tiny muted" style="width:48px; text-align:right">${pct}%</div>
+      </div>
+      <div class="tiny muted">Reglas: Total = celdas hasta STOP. Realizadas = celdas con fecha. Otros valores ("F1", vacío) no suman.</div>
+    `;
+    cont.appendChild(el);
+  }
+}
+
+function renderDias(arr){
+  const cont = $('#viewDias');
+  cont.innerHTML = '';
+  const now = new Date();
+  const todayYMD = now.toISOString().slice(0,10);
+  const box = document.createElement('section');
+  box.className='card pad';
+  const list = document.createElement('div');
+  list.className='list';
+  box.appendChild(list);
+
+  if(arr.length===0){
+    const empty = document.createElement('div');
+    empty.className='muted';
+    empty.textContent = 'Sin etapas registradas por día aún.';
+    box.appendChild(empty);
+  } else {
+    for(const [ymd, count] of arr){
+      const d = new Date(ymd + 'T00:00:00');
+      const ddmmyy = d.toLocaleDateString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
+      const it = document.createElement('div');
+      it.className='item';
+      it.innerHTML = `<div class="left"><div class="h">${ddmmyy}</div><div class="tiny muted">${ymd===todayYMD? 'Hoy' : '—'}</div></div><div class="right">${fmt(count)}</div>`;
+      list.appendChild(it);
+    }
+  }
+  cont.appendChild(box);
+}
+
+function setActiveView(view){
+  $$('.tab').forEach(t=> t.classList.toggle('active', t.dataset.view===view));
+  $('#viewPozos').style.display = view==='pozos' ? '' : 'none';
+  $('#viewDias').style.display = view==='dias' ? '' : 'none';
+}
+
+async function fetchData(){
+  if(!CONFIG.DATA_URL){ return JSON.parse(JSON.stringify(SAMPLE)); }
+  const res = await fetch(CONFIG.DATA_URL, { cache:'no-store' });
+  if(!res.ok){ throw new Error('No se pudo cargar el JSON: '+res.status); }
+  return await res.json();
+}
+
+async function load(){
+  try{
+    const data = await fetchData();
+    const rows = data.rows || data.items || data || []; // flexibilidad
+    const byPozo = extractFracturadoColumns(rows);
+    const stats = computeStats(byPozo);
+    const dias = aggregateByDay(byPozo);
+
+    const lu = data.meta?.lastUpdate || new Date().toISOString();
+    const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
+    $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
+
+    renderKPIs(stats);
+    renderPozos(stats);
+    renderDias(dias);
+  }catch(err){
+    console.error(err);
+    alert('Error cargando datos: '+err.message+'\nSe mostrará la DEMO.');
+    CONFIG.DATA_URL = '';
+    return load();
+  }
+}
+
+// Eventos UI
+$$('.tab').forEach(t => t.addEventListener('click', ()=> setActiveView(t.dataset.view)));
+$('#btnRefresh').addEventListener('click', load);
+$('#btnDemo').addEventListener('click', ()=>{ CONFIG.DATA_URL=''; load(); });
+$('#btnInst').addEventListener('click', ()=>{
+  alert(`Cómo usar:\n\n1) Reemplazá CONFIG.DATA_URL con el enlace público del JSON.\n2) Asegurate de que las columnas de FRACTURADO incluyan 'POZO' y 'FRACTURADO'.\n3) STOP define el total por pozo. Sólo fechas cuentan como realizadas.\n4) Botón Demo carga datos de ejemplo.`);
+});
+$('#btnShare').addEventListener('click', async ()=>{
+  try{
+    await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas (demo)', url: location.href });
+  }catch(_){ /* ignorar */ }
+});
+
+// Carga inicial (soporta ?demo=1)
+if(new URLSearchParams(location.search).get('demo')==='1') CONFIG.DATA_URL='';
+load();
+</script>
+</body>
+</html>
