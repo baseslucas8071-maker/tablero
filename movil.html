@@ -96,7 +96,7 @@
         </div>
         <div class="speed">
           <div class="box">
-            <div class="h">Promedio (últ. 3 días)</div>
+            <div class="h">Promedio (todos los días)</div>
             <div class="v" id="avgPace">—</div>
           </div>
           <div class="box">
@@ -124,8 +124,7 @@
 /* ========= CONFIG ========= */
 const CONFIG = {
   DATA_URL: 'status.json',   // Debe estar junto a movil.html
-  MAX_ETAPAS: 12,            // Usado si no se encuentra STOP
-  AVG_WINDOW_DAYS: 3         // ventana para promedio de velocidad
+  MAX_ETAPAS: 12             // Usado si no se encuentra STOP
 };
 
 /* ========= HELPERS ========= */
@@ -181,7 +180,7 @@ const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); ret
 
 /* ========= EXTRACCIÓN =========
    - Nombres desde PRIMERA fila (FechaFracPozoN) y se descartan "X"/vacío.
-   - Series SOLO con filas de datos: Fila = "#nn" (se ignoran encabezados), como en el TV.
+   - Series SOLO con filas de datos: Fila = "#nn" (se ignoran encabezados).
 */
 function extractFracturadoColumns(rows){
   const byPozo = {};
@@ -195,7 +194,7 @@ function extractFracturadoColumns(rows){
     return byPozo;
   }
 
-  // nombres
+  // nombres (primera fila)
   const namesMap = {};
   const nameRow = rows[0] || {};
   for (const fk of fechaCols){
@@ -240,32 +239,30 @@ function computeStats(byPozo){
   return stats;
 }
 
+/* ========= POR DÍA (solo Fracturado) ========= */
 function aggregateByDay(byPozo){
   const map = new Map(); // ymd -> count
-  for(const [key, serie] of Object.entries(byPozo)){
-    if(key === "__names") continue;
-    for(const o of serie){
-      const v = o.sec || o.fecha;
-      if(isValidDateCell(v)){
-        const ymd = parseToYMD(v);
-        if(ymd){ map.set(ymd, (map.get(ymd)||0)+1); }
-      } else if(isStop(o.fecha)){
-        break;
+  for (const [key, serie] of Object.entries(byPozo)){
+    if (key === "__names") continue;
+    for (const o of serie){
+      if (isValidDateCell(o.fecha)){                 // SOLO FECHA (Fracturado)
+        const ymd = parseToYMD(o.fecha);
+        if (ymd) map.set(ymd, (map.get(ymd)||0) + 1);
+      } else if (isStop(o.fecha)){
+        break; // cortar en STOP
       }
     }
   }
+  // Orden descendente por fecha (más reciente primero)
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
-/* ========= VELOCIDAD Y ETA ========= */
+/* ========= VELOCIDAD Y ETA (todos los días) ========= */
 function computeAvgAndETA(daysArr, restantesTot){
-  // daysArr: [['YYYY-MM-DD', count], ...] ordenado desc
-  if(!daysArr.length) return {avg:null, etaDays:null, etaDate:null};
-  const N = Math.min(CONFIG.AVG_WINDOW_DAYS, daysArr.length);
-  let sum = 0;
-  for(let i=0;i<N;i++) sum += daysArr[i][1];
-  const avg = sum / N;
-  if(!avg || avg<=0 || !isFinite(avg)) return {avg:0, etaDays:null, etaDate:null};
+  if (!daysArr.length) return {avg:null, etaDays:null, etaDate:null};
+  const sum = daysArr.reduce((acc, [,c]) => acc + (c||0), 0);
+  const avg = sum / daysArr.length;
+  if (!avg || avg <= 0 || !isFinite(avg)) return {avg:0, etaDays:null, etaDate:null};
   const etaDays = Math.ceil(restantesTot / avg);
   const etaDate = addDays(new Date(), etaDays);
   return {avg, etaDays, etaDate};
@@ -366,7 +363,6 @@ async function load(){
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
     const totals = renderKPIs(stats);
-    // Promedio + ETA
     const pace = computeAvgAndETA(dias, totals.rest);
     renderSpeed(pace.avg, pace.etaDays, pace.etaDate);
 
@@ -390,8 +386,8 @@ $('#btnRefresh').addEventListener('click', load);
 $('#btnInst').addEventListener('click', ()=>{
   alert(`Notas:
 • Nombres de pozo desde la primera fila (FechaFracPozoN). Si es "X" o vacío, el pozo se oculta.
-• Cómputo como el visor TV: sólo filas con Fila "#nn" cuentan; STOP define el total por pozo.
-• Promedio = últimos ${CONFIG.AVG_WINDOW_DAYS} días con actividad. ETA = restantes / promedio.`);
+• Cómputo: sólo filas con Fila "#nn" cuentan; STOP define el total por pozo.
+• "Por día" cuenta únicamente Fracturado con fecha. Promedio = todos los días con actividad.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
