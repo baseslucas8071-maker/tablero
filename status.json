@@ -526,7 +526,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "BlowBack",
+      "FechaFracPozo1": "Cancelada",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "45921",
       "FechaFracPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-21T20:12:45.7507965Z",
+  "lastUpdate": "2025-09-21T20:36:47.6586980Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
