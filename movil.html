@@ -32,21 +32,21 @@
     .kpis{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px}
     .kpi{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
     .kpi .label{font-size:11px; opacity:.8}
-    .kpi .value{font-size:20px; font-weight:800; margin-top:2px}
+    .kpi .value{font-size:22px; font-weight:800; margin-top:2px}
     .kpi.ok .value{color:var(--ok)}
     .kpi.warn .value{color:var(--warn)}
     .kpi.bad .value{color:var(--bad)}
 
     .pozo{display:grid; gap:8px}
-    .pozo header{position:static; background:none; border:0;}
     .pozo-title{display:flex; align-items:center; justify-content:space-between}
-    .pozo-title .name{font-weight:800; letter-spacing:.3px}
+    .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
     .meta{display:flex; gap:8px}
 
     .row{display:flex; align-items:center; gap:10px}
-    .badge{font-size:11px; background:#090909; border:1px solid #222; padding:4px 8px; border-radius:999px}
-    .progress{height:10px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden}
+    .badge{font-size:13px; background:#090909; border:1px solid #222; padding:5px 10px; border-radius:999px; font-weight:700}
+    .progress{height:12px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden}
     .progress > i{display:block; height:100%; background:linear-gradient(90deg, #47a3ff, #60dbfb)}
+    .pct{width:54px; text-align:right; font-size:14px; font-weight:800}
 
     .list{display:grid; gap:10px}
     .item{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; border:1px solid #161616; background:#0a0a0a}
@@ -163,8 +163,9 @@ function parseToYMD(v){
   return null;
 }
 
-/* ========= EXTRACCIÓN DE COLUMNAS =========
-   Detecta columnas tipo "FechaFracPozoN" y opcionalmente "SecuenciaPozoN".
+/* ========= EXTRACCIÓN =========
+   1) Columnas FechaFracPozoN / SecuenciaPozoN → series.
+   2) Nombres de pozo desde la PRIMERA fila (FechaFracPozoN) y filtrado (sin "X" o vacío).
 */
 function extractFracturadoColumns(rows){
   const byPozo = {};
@@ -178,22 +179,39 @@ function extractFracturadoColumns(rows){
     return byPozo;
   }
 
+  // nombres desde la primera fila
+  const namesMap = {};
+  const nameRow = rows[0] || {};
+  for (const fk of fechaCols){
+    const n = fk.match(/(\d+)/)[1];
+    const val = String(nameRow[fk] ?? "").trim();
+    if(val && val.toUpperCase() !== "X"){           // filtra X/vacío
+      namesMap[`pozo-${n}`] = val;
+    }
+  }
+
+  // armar series SOLO de pozos con nombre válido
   for (const fk of fechaCols){
     const n = fk.match(/(\d+)/)[1];
     const pk = `pozo-${n}`;
+    if(!(pk in namesMap)) continue;                 // ocultar pozos sin nombre
     const seqKey = keys.find(k => new RegExp(`^SecuenciaPozo${n}$`, 'i').test(k));
     byPozo[pk] = rows.map(r => ({
       fecha: r[fk] ?? "",
       sec:   seqKey ? (r[seqKey] ?? "") : ""
     }));
   }
-  return byPozo; // { 'pozo-1': [{fecha,sec},...], ... }
+
+  // adjuntar nombres detectados
+  byPozo.__names = namesMap;
+  return byPozo; // { 'pozo-1': [{fecha,sec},...], ..., __names:{pozo-1:'BdC-...', ...} }
 }
 
 /* ========= CÓMPUTO ========= */
 function computeStats(byPozo){
   const stats = {};
   for(const [pozo, serieObjs] of Object.entries(byPozo)){
+    if(pozo === "__names") continue;
     const stopIdx = serieObjs.findIndex(o => isStop(o.fecha));
     const totalCells = (stopIdx >= 0) ? stopIdx : Math.min(serieObjs.length, CONFIG.MAX_ETAPAS);
     const considered = serieObjs.slice(0, totalCells);
@@ -207,7 +225,8 @@ function computeStats(byPozo){
 
 function aggregateByDay(byPozo){
   const map = new Map(); // ymd -> count
-  for(const serie of Object.values(byPozo)){
+  for(const [key, serie] of Object.entries(byPozo)){
+    if(key === "__names") continue;
     for(const o of serie){
       const v = o.sec || o.fecha; // priorizar secuencia (fecha/hora Excel)
       if(isValidDateCell(v)){
@@ -232,17 +251,18 @@ function renderKPIs(stats){
   $('#kpiRestantes .value').textContent = fmt(rest);
 }
 
-function renderPozos(stats){
+function renderPozos(stats, names){
   const cont = $('#viewPozos');
   cont.innerHTML = '';
   const entries = Object.entries(stats).sort((a,b)=> a[0].localeCompare(b[0]));
   for(const [pozo, s] of entries){
     const pct = s.total>0 ? Math.round((s.realizadas/s.total)*100) : 0;
+    const title = (names[pozo] || pozo.toUpperCase().replace('-', ' '));
     const el = document.createElement('section');
     el.className = 'card pad pozo';
     el.innerHTML = `
       <div class="pozo-title">
-        <div class="name">${pozo.toUpperCase().replace('-', ' ')}</div>
+        <div class="name">${title}</div>
         <div class="meta">
           <span class="badge">Tot: ${s.total}</span>
           <span class="badge">Hechas: ${s.realizadas}</span>
@@ -251,9 +271,8 @@ function renderPozos(stats){
       </div>
       <div class="row" style="gap:14px">
         <div class="progress" style="flex:1"><i style="width:${pct}%"></i></div>
-        <div class="tiny muted" style="width:48px; text-align:right">${pct}%</div>
+        <div class="pct">${pct}%</div>
       </div>
-      <div class="tiny muted">Total = celdas hasta STOP. Realizadas = celdas con fecha. Otros valores (“F1”, vacío) no suman.</div>
     `;
     cont.appendChild(el);
   }
@@ -299,16 +318,18 @@ async function load(){
   try{
     const data = await fetchData();
     const rows = data.rows || data.items || data || [];
+
     const byPozo = extractFracturadoColumns(rows);
-    const stats = computeStats(byPozo);
-    const dias  = aggregateByDay(byPozo);
+    const names  = byPozo.__names || {};
+    const stats  = computeStats(byPozo);
+    const dias   = aggregateByDay(byPozo);
 
     const lu = (data.meta?.lastUpdate) || data.lastUpdate || new Date().toISOString();
     const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
     renderKPIs(stats);
-    renderPozos(stats);
+    renderPozos(stats, names);
     renderDias(dias);
   }catch(err){
     console.error(err);
@@ -326,11 +347,9 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
 
 $('#btnRefresh').addEventListener('click', load);
 $('#btnInst').addEventListener('click', ()=>{
-  alert(`Cómo usar:
-1) Alojá movil.html junto a visor.html y status.json.
-2) Lee status.json de la misma carpeta (GitHub Pages).
-3) Columnas esperadas: FechaFracPozoN (y opcional SecuenciaPozoN).
-4) STOP define el total por pozo. Sólo fechas (incluye seriales Excel) cuentan como realizadas.`);
+  alert(`Notas:
+• Los nombres de pozo se leen de la primera fila (FechaFracPozoN). Si es "X" o vacío, el pozo se oculta.
+• STOP define el total por pozo. Sólo fechas (incluye seriales Excel) cuentan como realizadas.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
