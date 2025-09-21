@@ -12,7 +12,7 @@
     html,body{height:100%; margin:0; background:#000; color:var(--ink); font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;}
     .wrap{min-height:100%; display:flex; flex-direction:column;}
     header{position:sticky; top:0; z-index:10; background:linear-gradient(180deg, #000, rgba(0,0,0,.85)); border-bottom:1px solid #1a1a1a;}
-    .bar{display:flex; align-items:center; gap:10px; padding:12px 14px;}
+    .bar{display:flex; align-items:center; gap:10px; padding:12px 14px}
     .title{font-size:18px; font-weight:700; letter-spacing:.2px}
     .sub{font-size:12px; opacity:.8}
     .grow{flex:1}
@@ -42,7 +42,9 @@
     .speed .h{font-size:11px; opacity:.8}
     .speed .v{font-size:18px; font-weight:800; margin-top:2px}
 
-    .pozo{display:grid; gap:8px}
+    .pozo{display:grid; gap:8px; cursor:pointer}
+    .pozo:hover{outline:1px solid #1f3e66}
+
     .pozo-title{display:flex; align-items:center; justify-content:space-between}
     .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
     .meta{display:flex; gap:8px}
@@ -60,6 +62,15 @@
 
     .muted{opacity:.75}
     .tiny{font-size:11px}
+
+    /* ===== Detalle ===== */
+    .backbar{display:flex; align-items:center; gap:10px; padding:8px 14px}
+    .backbar .t{font-weight:900; font-size:18px}
+    .back{border-radius:10px}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .summary{display:grid; gap:8px}
+    .kv{display:flex; align-items:center; justify-content:space-between; background:#0a0a0a; border:1px solid #161616; padding:10px 12px; border-radius:12px}
+    canvas{width:100%; height:220px; display:block}
 
     footer.nav{position:sticky; bottom:0; background:linear-gradient(0deg, #000, rgba(0,0,0,.85)); border-top:1px solid #1a1a1a;}
     .nav-inner{display:flex; gap:8px; padding:10px 14px}
@@ -81,20 +92,25 @@
           <button id="btnRefresh" title="Actualizar datos">Actualizar</button>
         </div>
       </div>
-      <div class="tabs">
+      <div class="tabs" id="mainTabs">
         <div class="tab active" data-view="pozos">Por pozo</div>
         <div class="tab" data-view="dias">Por día</div>
+      </div>
+      <div class="backbar" id="detailBar" style="display:none">
+        <button class="back" id="btnBack">← Volver</button>
+        <div class="t" id="detailTitle">Pozo</div>
       </div>
     </header>
 
     <main>
-      <section class="card pad">
+      <!-- Resumen + velocidad -->
+      <section class="card pad" id="topCard">
         <div class="kpis">
           <div class="kpi" id="kpiTotales"><div class="label">Etapas totales</div><div class="value">—</div></div>
           <div class="kpi ok" id="kpiRealizadas"><div class="label">Realizadas</div><div class="value">—</div></div>
           <div class="kpi warn" id="kpiRestantes"><div class="label">Restantes</div><div class="value">—</div></div>
         </div>
-        <div class="speed">
+        <div class="speed" id="speedRow">
           <div class="box">
             <div class="h">Promedio (todos los días)</div>
             <div class="v" id="avgPace">—</div>
@@ -106,8 +122,31 @@
         </div>
       </section>
 
+      <!-- Vista principal -->
       <section id="viewPozos" class="pozos"></section>
       <section id="viewDias" class="dias" style="display:none"></section>
+
+      <!-- Vista detalle -->
+      <section id="viewDetail" style="display:none; gap:12px">
+        <section class="card pad">
+          <canvas id="pozoChart" width="700" height="280" aria-label="Gráfica por día"></canvas>
+        </section>
+        <section class="card pad">
+          <div class="grid2">
+            <div class="summary">
+              <div class="kv"><span>Total</span><strong id="dTot">—</strong></div>
+              <div class="kv"><span>Hechas</span><strong id="dDone">—</strong></div>
+              <div class="kv"><span>Restantes</span><strong id="dLeft">—</strong></div>
+              <div class="kv"><span>Avance</span><strong id="dPct">—</strong></div>
+              <div class="kv"><span>Primera</span><strong id="dFirst">—</strong></div>
+              <div class="kv"><span>Última</span><strong id="dLast">—</strong></div>
+            </div>
+            <div>
+              <div class="list" id="dList"></div>
+            </div>
+          </div>
+        </section>
+      </section>
     </main>
 
     <footer class="nav">
@@ -123,14 +162,15 @@
 
 /* ========= CONFIG ========= */
 const CONFIG = {
-  DATA_URL: 'status.json',   // Debe estar junto a movil.html
-  MAX_ETAPAS: 12             // Usado si no se encuentra STOP
+  DATA_URL: 'status.json',
+  MAX_ETAPAS: 12
 };
 
 /* ========= HELPERS ========= */
 const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => new Intl.NumberFormat('es-AR').format(n);
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 
 function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
 
@@ -156,7 +196,6 @@ function isValidDateCell(v){
   if(/^(\d{4})-(\d{2})-(\d{2})$/.test(s)) return true;
   return false;
 }
-
 function parseToYMD(v){
   const s = String(v).trim();
   if(isExcelSerial(s)){
@@ -176,12 +215,20 @@ function parseToYMD(v){
   if(m3){ return s; }
   return null;
 }
-const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+function timeFromSecOrFecha(sec, fecha){
+  if (isExcelSerial(sec)){
+    const d = excelSerialToDate(sec);
+    if (d) return d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  }
+  // si no hay sec, devolver vacío
+  return '';
+}
 
-/* ========= EXTRACCIÓN =========
-   - Nombres desde PRIMERA fila (FechaFracPozoN) y se descartan "X"/vacío.
-   - Series SOLO con filas de datos: Fila = "#nn" (se ignoran encabezados).
-*/
+/* ========= EXTRACCIÓN ========= */
+let gByPozo = null; // para deep-link
+let gStats  = null;
+let gNames  = null;
+
 function extractFracturadoColumns(rows){
   const byPozo = {};
   if(!rows || !rows.length){ return byPozo; }
@@ -189,12 +236,12 @@ function extractFracturadoColumns(rows){
   const keys = Object.keys(rows[0] || {});
   const fechaCols = keys.filter(k => /^FechaFracPozo\d+$/i.test(k));
   if (!fechaCols.length){
-    console.error('No se encontraron columnas FechaFracPozoN. Claves:', keys);
+    console.error('No se encontraron columnas FechaFracPozoN.');
     alert('No se detectaron columnas FechaFracPozoN en status.json.');
     return byPozo;
   }
 
-  // nombres (primera fila)
+  // nombres
   const namesMap = {};
   const nameRow = rows[0] || {};
   for (const fk of fechaCols){
@@ -211,7 +258,7 @@ function extractFracturadoColumns(rows){
   for (const fk of fechaCols){
     const n = fk.match(/(\d+)/)[1];
     const pk = `pozo-${n}`;
-    if(!(pk in namesMap)) continue; // ocultar pozos sin nombre
+    if(!(pk in namesMap)) continue;
     const seqKey = keys.find(k => new RegExp(`^SecuenciaPozo${n}$`, 'i').test(k));
     byPozo[pk] = dataRows.map(r => ({
       fecha: r[fk] ?? "",
@@ -238,26 +285,21 @@ function computeStats(byPozo){
   }
   return stats;
 }
-
-/* ========= POR DÍA (solo Fracturado) ========= */
 function aggregateByDay(byPozo){
   const map = new Map(); // ymd -> count
   for (const [key, serie] of Object.entries(byPozo)){
     if (key === "__names") continue;
     for (const o of serie){
-      if (isValidDateCell(o.fecha)){                 // SOLO FECHA (Fracturado)
+      if (isValidDateCell(o.fecha)){
         const ymd = parseToYMD(o.fecha);
         if (ymd) map.set(ymd, (map.get(ymd)||0) + 1);
       } else if (isStop(o.fecha)){
-        break; // cortar en STOP
+        break;
       }
     }
   }
-  // Orden descendente por fecha (más reciente primero)
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
-
-/* ========= VELOCIDAD Y ETA (todos los días) ========= */
 function computeAvgAndETA(daysArr, restantesTot){
   if (!daysArr.length) return {avg:null, etaDays:null, etaDate:null};
   const sum = daysArr.reduce((acc, [,c]) => acc + (c||0), 0);
@@ -268,7 +310,7 @@ function computeAvgAndETA(daysArr, restantesTot){
   return {avg, etaDays, etaDate};
 }
 
-/* ========= RENDER ========= */
+/* ========= RENDER (HOME) ========= */
 function renderKPIs(stats){
   const all = Object.values(stats);
   const totales = all.reduce((a,b)=>a+b.total,0);
@@ -285,7 +327,6 @@ function renderSpeed(avg, etaDays, etaDate){
     ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
     : '—';
 }
-
 function renderPozos(stats, names){
   const cont = $('#viewPozos');
   cont.innerHTML = '';
@@ -295,6 +336,7 @@ function renderPozos(stats, names){
     const title = (names[pozo] || pozo.toUpperCase().replace('-', ' '));
     const el = document.createElement('section');
     el.className = 'card pad pozo';
+    el.setAttribute('data-key', pozo);
     el.innerHTML = `
       <div class="pozo-title">
         <div class="name">${title}</div>
@@ -309,10 +351,10 @@ function renderPozos(stats, names){
         <div class="pct">${pct}%</div>
       </div>
     `;
+    el.addEventListener('click', ()=> openDetail(pozo));
     cont.appendChild(el);
   }
 }
-
 function renderDias(arr){
   const cont = $('#viewDias');
   cont.innerHTML = '';
@@ -341,6 +383,154 @@ function renderDias(arr){
   cont.appendChild(box);
 }
 
+/* ========= RENDER (DETALLE) ========= */
+function dailyCountsForSerie(serie){
+  const map = new Map();
+  for (const o of serie){
+    if (isValidDateCell(o.fecha)){
+      const ymd = parseToYMD(o.fecha);
+      if (ymd) map.set(ymd, (map.get(ymd)||0)+1);
+    } else if (isStop(o.fecha)){
+      break;
+    }
+  }
+  // Ascendente para dibujo, luego recortamos últimos 14
+  return Array.from(map.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
+}
+function drawBarChart(canvas, labels, values){
+  const ctx = canvas.getContext('2d');
+  const DPR = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+  if (canvas.width !== cssW*DPR) canvas.width = cssW*DPR;
+  if (canvas.height !== cssH*DPR) canvas.height = cssH*DPR;
+  ctx.scale(DPR, DPR);
+
+  // clear
+  ctx.clearRect(0,0,cssW,cssH);
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,cssW,cssH);
+
+  const P = {l: 12, r: 8, t: 8, b: 40};
+  const W = cssW - P.l - P.r;
+  const H = cssH - P.t - P.b;
+
+  const maxV = Math.max(1, ...values);
+  const barW = Math.max(8, Math.floor(W / Math.max(1, values.length) - 6));
+  const stepX = (W) / Math.max(1, values.length);
+
+  // grid
+  ctx.strokeStyle = '#1e1e1e';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let y=0; y<=4; y++){
+    const yy = P.t + H - (H * y / 4);
+    ctx.moveTo(P.l, yy); ctx.lineTo(P.l+W, yy);
+  }
+  ctx.stroke();
+
+  // bars
+  for (let i=0;i<values.length;i++){
+    const v = values[i];
+    const h = Math.round(H * v / maxV);
+    const x = P.l + i*stepX + (stepX - barW)/2;
+    const y = P.t + H - h;
+
+    const grad = ctx.createLinearGradient(0,y,0,y+h);
+    grad.addColorStop(0, '#47a3ff');
+    grad.addColorStop(1, '#60dbfb');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, y, barW, h);
+  }
+
+  // labels (rotadas 45°)
+  ctx.save();
+  ctx.fillStyle = '#cfe8ff';
+  ctx.font = '11px Inter, system-ui, sans-serif';
+  for (let i=0;i<labels.length;i++){
+    const lbl = labels[i].slice(5); // MM-DD
+    const x = P.l + i*stepX + stepX/2;
+    const y = P.t + H + 18;
+    ctx.translate(x, y);
+    ctx.rotate(-Math.PI/4);
+    ctx.textAlign = 'right';
+    ctx.fillText(lbl, 0, 0);
+    ctx.setTransform(1,0,0,1,0,0);
+  }
+  ctx.restore();
+}
+
+function renderDetail(pozoKey){
+  const serie = gStats[pozoKey].serie;
+  const name  = gNames[pozoKey] || pozoKey.toUpperCase().replace('-', ' ');
+  $('#detailTitle').textContent = name;
+
+  // Resumen
+  const s   = gStats[pozoKey];
+  const pct = s.total>0 ? Math.round(100*s.realizadas/s.total) : 0;
+  $('#dTot').textContent   = fmt(s.total);
+  $('#dDone').textContent  = fmt(s.realizadas);
+  $('#dLeft').textContent  = fmt(s.restantes);
+  $('#dPct').textContent   = pct + '%';
+
+  // Fechas primera/última
+  const fechas = serie.filter(o=>isValidDateCell(o.fecha)).map(o=>parseToYMD(o.fecha));
+  const first = fechas.length ? new Date(fechas[0]+'T00:00:00') : null;
+  const last  = fechas.length ? new Date(fechas[fechas.length-1]+'T00:00:00') : null;
+  $('#dFirst').textContent = first ? first.toLocaleDateString('es-AR') : '—';
+  $('#dLast').textContent  = last  ? last.toLocaleDateString('es-AR')  : '—';
+
+  // Lista de etapas
+  const list = $('#dList');
+  list.innerHTML = '';
+  let idx = 0;
+  for (const o of serie){
+    if (isStop(o.fecha)) break;
+    if (!isValidDateCell(o.fecha)) continue;
+    idx++;
+    const ymd = parseToYMD(o.fecha);
+    const dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR');
+    const hour = timeFromSecOrFecha(o.sec, o.fecha);
+    const el = document.createElement('div');
+    el.className='item';
+    el.innerHTML = `<div class="left"><div class="h">Etapa ${idx}</div><div class="tiny muted">${ymd}</div></div><div class="right">${dateDisp}${hour?(' · '+hour):''}</div>`;
+    list.appendChild(el);
+  }
+
+  // Gráfico por día (últimos 14 días con datos del pozo)
+  let daily = dailyCountsForSerie(serie);
+  if (daily.length > 14) daily = daily.slice(daily.length-14);
+  const labels = daily.map(d=>d[0]);
+  const values = daily.map(d=>d[1]);
+  drawBarChart($('#pozoChart'), labels, values);
+}
+
+/* ========= NAVEGACIÓN ========= */
+function openDetail(pozoKey){
+  // UI
+  $('#mainTabs').style.display='none';
+  $('#topCard').style.display='none';
+  $('#viewPozos').style.display='none';
+  $('#viewDias').style.display='none';
+  $('#detailBar').style.display='';
+  $('#viewDetail').style.display='grid';
+  // data
+  renderDetail(pozoKey);
+  // hash para deep-link
+  location.hash = pozoKey;
+}
+function closeDetail(){
+  $('#detailBar').style.display='none';
+  $('#viewDetail').style.display='none';
+  $('#mainTabs').style.display='';
+  $('#topCard').style.display='';
+  // respetar tab activo
+  const active = document.querySelector('.tab.active')?.dataset.view || 'pozos';
+  $('#viewPozos').style.display = active==='pozos' ? '' : 'none';
+  $('#viewDias').style.display  = active==='dias'  ? '' : 'none';
+  history.replaceState(null, '', location.pathname + location.search);
+}
+$('#btnBack').addEventListener('click', closeDetail);
+
 /* ========= DATA LOAD ========= */
 async function fetchData(){
   const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`, { cache:'no-store' });
@@ -358,6 +548,8 @@ async function load(){
     const stats  = computeStats(byPozo);
     const dias   = aggregateByDay(byPozo);
 
+    gByPozo = byPozo; gStats = stats; gNames = names;
+
     const lu = (data.meta?.lastUpdate) || data.lastUpdate || new Date().toISOString();
     const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
@@ -368,6 +560,11 @@ async function load(){
 
     renderPozos(stats, names);
     renderDias(dias);
+
+    // Deep link
+    const hash = (location.hash||'').replace('#','').trim();
+    if (hash && stats[hash]) openDetail(hash);
+
   }catch(err){
     console.error(err);
     alert('Error cargando datos: '+err.message+'\n• Verificá que movil.html y status.json estén en la MISMA carpeta\n• Abrí status.json en el navegador para confirmar que existe\n• Mirá la consola (F12) para ver detalles');
@@ -381,13 +578,12 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
   $('#viewPozos').style.display = view==='pozos' ? '' : 'none';
   $('#viewDias').style.display  = view==='dias'  ? '' : 'none';
 }));
-
 $('#btnRefresh').addEventListener('click', load);
 $('#btnInst').addEventListener('click', ()=>{
   alert(`Notas:
-• Nombres de pozo desde la primera fila (FechaFracPozoN). Si es "X" o vacío, el pozo se oculta.
-• Cómputo: sólo filas con Fila "#nn" cuentan; STOP define el total por pozo.
-• "Por día" cuenta únicamente Fracturado con fecha. Promedio = todos los días con actividad.`);
+• Tocar un pozo abre su detalle con gráfica por día y listado de etapas.
+• Nombres desde la primera fila (FechaFracPozoN). Si es "X" se oculta.
+• STOP define el total. Sólo fechas válidas cuentan como realizadas y para la gráfica.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
