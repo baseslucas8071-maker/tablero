@@ -45,12 +45,11 @@
     .pozo{display:grid; gap:8px; cursor:pointer}
     .pozo:hover{outline:1px solid #1f3e66}
 
-    /* Encabezado del pozo ahora es una banda coloreada */
+    /* Encabezado del pozo coloreado */
     .pozo-title{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:10px; background:#101010}
     .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
     .meta{display:flex; gap:8px}
     .badge{font-size:13px; background:#090909; border:1px solid #222; padding:5px 10px; border-radius:999px; font-weight:700}
-    /* Cuando hay color, adaptamos badges para contraste */
     .pozo[class*="color-"] .pozo-title .badge{ background:rgba(0,0,0,.28); border-color:rgba(0,0,0,.35); color:#fff }
 
     .row{display:flex; align-items:center; gap:14px}
@@ -93,7 +92,6 @@
     .pozo.color-4 .pozo-title,
     .pozo.color-5 .pozo-title,
     .pozo.color-6 .pozo-title{ background:var(--c-bg); color:var(--c-fg); }
-    /* Detalle: título coloreado igual */
     #detailBar[class*="color-"] .t{ background:var(--c-bg); color:var(--c-fg); padding:6px 10px; border-radius:10px; }
 
     @media (min-width:720px){ main{max-width:720px; margin:0 auto} }
@@ -200,6 +198,10 @@ const fmt = n => new Intl.NumberFormat('es-AR').format(n);
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 
 function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
+function isAbortCancel(v){
+  const s = String(v).trim().toUpperCase();
+  return s === 'ABORTADA' || s === 'CANCELADA';
+}
 
 // Excel serial → Date (base 1899-12-30)
 function excelSerialToDate(x){
@@ -248,7 +250,6 @@ let gByPozo = null;
 let gStats  = null;
 let gNames  = null;
 
-// cache para la solapa Por día
 let gDaysLabels = [];
 let gDaysValues = [];
 
@@ -302,26 +303,31 @@ function computeStats(byPozo){
     const totalCells = (stopIdx >= 0) ? stopIdx : Math.min(serieObjs.length, CONFIG.MAX_ETAPAS);
     const considered = serieObjs.slice(0, totalCells);
 
-    const realizadas = considered.filter(o => isValidDateCell(o.fecha)).length;
+    // **CAMBIO**: realizadas = (tienen fecha válida) OR (ABORTADA/CANCELADA)
+    const realizadas = considered.filter(o => isValidDateCell(o.fecha) || isAbortCancel(o.fecha)).length;
     const restantes  = Math.max(0, totalCells - realizadas);
     stats[pozo] = { total: totalCells, realizadas, restantes, serie: considered };
   }
   return stats;
 }
+
 function aggregateByDay(byPozo){
   const map = new Map(); // ymd -> count
   for (const [key, serie] of Object.entries(byPozo)){
     if (key === "__names") continue;
     for (const o of serie){
+      // **Gráficas por día**: siguen contando SOLO fechas reales
       if (isValidDateCell(o.fecha)){
         const ymd = parseToYMD(o.fecha);
         if (ymd) map.set(ymd, (map.get(ymd)||0) + 1);
       } else if (isStop(o.fecha)){
         break;
+      } else if (isAbortCancel(o.fecha)){
+        // abortada/cancelada NO suma por día (no hay fecha)
+        continue;
       }
     }
   }
-  // orden descendente por fecha
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 function computeAvgAndETA(daysArr, restantesTot){
@@ -362,7 +368,7 @@ function renderPozos(stats, names){
   for(const [pozo, s] of entries){
     const pct = s.total>0 ? Math.round((s.realizadas/s.total)*100) : 0;
     const title = (names[pozo] || pozo.toUpperCase().replace('-', ' '));
-    const idx = pozoIndex(pozo);           // <- índice de pozo para color
+    const idx = pozoIndex(pozo);
     const el = document.createElement('section');
     el.className = `card pad pozo color-${idx}`;
     el.setAttribute('data-key', pozo);
@@ -387,17 +393,14 @@ function renderPozos(stats, names){
 
 /* ====== POR DÍA (gráfica + lista) ====== */
 function renderDias(daysArr){
-  // Guardamos los últimos 20 días (cronológico viejo→nuevo)
   const recent = daysArr.slice(0, 20).reverse();
   gDaysLabels = recent.map(d=>d[0]);
   gDaysValues = recent.map(d=>d[1]);
 
-  // Si la vista está visible, dibujamos ya; si no, al activar pestaña
   if ($('#viewDias').style.display !== 'none') {
     drawBarChart($('#daysChart'), gDaysLabels, gDaysValues);
   }
 
-  // Lista detallada
   const box = $('#daysListBox');
   box.innerHTML = '';
   const list = document.createElement('div');
@@ -431,6 +434,9 @@ function dailyCountsForSerie(serie){
       if (ymd) map.set(ymd, (map.get(ymd)||0)+1);
     } else if (isStop(o.fecha)){
       break;
+    } else if (isAbortCancel(o.fecha)){
+      // no suma por día
+      continue;
     }
   }
   return Array.from(map.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
@@ -441,12 +447,10 @@ function drawBarChart(canvas, labels, values){
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
 
-  // Fallbacks si el canvas está oculto (width=0)
   const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
-  const cssW = canvas.clientWidth || parentW || 700;   // fallback ancho
-  const cssH = canvas.clientHeight || 220;             // fallback alto
+  const cssW = canvas.clientWidth || parentW || 700;
+  const cssH = canvas.clientHeight || 220;
 
-  // Ajuste físico + DPR
   const w = Math.max(50, Math.round(cssW * DPR));
   const h = Math.max(50, Math.round(cssH * DPR));
   if (canvas.width !== w)  canvas.width = w;
@@ -458,7 +462,6 @@ function drawBarChart(canvas, labels, values){
     return m ? `${m[3]}/${m[2]}` : ymd;
   };
 
-  // fondo
   ctx.clearRect(0,0,cssW,cssH);
   ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0,0,cssW,cssH);
@@ -472,7 +475,6 @@ function drawBarChart(canvas, labels, values){
   const stepX = W / count;
   const barW  = Math.max(8, Math.floor(stepX - 6));
 
-  // rejilla
   ctx.strokeStyle = '#1e1e1e';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -482,7 +484,6 @@ function drawBarChart(canvas, labels, values){
   }
   ctx.stroke();
 
-  // barras + etiqueta numérica
   ctx.font = '11px Inter, system-ui, sans-serif';
   ctx.textAlign = 'center';
   for (let i=0;i<count;i++){
@@ -504,7 +505,6 @@ function drawBarChart(canvas, labels, values){
     ctx.fillText(String(v), cx, ty);
   }
 
-  // etiquetas X (DD/MM) rotadas
   ctx.fillStyle = '#cfe8ff';
   for (let i=0;i<count;i++){
     const lbl = ymdToDisp(labels[i] || '');
@@ -524,13 +524,11 @@ function renderDetail(pozoKey){
   const name  = gNames[pozoKey] || pozoKey.toUpperCase().replace('-', ' ');
   $('#detailTitle').textContent = name;
 
-  // color en la barra de detalle
   const idx = pozoIndex(pozoKey);
   const bar = $('#detailBar');
   bar.classList.remove('color-1','color-2','color-3','color-4','color-5','color-6');
   if (idx>=1 && idx<=6) bar.classList.add(`color-${idx}`);
 
-  // Resumen
   const s   = gStats[pozoKey];
   const pct = s.total>0 ? Math.round(100*s.realizadas/s.total) : 0;
   $('#dTot').textContent   = fmt(s.total);
@@ -538,14 +536,15 @@ function renderDetail(pozoKey){
   $('#dLeft').textContent  = fmt(s.restantes);
   $('#dPct').textContent   = pct + '%';
 
-  // Fechas primera/última
-  const fechas = serie.filter(o=>isValidDateCell(o.fecha)).map(o=>parseToYMD(o.fecha));
+  const fechas = serie
+    .filter(o=>isValidDateCell(o.fecha))
+    .map(o=>parseToYMD(o.fecha));
   const first = fechas.length ? new Date(fechas[0]+'T00:00:00') : null;
   const last  = fechas.length ? new Date(fechas[fechas.length-1]+'T00:00:00') : null;
   $('#dFirst').textContent = first ? first.toLocaleDateString('es-AR') : '—';
   $('#dLast').textContent  = last  ? last.toLocaleDateString('es-AR')  : '—';
 
-  // Lista de etapas (solo FECHA)
+  // Lista: solo fechas (como pediste)
   const list = $('#dList');
   list.innerHTML = '';
   let idxEt = 0;
@@ -617,7 +616,7 @@ async function load(){
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
     const totals = renderKPIs(stats);
-    const pace = computeAvgAndETA(dias, totals.rest);
+    const pace = computeAvgAndETA(dias, totals.rest);   // restantes ya incluye abort/cancel como hechas
     renderSpeed(pace.avg, pace.etaDays, pace.etaDate);
 
     renderPozos(stats, names);
@@ -640,7 +639,6 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
   $('#viewDias').style.display  = view==='dias'  ? '' : 'none';
 
   if (view === 'dias') {
-    // esperar a que el contenedor tenga ancho > 0 y redibujar
     requestAnimationFrame(()=> {
       drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues);
     });
@@ -651,14 +649,14 @@ $('#btnInst').addEventListener('click', ()=>{
   alert(`Notas:
 • Tocar un pozo abre su detalle con gráfica por día y listado de etapas.
 • Nombres desde la primera fila (FechaFracPozoN). Si es "X" se oculta.
-• STOP define el total. Sólo fechas válidas cuentan como realizadas y para la gráfica.
-• Colores: #1 amarillo, #2 verde, #3 azul, #4 rojo, #5 blanco, #6 lila.`);
+• STOP define el total.
+• **ABORTADA/CANCELADA** ahora cuentan como **realizadas** (para totales y restantes).
+• Gráficas/Promedio por día siguen contando solo las celdas con FECHA.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
 });
 
-// Redibujo en resize si la pestaña Por día está visible
 window.addEventListener('resize', () => {
   const diasVisible = $('#viewDias').style.display !== 'none';
   if (diasVisible && gDaysLabels.length) {
