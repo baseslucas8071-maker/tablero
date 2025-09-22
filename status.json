@@ -603,7 +603,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5168",
-      "TPNPozo2": "",
+      "TPNPozo2": "5258",
       "TPNPozo3": "5205 C. Orient.",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-22T18:45:21.4799140Z",
+  "lastUpdate": "2025-09-22T18:47:15.6461927Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
