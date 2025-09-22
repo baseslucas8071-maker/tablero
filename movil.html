@@ -215,17 +215,9 @@ function parseToYMD(v){
   if(m3){ return s; }
   return null;
 }
-function timeFromSecOrFecha(sec, fecha){
-  if (isExcelSerial(sec)){
-    const d = excelSerialToDate(sec);
-    if (d) return d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-  }
-  // si no hay sec, devolver vacío
-  return '';
-}
 
 /* ========= EXTRACCIÓN ========= */
-let gByPozo = null; // para deep-link
+let gByPozo = null;
 let gStats  = null;
 let gNames  = null;
 
@@ -241,7 +233,7 @@ function extractFracturadoColumns(rows){
     return byPozo;
   }
 
-  // nombres
+  // nombres (primera fila)
   const namesMap = {};
   const nameRow = rows[0] || {};
   for (const fk of fechaCols){
@@ -394,16 +386,24 @@ function dailyCountsForSerie(serie){
       break;
     }
   }
-  // Ascendente para dibujo, luego recortamos últimos 14
   return Array.from(map.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
 }
+
+/* --- Gráfica corregida (DPR + etiquetas DD/MM) --- */
 function drawBarChart(canvas, labels, values){
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
+
+  // tamaño físico + transformar con DPR
   const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
-  if (canvas.width !== cssW*DPR) canvas.width = cssW*DPR;
-  if (canvas.height !== cssH*DPR) canvas.height = cssH*DPR;
-  ctx.scale(DPR, DPR);
+  if (canvas.width  !== Math.round(cssW*DPR)) canvas.width  = Math.round(cssW*DPR);
+  if (canvas.height !== Math.round(cssH*DPR)) canvas.height = Math.round(cssH*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+
+  const ymdToDisp = ymd => {
+    const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return m ? `${m[3]}/${m[2]}` : ymd;
+  };
 
   // clear
   ctx.clearRect(0,0,cssW,cssH);
@@ -411,12 +411,13 @@ function drawBarChart(canvas, labels, values){
   ctx.fillRect(0,0,cssW,cssH);
 
   const P = {l: 12, r: 8, t: 8, b: 40};
-  const W = cssW - P.l - P.r;
-  const H = cssH - P.t - P.b;
+  const W = Math.max(10, cssW - P.l - P.r);
+  const H = Math.max(10, cssH - P.t - P.b);
 
   const maxV = Math.max(1, ...values);
-  const barW = Math.max(8, Math.floor(W / Math.max(1, values.length) - 6));
-  const stepX = (W) / Math.max(1, values.length);
+  const count = Math.max(1, values.length);
+  const stepX = W / count;
+  const barW  = Math.max(8, Math.floor(stepX - 6));
 
   // grid
   ctx.strokeStyle = '#1e1e1e';
@@ -428,9 +429,9 @@ function drawBarChart(canvas, labels, values){
   }
   ctx.stroke();
 
-  // bars
-  for (let i=0;i<values.length;i++){
-    const v = values[i];
+  // barras
+  for (let i=0;i<count;i++){
+    const v = values[i] || 0;
     const h = Math.round(H * v / maxV);
     const x = P.l + i*stepX + (stepX - barW)/2;
     const y = P.t + H - h;
@@ -442,21 +443,20 @@ function drawBarChart(canvas, labels, values){
     ctx.fillRect(x, y, barW, h);
   }
 
-  // labels (rotadas 45°)
-  ctx.save();
+  // etiquetas (DD/MM) rotadas 45°
   ctx.fillStyle = '#cfe8ff';
   ctx.font = '11px Inter, system-ui, sans-serif';
-  for (let i=0;i<labels.length;i++){
-    const lbl = labels[i].slice(5); // MM-DD
+  for (let i=0;i<count;i++){
+    const lbl = ymdToDisp(labels[i] || '');
     const x = P.l + i*stepX + stepX/2;
     const y = P.t + H + 18;
+    ctx.save();
     ctx.translate(x, y);
     ctx.rotate(-Math.PI/4);
     ctx.textAlign = 'right';
     ctx.fillText(lbl, 0, 0);
-    ctx.setTransform(1,0,0,1,0,0);
+    ctx.restore();
   }
-  ctx.restore();
 }
 
 function renderDetail(pozoKey){
@@ -479,7 +479,7 @@ function renderDetail(pozoKey){
   $('#dFirst').textContent = first ? first.toLocaleDateString('es-AR') : '—';
   $('#dLast').textContent  = last  ? last.toLocaleDateString('es-AR')  : '—';
 
-  // Lista de etapas
+  // Lista de etapas (solo FECHA)
   const list = $('#dList');
   list.innerHTML = '';
   let idx = 0;
@@ -489,10 +489,9 @@ function renderDetail(pozoKey){
     idx++;
     const ymd = parseToYMD(o.fecha);
     const dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR');
-    const hour = timeFromSecOrFecha(o.sec, o.fecha);
     const el = document.createElement('div');
     el.className='item';
-    el.innerHTML = `<div class="left"><div class="h">Etapa ${idx}</div><div class="tiny muted">${ymd}</div></div><div class="right">${dateDisp}${hour?(' · '+hour):''}</div>`;
+    el.innerHTML = `<div class="left"><div class="h">Etapa ${idx}</div><div class="tiny muted">${ymd}</div></div><div class="right">${dateDisp}</div>`;
     list.appendChild(el);
   }
 
@@ -506,16 +505,13 @@ function renderDetail(pozoKey){
 
 /* ========= NAVEGACIÓN ========= */
 function openDetail(pozoKey){
-  // UI
   $('#mainTabs').style.display='none';
   $('#topCard').style.display='none';
   $('#viewPozos').style.display='none';
   $('#viewDias').style.display='none';
   $('#detailBar').style.display='';
   $('#viewDetail').style.display='grid';
-  // data
   renderDetail(pozoKey);
-  // hash para deep-link
   location.hash = pozoKey;
 }
 function closeDetail(){
@@ -523,7 +519,6 @@ function closeDetail(){
   $('#viewDetail').style.display='none';
   $('#mainTabs').style.display='';
   $('#topCard').style.display='';
-  // respetar tab activo
   const active = document.querySelector('.tab.active')?.dataset.view || 'pozos';
   $('#viewPozos').style.display = active==='pozos' ? '' : 'none';
   $('#viewDias').style.display  = active==='dias'  ? '' : 'none';
@@ -561,7 +556,6 @@ async function load(){
     renderPozos(stats, names);
     renderDias(dias);
 
-    // Deep link
     const hash = (location.hash||'').replace('#','').trim();
     if (hash && stats[hash]) openDetail(hash);
 
