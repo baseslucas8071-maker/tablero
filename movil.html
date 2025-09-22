@@ -39,8 +39,10 @@
 
     .speed{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
     .speed .box{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
-    .speed .h{font-size:11px; opacity:.8}
+    .speed .h{font-size:11px; opacity:.8; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .speed .v{font-size:18px; font-weight:800; margin-top:2px}
+    .chip.toggle{cursor:pointer; border-color:#2b466f; background:#0f1520;}
+    .chip.toggle.on{background:#12223a; color:#dff0ff; border-color:#3b5f98}
 
     .pozo{display:grid; gap:8px; cursor:pointer}
     .pozo:hover{outline:1px solid #1f3e66}
@@ -104,6 +106,7 @@
         <div class="grow"></div>
         <div class="toolbar">
           <button id="btnRefresh" title="Actualizar datos">Actualizar</button>
+          <button id="btnInst">Notas v1.0</button>
         </div>
       </div>
       <div class="tabs" id="mainTabs">
@@ -125,8 +128,12 @@
         </div>
         <div class="speed" id="speedRow">
           <div class="box">
-            <div class="h">Promedio (últimos 7 días, sin hoy)</div>
+            <div class="h">
+              Promedio (últimos 7 días, sin hoy)
+              <span id="avgModeChip" class="chip toggle">Modo: Adaptativo</span>
+            </div>
             <div class="v" id="avgPace">—</div>
+            <div class="tiny muted" id="avgFoot">—</div>
           </div>
           <div class="box">
             <div class="h">Fin estimado</div>
@@ -170,7 +177,7 @@
     <footer class="nav">
       <div class="nav-inner">
         <button id="btnShare">Compartir</button>
-        <button id="btnInst">Instrucciones</button>
+        <button id="btnHelp">Ayuda</button>
       </div>
     </footer>
   </div>
@@ -189,6 +196,10 @@ const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => new Intl.NumberFormat('es-AR').format(n);
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const prefs = {
+  get:(k,d)=>{ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch(_){return d;} },
+  set:(k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v));}catch(_){ } }
+};
 
 function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
 function isAbortCancel(v){
@@ -318,24 +329,38 @@ function aggregateByDay(byPozo){
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
-/* === NUEVO: si solo hay 4 días previos con etapas, el promedio usa esos 4 días. Si no hay ninguno, el promedio queda 0) === */
-function computeAvgLast7ExcludeToday(daysArr){
+/* === PROMEDIO últimos 7 (sin hoy) con dos modos: adaptativo/fijo === */
+function computeAvgLast7ExcludeToday(daysArr, mode /* 'adaptive' | 'fixed' */){
   // daysArr viene DESC: [['YYYY-MM-DD', count], ...]
   const map = new Map(daysArr);
   const tz = 'America/Argentina/Buenos_Aires';
   const today = new Date();
   const tzToday = new Date(today.toLocaleString('en-US', { timeZone: tz }));
 
-  const values = [];
-  for (let i=1; i<=7; i++){
-    const d = new Date(tzToday);
-    d.setDate(d.getDate() - i);
-    const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    if (map.has(ymd)) values.push(map.get(ymd)); // solo cuenta días existentes
+  if (mode === 'adaptive'){
+    // MODO ADAPTATIVO: usa solo días con datos previos (1..7), sin hoy
+    const values = [];
+    for (let i=1; i<=7; i++){
+      const d = new Date(tzToday);
+      d.setDate(d.getDate() - i);
+      const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (map.has(ymd)) values.push(map.get(ymd)); // solo cuenta días existentes
+    }
+    const used = values.length || 1; // evita división por 0
+    const sum  = values.reduce((a,b)=>a+b,0);
+    return { avg: sum / used, window: values.slice().reverse(), usedDays: values.length };
+  } else {
+    // MODO FIJO: siempre 7 días previos, los faltantes cuentan 0
+    const values = [];
+    for (let i=1; i<=7; i++){
+      const d = new Date(tzToday);
+      d.setDate(d.getDate() - i);
+      const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      values.push(map.get(ymd) || 0);
+    }
+    const sum = values.reduce((a,b)=>a+b,0);
+    return { avg: sum / 7, window: values.slice().reverse(), usedDays: 7 };
   }
-  const used = values.length || 1;                 // evita división por 0
-  const sum  = values.reduce((a,b)=>a+b,0);
-  return { avg: sum / used, window: values.slice().reverse(), usedDays: used };
 }
 
 function computeETA(remaining, avgPerDay){
@@ -356,11 +381,16 @@ function renderKPIs(stats){
   $('#kpiRestantes .value').textContent = fmt(rest);
   return {totales, hechas, rest};
 }
-function renderSpeed(avg, etaDays, etaDate){
+function renderSpeed(avg, etaDays, etaDate, usedDays, mode){
   $('#avgPace').textContent = (avg && avg>0) ? `${avg.toFixed(1)} etapas/día` : '—';
   $('#etaFinish').textContent = (etaDate)
     ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
     : '—';
+  const lbl = mode === 'adaptive' ? 'Adaptativo' : 'Fijo';
+  $('#avgFoot').textContent = `Modo: ${lbl} · Días usados: ${usedDays || (mode==='adaptive' ? 0 : 7)}`;
+  const chip = $('#avgModeChip');
+  chip.textContent = `Modo: ${lbl}`;
+  chip.classList.toggle('on', mode==='adaptive');
 }
 const pozoIndex = (key)=> {
   const m = key.match(/pozo-(\d+)/i);
@@ -599,6 +629,20 @@ async function fetchData(){
   return await res.json();
 }
 
+let gDaysArrDesc = []; // cache de [['yyyy-mm-dd', count], ...] DESC
+function recomputeAndRender(avgMode){
+  // KPIs y tarjetas
+  const totals = renderKPIs(gStats);
+
+  // Promedio + ETA
+  const { avg, usedDays } = computeAvgLast7ExcludeToday(gDaysArrDesc, avgMode);
+  const { etaDays, etaDate } = computeETA(totals.rest, avg);
+  renderSpeed(avg, etaDays, etaDate, usedDays, avgMode);
+
+  // Por día (gráfica + lista)
+  renderDias(gDaysArrDesc);
+}
+
 async function load(){
   try{
     const data = await fetchData();
@@ -607,23 +651,16 @@ async function load(){
     const byPozo = extractFracturadoColumns(rows);
     const names  = byPozo.__names || {};
     const stats  = computeStats(byPozo);
-    const dias   = aggregateByDay(byPozo);
+    const dias   = aggregateByDay(byPozo); // DESC
 
-    gByPozo = byPozo; gStats = stats; gNames = names;
+    gByPozo = byPozo; gStats = stats; gNames = names; gDaysArrDesc = dias;
 
     const lu = (data.meta?.lastUpdate) || data.lastUpdate || new Date().toISOString();
     const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
-    const totals = renderKPIs(stats);
-
-    // === Promedio últimos 7 días (sin hoy) y ETA con ese promedio ===
-    const { avg } = computeAvgLast7ExcludeToday(dias);
-    const { etaDays, etaDate } = computeETA(totals.rest, avg);
-    renderSpeed(avg, etaDays, etaDate);
-
     renderPozos(stats, names);
-    renderDias(dias);
+    recomputeAndRender(prefs.get('avgMode','adaptive'));
 
     const hash = (location.hash||'').replace('#','').trim();
     if (hash && stats[hash]) openDetail(hash);
@@ -648,12 +685,36 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
   }
 }));
 $('#btnRefresh').addEventListener('click', load);
-$('#btnInst').addEventListener('click', ()=>{
-  alert(`Notas:
-• Promedio = últimos 7 días, excluyendo el día actual (los días sin etapas cuentan como 0).
-• Tocar un pozo abre su detalle con gráfica y listado.
-• STOP define el total. ABORTADA/CANCELADA suman como realizadas (no para por-día).`);
+$('#btnHelp').addEventListener('click', ()=>{
+  alert('Tocá un pozo para abrir su detalle. Usá "Notas v1.0" para ver reglas y definiciones.');
 });
+
+document.getElementById('btnInst').addEventListener('click', ()=>{
+  const mode = prefs.get('avgMode','adaptive')==='adaptive' ? 'Adaptativo' : 'Fijo';
+  alert(
+`Notas de versión 1.0
+
+• Promedio de ritmo (últimos 7 días, sin hoy)
+   - Modo Adaptativo: promedia solo días con etapas dentro de los últimos 7 (si hay 4 días, promedia 4).
+   - Modo Fijo: siempre divide por 7; días sin etapas cuentan como 0.
+   - Modo actual: ${mode}.
+• ETA (fin estimado): etapas restantes / promedio diario (si el promedio = 0, no se muestra ETA).
+• Reglas de conteo:
+   - "Realizadas": celdas con fecha o con los textos ABORTADA/CANCELADA.
+   - "Totales": cantidad de filas hasta la primera celda "STOP" (sin incluirla).
+   - "Restantes": Totales – Realizadas.
+   - Gráfica/tabla por día: SOLO cuentan celdas con fecha (ABORTADA/CANCELADA no suman por día).
+• Vista por pozo: cada tarjeta muestra Tot/Hechas/Rest y %; el color del encabezado corresponde al número de pozo.
+• Detalle de pozo: tocá un pozo para ver su gráfica por día y el listado de etapas (muestra fecha).
+• Datos: se leen de status.json y se refrescan con “Actualizar”.
+
+Sugerencias futuras:
+• Corte de “día operativo” configurable (ej. 06:00) para agrupar días.
+• Exportar CSV del detalle por pozo y del agregado por día.
+• Filtros: rango de fechas y selección de pozos visibles.`
+  );
+});
+
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
 });
@@ -665,9 +726,24 @@ window.addEventListener('resize', () => {
   }
 });
 
+/* === Toggle de modo de promedio (persistente) === */
+const avgChip = document.getElementById('avgModeChip');
+function updateAvgChip(){
+  const mode = prefs.get('avgMode','adaptive');
+  avgChip.textContent = `Modo: ${mode==='adaptive' ? 'Adaptativo' : 'Fijo'}`;
+  avgChip.classList.toggle('on', mode==='adaptive');
+}
+avgChip.addEventListener('click', ()=>{
+  const cur = prefs.get('avgMode','adaptive');
+  const next = cur === 'adaptive' ? 'fixed' : 'adaptive';
+  prefs.set('avgMode', next);
+  updateAvgChip();
+  if (gStats && gDaysArrDesc) recomputeAndRender(next);
+});
+updateAvgChip();
+
 /* ========= START ========= */
 load();
 </script>
 </body>
 </html>
-
