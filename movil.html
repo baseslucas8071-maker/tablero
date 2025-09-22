@@ -45,10 +45,14 @@
     .pozo{display:grid; gap:8px; cursor:pointer}
     .pozo:hover{outline:1px solid #1f3e66}
 
-    .pozo-title{display:flex; align-items:center; justify-content:space-between}
+    /* Encabezado del pozo ahora es una banda coloreada */
+    .pozo-title{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:10px; background:#101010}
     .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
     .meta{display:flex; gap:8px}
     .badge{font-size:13px; background:#090909; border:1px solid #222; padding:5px 10px; border-radius:999px; font-weight:700}
+    /* Cuando hay color, adaptamos badges para contraste */
+    .pozo[class*="color-"] .pozo-title .badge{ background:rgba(0,0,0,.28); border-color:rgba(0,0,0,.35); color:#fff }
+
     .row{display:flex; align-items:center; gap:14px}
     .progress{height:12px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden; flex:1}
     .progress > i{display:block; height:100%; background:linear-gradient(90deg, #47a3ff, #60dbfb)}
@@ -75,6 +79,22 @@
     footer.nav{position:sticky; bottom:0; background:linear-gradient(0deg, #000, rgba(0,0,0,.85)); border-top:1px solid #1a1a1a;}
     .nav-inner{display:flex; gap:8px; padding:10px 14px}
     .nav-inner button{flex:1}
+
+    /* ===== Colores por pozo ===== */
+    .color-1{ --c-bg:linear-gradient(90deg,#ffd83a,#ffd83a); --c-fg:#001; }
+    .color-2{ --c-bg:linear-gradient(90deg,#7ad39a,#5fbf87); --c-fg:#001; }
+    .color-3{ --c-bg:linear-gradient(90deg,#74b3ff,#4686ff); --c-fg:#001; }
+    .color-4{ --c-bg:linear-gradient(90deg,#ff7b7b,#ff4c4c); --c-fg:#001; }
+    .color-5{ --c-bg:linear-gradient(90deg,#ffffff,#f2f6f9); --c-fg:#001; }
+    .color-6{ --c-bg:linear-gradient(90deg,#e8c3ff,#d79bf6); --c-fg:#201; }
+    .pozo.color-1 .pozo-title,
+    .pozo.color-2 .pozo-title,
+    .pozo.color-3 .pozo-title,
+    .pozo.color-4 .pozo-title,
+    .pozo.color-5 .pozo-title,
+    .pozo.color-6 .pozo-title{ background:var(--c-bg); color:var(--c-fg); }
+    /* Detalle: título coloreado igual */
+    #detailBar[class*="color-"] .t{ background:var(--c-bg); color:var(--c-fg); padding:6px 10px; border-radius:10px; }
 
     @media (min-width:720px){ main{max-width:720px; margin:0 auto} }
   </style>
@@ -331,6 +351,10 @@ function renderSpeed(avg, etaDays, etaDate){
     ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
     : '—';
 }
+const pozoIndex = (key)=> {
+  const m = key.match(/pozo-(\d+)/i);
+  return m ? parseInt(m[1],10) : 0;
+};
 function renderPozos(stats, names){
   const cont = $('#viewPozos');
   cont.innerHTML = '';
@@ -338,8 +362,9 @@ function renderPozos(stats, names){
   for(const [pozo, s] of entries){
     const pct = s.total>0 ? Math.round((s.realizadas/s.total)*100) : 0;
     const title = (names[pozo] || pozo.toUpperCase().replace('-', ' '));
+    const idx = pozoIndex(pozo);           // <- índice de pozo para color
     const el = document.createElement('section');
-    el.className = 'card pad pozo';
+    el.className = `card pad pozo color-${idx}`;
     el.setAttribute('data-key', pozo);
     el.innerHTML = `
       <div class="pozo-title">
@@ -499,6 +524,12 @@ function renderDetail(pozoKey){
   const name  = gNames[pozoKey] || pozoKey.toUpperCase().replace('-', ' ');
   $('#detailTitle').textContent = name;
 
+  // color en la barra de detalle
+  const idx = pozoIndex(pozoKey);
+  const bar = $('#detailBar');
+  bar.classList.remove('color-1','color-2','color-3','color-4','color-5','color-6');
+  if (idx>=1 && idx<=6) bar.classList.add(`color-${idx}`);
+
   // Resumen
   const s   = gStats[pozoKey];
   const pct = s.total>0 ? Math.round(100*s.realizadas/s.total) : 0;
@@ -517,16 +548,16 @@ function renderDetail(pozoKey){
   // Lista de etapas (solo FECHA)
   const list = $('#dList');
   list.innerHTML = '';
-  let idx = 0;
+  let idxEt = 0;
   for (const o of serie){
     if (isStop(o.fecha)) break;
     if (!isValidDateCell(o.fecha)) continue;
-    idx++;
+    idxEt++;
     const ymd = parseToYMD(o.fecha);
     const dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR');
     const el = document.createElement('div');
     el.className='item';
-    el.innerHTML = `<div class="left"><div class="h">Etapa ${idx}</div><div class="tiny muted">${ymd}</div></div><div class="right">${dateDisp}</div>`;
+    el.innerHTML = `<div class="left"><div class="h">Etapa ${idxEt}</div><div class="tiny muted">${ymd}</div></div><div class="right">${dateDisp}</div>`;
     list.appendChild(el);
   }
 
@@ -550,6 +581,7 @@ function openDetail(pozoKey){
   location.hash = pozoKey;
 }
 function closeDetail(){
+  $('#detailBar').classList.remove('color-1','color-2','color-3','color-4','color-5','color-6');
   $('#detailBar').style.display='none';
   $('#viewDetail').style.display='none';
   $('#mainTabs').style.display='';
@@ -619,7 +651,8 @@ $('#btnInst').addEventListener('click', ()=>{
   alert(`Notas:
 • Tocar un pozo abre su detalle con gráfica por día y listado de etapas.
 • Nombres desde la primera fila (FechaFracPozoN). Si es "X" se oculta.
-• STOP define el total. Sólo fechas válidas cuentan como realizadas y para la gráfica.`);
+• STOP define el total. Sólo fechas válidas cuentan como realizadas y para la gráfica.
+• Colores: #1 amarillo, #2 verde, #3 azul, #4 rojo, #5 blanco, #6 lila.`);
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
