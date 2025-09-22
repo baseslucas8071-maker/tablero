@@ -318,26 +318,24 @@ function aggregateByDay(byPozo){
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
-/* === NUEVO: promedio últimos 7 días excluyendo hoy (incluye días en 0) === */
+/* === NUEVO: si solo hay 4 días previos con etapas, el promedio usa esos 4 días. Si no hay ninguno, el promedio queda 0) === */
 function computeAvgLast7ExcludeToday(daysArr){
-  // daysArr: [['YYYY-MM-DD', count], ...] orden DESC
-  const map = new Map(daysArr); // para accesos O(1)
+  // daysArr viene DESC: [['YYYY-MM-DD', count], ...]
+  const map = new Map(daysArr);
   const tz = 'America/Argentina/Buenos_Aires';
   const today = new Date();
   const tzToday = new Date(today.toLocaleString('en-US', { timeZone: tz }));
+
   const values = [];
   for (let i=1; i<=7; i++){
     const d = new Date(tzToday);
     d.setDate(d.getDate() - i);
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const dd= String(d.getDate()).padStart(2,'0');
-    const ymd = `${y}-${m}-${dd}`;
-    values.push(map.get(ymd) || 0);
+    const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if (map.has(ymd)) values.push(map.get(ymd)); // solo cuenta días existentes
   }
-  const sum = values.reduce((a,b)=>a+b,0);
-  const avg = sum / 7;
-  return { avg, window: values.slice().reverse() }; // opcional: serie en orden creciente
+  const used = values.length || 1;                 // evita división por 0
+  const sum  = values.reduce((a,b)=>a+b,0);
+  return { avg: sum / used, window: values.slice().reverse(), usedDays: used };
 }
 
 function computeETA(remaining, avgPerDay){
