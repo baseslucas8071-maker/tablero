@@ -44,7 +44,7 @@
   thead tr:nth-child(2) th{position:sticky;top:var(--header-h-1);z-index:12;height:var(--header-h-2)}
 
   tbody td{height:var(--row-h);background:transparent;color:#e6f7ff;transition:background .15s ease}
-  tbody tr.alt td{background:rgba(255,255,255,.03)} /* leve para fondo negro */
+  tbody tr.alt td{background:rgba(255,255,255,.03)}
   tbody tr:hover td{background:rgba(255,255,255,.06)}
 
   th.rowid,td.rowid{position:sticky;left:0;z-index:20;width:var(--w-id);min-width:var(--w-id);max-width:var(--w-id)}
@@ -53,8 +53,8 @@
   th.seq,td.seq{width:var(--w-seq);min-width:var(--w-seq);max-width:var(--w-seq)}
   td.seq{font-weight:800;letter-spacing:.2px;background:rgba(0,255,160,.06)}
   .fh{line-height:1.1}
-  .fh .d{color:#2fffd2;font-weight:900;display:inline-block} /* verde agua */
-  .fh .t{color:#ffb357;font-weight:900;display:inline-block}  /* naranja “fluor” */
+  .fh .d{color:#2fffd2;font-weight:900;display:inline-block}
+  .fh .t{color:#ffb357;font-weight:900;display:inline-block}
 
   .pozoTop{font-size:var(--pozo-font-size);font-weight:800;letter-spacing:.6px;position:relative}
   .pozo-1{background:linear-gradient(90deg,#ffd83a,#ffd83a);color:#002}
@@ -131,11 +131,9 @@
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
-  /* Protector: imágenes */
   .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
   .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
 
-  /* Modal */
   .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
   .modal-card{width:min(900px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
   .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -150,12 +148,10 @@
   .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
   .pill.small{padding:4px 8px;font-size:12px}
 
-  /* Selector de pozos visibles */
   #wellChooser{display:grid;grid-template-columns:repeat(6,minmax(100px,1fr));gap:10px}
   #wellChooser label{display:flex;align-items:center;gap:8px;font-weight:600;color:#cfe8ff}
   #wellChooser input{transform:scale(1.15)}
 
-  /* Modo TV */
   html.is-tv .wrap{ transform:none !important; }
   html.is-tv #saver{ backdrop-filter:none; }
   html.is-tv .bImg, html.is-tv .fallImg{ filter:none; }
@@ -530,15 +526,21 @@ document.addEventListener('DOMContentLoaded', function(){
   var isStop=function(v){ return String(v==null?'':v).trim().toUpperCase()==='STOP'; };
   var isFechaValida=function(v){ return parseDateValue(v)!==null; };
 
+  /* NUEVO: también considerar ABORTADA / CANCELADA como “hecha” */
+  function isAbortOrCancel(v){
+    var s = String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    return s.includes('ABORTADA') || s.includes('CANCELADA');
+  }
+
   function transformItems(items){
     if(!Array.isArray(items)) return [];
     return items.map(function(raw){
       var o={};
       o.fila=String((raw.Fila!=null?raw.Fila:(raw.fila!=null?raw.fila:'')));
       for(var i=1;i<=POZOS;i++){
-        o['Seq'+i]=String((raw['SecuenciaPozo'+i]!=null?raw['SecuenciaPozo'+i]:''));    // ← viene como F/h
+        o['Seq'+i]=String((raw['SecuenciaPozo'+i]!=null?raw['SecuenciaPozo'+i]:''));    // F/h
         o['Pozo'+i]=String((raw['TPNPozo'+i]!=null?raw['TPNPozo'+i]:''));
-        o['Estado'+i]=String((raw['FechaFracPozo'+i]!=null?raw['FechaFracPozo'+i]:'')); // ← fecha de fracturado
+        o['Estado'+i]=String((raw['FechaFracPozo'+i]!=null?raw['FechaFracPozo'+i]:'')); // FRACTURADO
       }
       return o;
     });
@@ -688,74 +690,73 @@ document.addEventListener('DOMContentLoaded', function(){
     el.appendChild(next);
   }
 
-  // === NUEVA LÓGICA: Etapas restantes (total) ===============================
-function computeRemainingStages(conv){
-  // Normalizo filas con índice numérico y ordenadas
-  var rows = conv
-    .filter(function(it){ return it.fila && it.fila.trim(); })
-    .map(function(it){
-      var m = it.fila.trim().match(/^#?(\d+)/);
-      return Object.assign({}, it, { _row: m ? parseInt(m[1],10) : NaN });
-    })
-    .filter(function(it){ return Number.isFinite(it._row); })
-    .sort(function(a,b){ return a._row - b._row; });
+  /* ===== Etapas restantes (total) — cuenta FECHA o ABORTADA/CANCELADA ===== */
+  function computeRemainingStages(conv){
+    var rows = conv
+      .filter(function(it){ return it.fila && it.fila.trim(); })
+      .map(function(it){
+        var m = it.fila.trim().match(/^#?(\d+)/);
+        return Object.assign({}, it, { _row: m ? parseInt(m[1],10) : NaN });
+      })
+      .filter(function(it){ return Number.isFinite(it._row); })
+      .sort(function(a,b){ return a._row - b._row; });
 
-  var total = 0;
+    var total = 0;
 
-  for (var p=1; p<=POZOS; p++){
-    // 1) Busco la primera fila con STOP en FRACTURADO del pozo p
-    var stop = null;
-    for (var i=0; i<rows.length; i++){
-      var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
-      if (v === 'STOP'){ stop = rows[i]._row; break; }
+    for (var p=1; p<=POZOS; p++){
+      var stop = null;
+      for (var i=0; i<rows.length; i++){
+        var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
+        if (v === 'STOP'){ stop = rows[i]._row; break; }
+      }
+      if (!stop) continue;
+
+      var slots = 0, hechas = 0;
+      for (var j=0; j<rows.length; j++){
+        var r = rows[j];
+        if (r._row >= stop) break;
+        slots++;
+        var cell = r['Estado'+p];
+        if (isFechaValida(cell) || isAbortOrCancel(cell)) hechas++;
+      }
+      total += Math.max(0, slots - hechas);
     }
-    if (!stop) continue; // si no hay STOP, no contamos nada
-
-    // 2) Hasta STOP (excluido): total de "slots" menos los que tienen fecha válida
-    var slots = 0, hechas = 0;
-    for (var j=0; j<rows.length; j++){
-      var r = rows[j];
-      if (r._row >= stop) break;
-      slots++;
-      if (isFechaValida(r['Estado'+p])) hechas++;  // solo cuenta si es FECHA real
-    }
-    total += Math.max(0, slots - hechas);
+    return total;
   }
-  return total;
-}
 
-// === NUEVA LÓGICA: Etapas restantes por pozo (para los badges) ============
-function remainingPerPozo(conv){
-  var rows = conv
-    .filter(function(it){ return it.fila && it.fila.trim(); })
-    .map(function(it){
-      var m = it.fila.trim().match(/^#?(\d+)/);
-      return Object.assign({}, it, { _row: m ? parseInt(m[1],10) : NaN });
-    })
-    .filter(function(it){ return Number.isFinite(it._row); })
-    .sort(function(a,b){ return a._row - b._row; });
+  /* ===== Etapas restantes por pozo (badges) — misma lógica ===== */
+  function remainingPerPozo(conv){
+    var rows = conv
+      .filter(function(it){ return it.fila && it.fila.trim(); })
+      .map(function(it){
+        var m = it.fila.trim().match(/^#?(\d+)/);
+        return Object.assign({}, it, { _row: m ? parseInt(m[1],10) : NaN });
+      })
+      .filter(function(it){ return Number.isFinite(it._row); })
+      .sort(function(a,b){ return a._row - b._row; });
 
-  var res = new Array(POZOS).fill(0);
+    var res = new Array(POZOS).fill(0);
 
-  for (var p=1; p<=POZOS; p++){
-    var stop = null;
-    for (var i=0; i<rows.length; i++){
-      var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
-      if (v === 'STOP'){ stop = rows[i]._row; break; }
+    for (var p=1; p<=POZOS; p++){
+      var stop = null;
+      for (var i=0; i<rows.length; i++){
+        var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
+        if (v === 'STOP'){ stop = rows[i]._row; break; }
+      }
+      if (!stop) continue;
+
+      var slots = 0, hechas = 0;
+      for (var j=0; j<rows.length; j++){
+        var r = rows[j];
+        if (r._row >= stop) break;
+        slots++;
+        var cell = r['Estado'+p];
+        if (isFechaValida(cell) || isAbortOrCancel(cell)) hechas++;
+      }
+      res[p-1] = Math.max(0, slots - hechas);
     }
-    if (!stop) continue;
-
-    var slots = 0, hechas = 0;
-    for (var j=0; j<rows.length; j++){
-      var r = rows[j];
-      if (r._row >= stop) break;
-      slots++;
-      if (isFechaValida(r['Estado'+p])) hechas++;
-    }
-    res[p-1] = Math.max(0, slots - hechas);
+    return res;
   }
-  return res;
-}
 
   function paintBadgesPerPozo(arr){
     var ths=document.querySelectorAll('#hdrTop th.pozoTop');
@@ -775,7 +776,7 @@ function remainingPerPozo(conv){
   function buildSaverFrame(){ var x=30+Math.random()*40, y=25+Math.random()*40; saver.style.setProperty('--blob-x',x+'%'); saver.style.setProperty('--blob-y',y+'%'); saverTicker.textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
   function clearSaver(){ saverStage.innerHTML=''; sprites=[]; if(rafAnim){ cancelAnimationFrame(rafAnim); rafAnim=null; } if(rotator){ clearInterval(rotator); rotator=null; } }
 
-  /* Protector: rebote con colisiones */
+  /* Protector: rebote */
   function startBounce(images){
     clearSaver();
     var W=saverStage.clientWidth, H=saverStage.clientHeight;
@@ -813,11 +814,11 @@ function remainingPerPozo(conv){
     step();
   }
 
-  /* Protector: lluvia de valores (frecuencia ligeramente mayor) */
+  /* Protector: lluvia (más frecuencia) */
   function startStarfall(images){
     clearSaver();
     var W=saverStage.clientWidth, H=saverStage.clientHeight;
-    var N=Math.min(images.length*3,18);  // un poco más denso
+    var N=Math.min(images.length*3,18);
     for(var i=0;i<N;i++){
       var img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg';
       var scale=0.55+Math.random()*0.25; var base=Math.min(window.innerWidth*0.10,160);
@@ -844,7 +845,6 @@ function remainingPerPozo(conv){
     var imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
     if(mode==='valores-rebotando') return startBounce(imgs);
     if(mode==='valores-lluvia')    return startStarfall(imgs);
-    /* 'blob' usa sólo el fondo radial */
   }
   function showSaver(force){
     if(force!==true) force=false;
@@ -887,27 +887,25 @@ function remainingPerPozo(conv){
       var changed=updateDOM(map).changedCellsTotal;
       deltaEl.textContent=changed>0?('• '+changed+' cambio(s)'):'';
 
-      var stats=computeFractureStats(conv);
+      var stats=computeFractureStats(conv);   /* solo FECHAS */
       fractureTotalEl.textContent='Total fracturas: '+stats.total;
       updateDatesArray(stats.freq);
 
       remainingEl.textContent='Etapas restantes: '+computeRemainingStages(conv);
       paintBadgesPerPozo(remainingPerPozo(conv));
 
-      /* Sólo interferimos con el saver si realmente hubo cambios */
       if(changed>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
-
       if(autoScroll.checked) requestAnimationFrame(function(){ scrollToLastWithData(LAST_N_TO_SHOW); });
       requestAnimationFrame(fitRowsToViewport);
     }catch(e){
       console.error(e);
-      setNet('ERROR:', false, (e&&e.message?e.message:'')); /* muestra mensaje */
+      setNet('ERROR:', false, (e&&e.message?e.message:''));
       lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
       deltaEl.textContent='';
     }finally{ isFetching=false; }
   }
 
-  /* ====== Autoscroll: últimas 7 filas con datos, considerando pozos visibles ====== */
+  /* ====== Autoscroll: últimas N filas con datos, considerando pozos visibles ====== */
   function hasVisibleData(o, visibleSet){
     if(!o) return false;
     var wells = (visibleSet && visibleSet.size)
