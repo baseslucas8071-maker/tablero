@@ -125,7 +125,7 @@
       <!-- Vista principal -->
       <section id="viewPozos" class="pozos"></section>
 
-      <!-- Por día: ahora con gráfica + lista -->
+      <!-- Por día: gráfica + lista -->
       <section id="viewDias" class="dias" style="display:none">
         <section class="card pad">
           <canvas id="daysChart" width="700" height="280" aria-label="Etapas por día (total PAD)"></canvas>
@@ -227,6 +227,10 @@ function parseToYMD(v){
 let gByPozo = null;
 let gStats  = null;
 let gNames  = null;
+
+// cache para la solapa Por día
+let gDaysLabels = [];
+let gDaysValues = [];
 
 function extractFracturadoColumns(rows){
   const byPozo = {};
@@ -358,12 +362,15 @@ function renderPozos(stats, names){
 
 /* ====== POR DÍA (gráfica + lista) ====== */
 function renderDias(daysArr){
-  // Gráfica (tomamos hasta 20 días más recientes)
-  const canvas = $('#daysChart');
-  const recent = daysArr.slice(0, 20).reverse(); // invertir para mostrar de viejo->nuevo
-  const labels = recent.map(d=>d[0]);
-  const values = recent.map(d=>d[1]);
-  drawBarChart(canvas, labels, values);
+  // Guardamos los últimos 20 días (cronológico viejo→nuevo)
+  const recent = daysArr.slice(0, 20).reverse();
+  gDaysLabels = recent.map(d=>d[0]);
+  gDaysValues = recent.map(d=>d[1]);
+
+  // Si la vista está visible, dibujamos ya; si no, al activar pestaña
+  if ($('#viewDias').style.display !== 'none') {
+    drawBarChart($('#daysChart'), gDaysLabels, gDaysValues);
+  }
 
   // Lista detallada
   const box = $('#daysListBox');
@@ -409,9 +416,16 @@ function drawBarChart(canvas, labels, values){
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
 
-  const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
-  if (canvas.width  !== Math.round(cssW*DPR)) canvas.width  = Math.round(cssW*DPR);
-  if (canvas.height !== Math.round(cssH*DPR)) canvas.height = Math.round(cssH*DPR);
+  // Fallbacks si el canvas está oculto (width=0)
+  const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
+  const cssW = canvas.clientWidth || parentW || 700;   // fallback ancho
+  const cssH = canvas.clientHeight || 220;             // fallback alto
+
+  // Ajuste físico + DPR
+  const w = Math.max(50, Math.round(cssW * DPR));
+  const h = Math.max(50, Math.round(cssH * DPR));
+  if (canvas.width !== w)  canvas.width = w;
+  if (canvas.height !== h) canvas.height = h;
   ctx.setTransform(DPR,0,0,DPR,0,0);
 
   const ymdToDisp = ymd => {
@@ -443,24 +457,23 @@ function drawBarChart(canvas, labels, values){
   }
   ctx.stroke();
 
-  // barras + etiquetas
+  // barras + etiqueta numérica
   ctx.font = '11px Inter, system-ui, sans-serif';
   ctx.textAlign = 'center';
   for (let i=0;i<count;i++){
     const v = values[i] || 0;
-    const h = Math.round(H * v / maxV);
+    const hBar = Math.round(H * v / maxV);
     const x = P.l + i*stepX + (stepX - barW)/2;
-    const y = P.t + H - h;
+    const y = P.t + H - hBar;
 
-    const grad = ctx.createLinearGradient(0,y,0,y+h);
+    const grad = ctx.createLinearGradient(0,y,0,y+hBar);
     grad.addColorStop(0, '#47a3ff');
     grad.addColorStop(1, '#60dbfb');
     ctx.fillStyle = grad;
-    ctx.fillRect(x, y, barW, h);
+    ctx.fillRect(x, y, barW, hBar);
 
-    // etiqueta numérica (arriba si la barra es muy baja, dentro si es alta)
     const cx = x + barW/2;
-    const inside = h > 18;
+    const inside = hBar > 18;
     ctx.fillStyle = inside ? '#0b0b0b' : '#cfe8ff';
     const ty = inside ? (y + 12) : (y - 4);
     ctx.fillText(String(v), cx, ty);
@@ -593,6 +606,13 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
   $$('.tab').forEach(x=> x.classList.toggle('active', x===t));
   $('#viewPozos').style.display = view==='pozos' ? '' : 'none';
   $('#viewDias').style.display  = view==='dias'  ? '' : 'none';
+
+  if (view === 'dias') {
+    // esperar a que el contenedor tenga ancho > 0 y redibujar
+    requestAnimationFrame(()=> {
+      drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues);
+    });
+  }
 }));
 $('#btnRefresh').addEventListener('click', load);
 $('#btnInst').addEventListener('click', ()=>{
@@ -603,6 +623,14 @@ $('#btnInst').addEventListener('click', ()=>{
 });
 $('#btnShare').addEventListener('click', async ()=>{
   try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
+});
+
+// Redibujo en resize si la pestaña Por día está visible
+window.addEventListener('resize', () => {
+  const diasVisible = $('#viewDias').style.display !== 'none';
+  if (diasVisible && gDaysLabels.length) {
+    drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues);
+  }
 });
 
 /* ========= START ========= */
