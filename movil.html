@@ -124,12 +124,19 @@
 
       <!-- Vista principal -->
       <section id="viewPozos" class="pozos"></section>
-      <section id="viewDias" class="dias" style="display:none"></section>
+
+      <!-- Por día: ahora con gráfica + lista -->
+      <section id="viewDias" class="dias" style="display:none">
+        <section class="card pad">
+          <canvas id="daysChart" width="700" height="280" aria-label="Etapas por día (total PAD)"></canvas>
+        </section>
+        <section id="daysListBox" class="card pad"></section>
+      </section>
 
       <!-- Vista detalle -->
       <section id="viewDetail" style="display:none; gap:12px">
         <section class="card pad">
-          <canvas id="pozoChart" width="700" height="280" aria-label="Gráfica por día"></canvas>
+          <canvas id="pozoChart" width="700" height="280" aria-label="Gráfica por día del pozo"></canvas>
         </section>
         <section class="card pad">
           <div class="grid2">
@@ -290,6 +297,7 @@ function aggregateByDay(byPozo){
       }
     }
   }
+  // orden descendente por fecha
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 function computeAvgAndETA(daysArr, restantesTot){
@@ -347,23 +355,31 @@ function renderPozos(stats, names){
     cont.appendChild(el);
   }
 }
-function renderDias(arr){
-  const cont = $('#viewDias');
-  cont.innerHTML = '';
-  const box = document.createElement('section');
-  box.className='card pad';
+
+/* ====== POR DÍA (gráfica + lista) ====== */
+function renderDias(daysArr){
+  // Gráfica (tomamos hasta 20 días más recientes)
+  const canvas = $('#daysChart');
+  const recent = daysArr.slice(0, 20).reverse(); // invertir para mostrar de viejo->nuevo
+  const labels = recent.map(d=>d[0]);
+  const values = recent.map(d=>d[1]);
+  drawBarChart(canvas, labels, values);
+
+  // Lista detallada
+  const box = $('#daysListBox');
+  box.innerHTML = '';
   const list = document.createElement('div');
   list.className='list';
   box.appendChild(list);
 
-  if(arr.length===0){
+  if(daysArr.length===0){
     const empty = document.createElement('div');
     empty.className='muted';
     empty.textContent = 'Sin etapas registradas por día aún.';
     box.appendChild(empty);
   } else {
     const todayYMD = new Date().toISOString().slice(0,10);
-    for(const [ymd, count] of arr){
+    for(const [ymd, count] of daysArr){
       const d = new Date(ymd+'T00:00:00');
       const ddmmyy = d.toLocaleDateString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
       const it = document.createElement('div');
@@ -372,7 +388,6 @@ function renderDias(arr){
       list.appendChild(it);
     }
   }
-  cont.appendChild(box);
 }
 
 /* ========= RENDER (DETALLE) ========= */
@@ -389,12 +404,11 @@ function dailyCountsForSerie(serie){
   return Array.from(map.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
 }
 
-/* --- Gráfica corregida (DPR + etiquetas DD/MM) --- */
+/* --- Gráfica (con etiquetas numéricas en cada barra) --- */
 function drawBarChart(canvas, labels, values){
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
 
-  // tamaño físico + transformar con DPR
   const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
   if (canvas.width  !== Math.round(cssW*DPR)) canvas.width  = Math.round(cssW*DPR);
   if (canvas.height !== Math.round(cssH*DPR)) canvas.height = Math.round(cssH*DPR);
@@ -405,7 +419,7 @@ function drawBarChart(canvas, labels, values){
     return m ? `${m[3]}/${m[2]}` : ymd;
   };
 
-  // clear
+  // fondo
   ctx.clearRect(0,0,cssW,cssH);
   ctx.fillStyle = '#0a0a0a';
   ctx.fillRect(0,0,cssW,cssH);
@@ -419,7 +433,7 @@ function drawBarChart(canvas, labels, values){
   const stepX = W / count;
   const barW  = Math.max(8, Math.floor(stepX - 6));
 
-  // grid
+  // rejilla
   ctx.strokeStyle = '#1e1e1e';
   ctx.lineWidth = 1;
   ctx.beginPath();
@@ -429,7 +443,9 @@ function drawBarChart(canvas, labels, values){
   }
   ctx.stroke();
 
-  // barras
+  // barras + etiquetas
+  ctx.font = '11px Inter, system-ui, sans-serif';
+  ctx.textAlign = 'center';
   for (let i=0;i<count;i++){
     const v = values[i] || 0;
     const h = Math.round(H * v / maxV);
@@ -441,11 +457,17 @@ function drawBarChart(canvas, labels, values){
     grad.addColorStop(1, '#60dbfb');
     ctx.fillStyle = grad;
     ctx.fillRect(x, y, barW, h);
+
+    // etiqueta numérica (arriba si la barra es muy baja, dentro si es alta)
+    const cx = x + barW/2;
+    const inside = h > 18;
+    ctx.fillStyle = inside ? '#0b0b0b' : '#cfe8ff';
+    const ty = inside ? (y + 12) : (y - 4);
+    ctx.fillText(String(v), cx, ty);
   }
 
-  // etiquetas (DD/MM) rotadas 45°
+  // etiquetas X (DD/MM) rotadas
   ctx.fillStyle = '#cfe8ff';
-  ctx.font = '11px Inter, system-ui, sans-serif';
   for (let i=0;i<count;i++){
     const lbl = ymdToDisp(labels[i] || '');
     const x = P.l + i*stepX + stepX/2;
