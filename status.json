@@ -619,13 +619,13 @@
       "Fila": "#28",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "",
-      "SecuenciaPozo3": "",
+      "SecuenciaPozo3": "45922.3819444444",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "C. Orient.",
+      "TPNPozo3": "5145 C. Orient.",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-22T20:06:45.4008050Z",
+  "lastUpdate": "2025-09-22T21:43:28.7329861Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
