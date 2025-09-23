@@ -7,7 +7,7 @@
 
 <style>
   :root{
-    --bg:#000;               /* Fondo negro para mayor contraste */
+    --bg:#000;
     --card:#08203a; --muted:#cfe8ff;
 
     --header-h-1:48px; --header-h-2:44px;
@@ -94,16 +94,19 @@
   .stock-theme-5{background:rgba(0,200,220,.18);border-color:rgba(0,0,0,.35)}
   .stock-theme-6{background:rgba(200,220,60,.18);border-color:rgba(200,220,60,.35)}
   .stock-theme-7{background:rgba(255,120,40,.18);border-color:rgba(255,120,40,.35)}
-  .stock-low{box-shadow:inset 0 0 0 2px rgba(220,60,60,.65)}
-  .stock-mid{box-shadow:inset 0 0 0 2px rgba(255,180,0,.65)}
-  .stock-high{box-shadow:inset 0 0 0 2px rgba(40,200,120,.65)}
-  .stock-low .dot{background:#ff6b6b}
-  .stock-mid .dot{background:#ffcc66}
-  .stock-high .dot{background:#4dffb3}
+
+  /* ===== KPI CARDS ===== */
+  .kpis{display:grid;grid-template-columns:repeat(3,minmax(120px,1fr)) 1.2fr 1.2fr;gap:10px;align-items:stretch}
+  .kpi{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;display:flex;flex-direction:column;justify-content:center}
+  .kpi.wide{grid-column:auto / span 1}
+  .kpi-label{font-size:12px;color:#bfe8ff;opacity:.9;font-weight:700;margin-bottom:2px}
+  .kpi-value{font-size:26px;font-weight:900;letter-spacing:.3px}
+  .kpi-green{color:#45ffb2}
+  .kpi-amber{color:#ffcc66}
+  .kpi-sub{font-size:18px;font-weight:800}
+  .kpi-note{font-size:12px;color:#bfe8ff;opacity:.95;margin-top:4px}
 
   .indicators{display:flex;align-items:center;gap:14px;flex:0 0 auto;min-width:max-content}
-  .ind{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);padding:6px 10px;border-radius:8px;font-weight:700}
-
   .reel{display:flex;align-items:center;gap:var(--reel-gap);overflow-x:auto}
   .reel-btn{width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#cfe8ff;font-weight:800;cursor:pointer}
   .reel-btn:disabled{opacity:.4;cursor:default}
@@ -112,17 +115,11 @@
   .date-chip .date{font-size:var(--reel-date-size);color:#bfe8ff}
   .date-chip .num{font-size:var(--reel-num-size);font-weight:900;line-height:1.1}
 
-  .subind{font-size:12px;color:#bfe8ff;margin-top:4px;font-weight:600;opacity:.95}
-  #fractureTotal, #remainingStages { font-size:17px; }
-  .status{padding:6px 12px;border-radius:999px;font-weight:800}
-
   footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:13px;color:#cfe8ff;gap:10px}
   #footerLeft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
-  /* Atenuación nocturna */
   #dimVeil{position:fixed;inset:0;pointer-events:none;background:#000;opacity:0;transition:opacity .4s ease;z-index:9996}
 
-  /* Protector de pantalla */
   #saver{position:fixed;inset:0;display:none;z-index:9997;
     background:radial-gradient(1200px 700px at var(--blob-x,40%) var(--blob-y,35%),rgba(0,163,255,.12),rgba(0,0,0,.85) 70%);
     backdrop-filter:blur(1px)
@@ -187,20 +184,38 @@
 
   <main>
     <div class="board">
+
+      <!-- ===== KPIs + Reel ===== -->
+      <div class="bar" style="flex-wrap:wrap">
+        <div class="kpis" style="flex:1 1 680px">
+          <div class="kpi"><div class="kpi-label">Etapas totales</div><div id="kpiTotal" class="kpi-value">0</div></div>
+          <div class="kpi"><div class="kpi-label">Realizadas</div><div id="kpiDone" class="kpi-value kpi-green">0</div></div>
+          <div class="kpi"><div class="kpi-label">Restantes</div><div id="kpiRemain" class="kpi-value kpi-amber">0</div></div>
+          <div class="kpi">
+            <div class="kpi-label">Promedio</div>
+            <div id="kpiAvg" class="kpi-sub">—</div>
+            <div id="kpiWindow" class="kpi-note">Ventana usada: —</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Fin estimado</div>
+            <div id="kpiETA" class="kpi-sub">—</div>
+          </div>
+        </div>
+
+        <div class="indicators" style="margin-left:auto">
+          <div id="datesReel" class="reel" aria-label="Fracturas por fecha (reel)"></div>
+        </div>
+      </div>
+
+      <!-- ===== STOCK ===== -->
       <div class="bar">
         <div class="stockwrap">
           <div class="stocklabel">STOCK ACTUAL:</div>
           <div id="stockBar" class="stockbar"></div>
         </div>
-        <div class="indicators">
-          <div class="ind">
-            <div id="fractureTotal">Total fracturas: 0</div>
-            <div id="remainingStages" class="subind">Etapas restantes: 0</div>
-          </div>
-          <div id="datesReel" class="reel" aria-label="Fracturas por fecha (reel)"></div>
-        </div>
       </div>
 
+      <!-- ===== TABLA ===== -->
       <div class="table-container" id="tableContainer">
         <table id="mainTable">
           <thead>
@@ -215,7 +230,7 @@
         <div id="footerLeft">
           <span>Última actualización: <strong id="lastUpdate">-</strong></span>
           <span id="delta" class="delta"></span>
-          <span id="netStatus" class="pill status">Conectando…</span>
+          <span id="netStatus" class="pill">Conectando…</span>
         </div>
         <div class="meta">Actualiza cada <span id="refreshSec">15</span>s</div>
       </footer>
@@ -312,6 +327,9 @@ document.addEventListener('DOMContentLoaded', function(){
   var JSON_URL=JSON_CANDIDATES[0];
   var REFRESH_SECONDS=15, ROWS=60, POZOS=6, LAST_N_TO_SHOW=7, REEL_SIZE=2;
 
+  /* Ventana para promedio (días) */
+  var AVG_WINDOW_DAYS = 7;
+
   document.getElementById('autoN').textContent = LAST_N_TO_SHOW;
 
   var UA = navigator.userAgent || '';
@@ -327,6 +345,7 @@ document.addEventListener('DOMContentLoaded', function(){
   };
   var clamp=function(v,a,b){ return Math.min(b,Math.max(a,v)); };
   var pad2=function(n){ return String(n).padStart(2,'0'); };
+  var fmt1=function(n){ return (Math.round(n*10)/10).toString().replace('.',','); };
 
   var toRawURL=function(u){
     if(!u) return '';
@@ -385,8 +404,15 @@ document.addEventListener('DOMContentLoaded', function(){
   var lastUpdateEl=document.getElementById('lastUpdate'), deltaEl=document.getElementById('delta'), net=document.getElementById('netStatus');
   var stockBar=document.getElementById('stockBar');
   var btnRefresh=document.getElementById('btnRefresh'), btnPause=document.getElementById('btnPause'), btnFull=document.getElementById('btnFull'), btnSettings=document.getElementById('btnSettings');
-  var fractureTotalEl=document.getElementById('fractureTotal'), datesReel=document.getElementById('datesReel'), remainingEl=document.getElementById('remainingStages');
-  var dimVeil=document.getElementById('dimVeil'), saver=document.getElementById('saver'), saverTicker=document.getElementById('saverTicker'), saverStage=document.getElementById('saverStage');
+  var datesReel=document.getElementById('datesReel');
+
+  /* KPIs */
+  var kpiTotal=document.getElementById('kpiTotal'),
+      kpiDone=document.getElementById('kpiDone'),
+      kpiRemain=document.getElementById('kpiRemain'),
+      kpiAvg=document.getElementById('kpiAvg'),
+      kpiWindow=document.getElementById('kpiWindow'),
+      kpiETA=document.getElementById('kpiETA');
 
   var modal=document.getElementById('settingsModal');
   var setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
@@ -524,9 +550,8 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   var maybeFormatDate=function(v){ var p=parseDateValue(v); return p?p.display:(v==null?'':v); };
   var isStop=function(v){ return String(v==null?'':v).trim().toUpperCase()==='STOP'; };
-  var isFechaValida=function(v){ return parseDateValue(v)!==null; };
+  var isFechaValida=function(v){ return parseDateValue(v)!==null; }
 
-  /* NUEVO: también considerar ABORTADA / CANCELADA como “hecha” */
   function isAbortOrCancel(v){
     var s = String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
     return s.includes('ABORTADA') || s.includes('CANCELADA');
@@ -617,7 +642,7 @@ document.addEventListener('DOMContentLoaded', function(){
           td2=tr.querySelector('td[data-col="Estado'+p+'"]');
       var vS=data && data['Seq'+p] ? String(data['Seq'+p]) : '';
       var v1=data && data['Pozo'+p] ? String(data['Pozo'+p]) : '';
-      var raw=(data && data['Estado'+p]!=null)?data['Estado'+p]:''; /* FRACTURADO */
+      var raw=(data && data['Estado'+p]!=null)?data['Estado'+p]:'';
       var v2=maybeFormatDate(raw);
 
       var fhHTML = renderFHCell(vS);
@@ -649,7 +674,7 @@ document.addEventListener('DOMContentLoaded', function(){
     return {changedCellsTotal:total};
   }
 
-  /* ========= STATS / REEL ========= */
+  /* ========= REEL FECHAS / FRACTURAS ========= */
   var datesArr=[], reelStart=prefs.get('reel:start',0), userMovedReel=prefs.get('reel:moved',false);
   function computeFractureStats(conv){
     var f=new Map(); var tot=0;
@@ -657,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var it=conv[i];
       if(!it.fila||!it.fila.trim()) continue;
       for(var p=1;p<=POZOS;p++){
-        var pdt=parseDateValue(it['Estado'+p]);
+        var pdt=parseDateValue(it['Estado'+p]);     // solo FECHA
         if(pdt){tot++; var cur=f.get(pdt.normalized); if(cur) cur.count++; else f.set(pdt.normalized,{display:pdt.display,count:1,normalized:pdt.normalized});}
       }
     }
@@ -690,8 +715,8 @@ document.addEventListener('DOMContentLoaded', function(){
     el.appendChild(next);
   }
 
-  /* ===== Etapas restantes (total) — cuenta FECHA o ABORTADA/CANCELADA ===== */
-  function computeRemainingStages(conv){
+  /* ===== Totales: slots / realizadas (fecha o abort/cancel) / restantes ===== */
+  function computeTotals(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
       .map(function(it){
@@ -701,7 +726,7 @@ document.addEventListener('DOMContentLoaded', function(){
       .filter(function(it){ return Number.isFinite(it._row); })
       .sort(function(a,b){ return a._row - b._row; });
 
-    var total = 0;
+    var totalSlots=0, hechas=0;
 
     for (var p=1; p<=POZOS; p++){
       var stop = null;
@@ -711,20 +736,149 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       if (!stop) continue;
 
-      var slots = 0, hechas = 0;
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
         if (r._row >= stop) break;
-        slots++;
+        totalSlots++;
         var cell = r['Estado'+p];
         if (isFechaValida(cell) || isAbortOrCancel(cell)) hechas++;
       }
-      total += Math.max(0, slots - hechas);
     }
-    return total;
+    return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
   }
 
-  /* ===== Etapas restantes por pozo (badges) — misma lógica ===== */
+  /* ===== Promedio y ETA (usa solo fechas válidas) ===== */
+  function computeAverageAndETA(freq, restantes){
+    var arr = Array.from(freq.values()).sort(function(a,b){ return a.normalized.localeCompare(b.normalized); });
+    var used = Math.min(AVG_WINDOW_DAYS, arr.length);
+    var sum = 0;
+    for (var i=Math.max(0,arr.length-used); i<arr.length; i++){
+      sum += arr[i].count;
+    }
+    var avg = used>0 ? (sum/used) : 0;
+    var etaText = '—';
+    if(avg>0 && restantes>0){
+      var days = Math.ceil(restantes / avg);
+      var dt = new Date(); dt.setDate(dt.getDate()+days);
+      etaText = dt.getDate()+'/'+(dt.getMonth()+1)+'/'+dt.getFullYear()+' (≈ '+days+' día'+(days===1?'':'s')+')';
+    }
+    return {avg:avg,usedDays:used,etaText:etaText};
+  }
+
+  /* ========= PROTECCIONES / SAVER ========= */
+  function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
+  function applyNightDim(){ var wrap=document.getElementById('dimVeil'); if(!DISPLAY.nightDim.enabled){ wrap.style.opacity=0; return; } var h=new Date().getHours(); var on=(a=> (a<=DISPLAY.nightDim.endHour)?(h>=a&&h<DISPLAY.nightDim.endHour):(h>=a||h<DISPLAY.nightDim.endHour))(DISPLAY.nightDim.startHour); wrap.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
+  function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
+  function restartShift(){ clearInterval(shiftTimer); document.documentElement.style.setProperty('--nudge-x','0px'); document.documentElement.style.setProperty('--nudge-y','0px'); if(!DISPLAY.pixelShift.enabled) return; var ms=Math.max(1,DISPLAY.pixelShift.intervalMin)*60*1000; shiftTimer=setInterval(function(){ var m=Math.max(0,DISPLAY.pixelShift.maxOffsetPx|0); var x=(Math.floor(Math.random()*(m*2+1))-m); var y=(Math.floor(Math.random()*(m*2+1))-m); document.documentElement.style.setProperty('--nudge-x',x+'px'); document.documentElement.style.setProperty('--nudge-y',y+'px'); },ms); }
+  function buildSaverFrame(){ var x=30+Math.random()*40, y=25+Math.random()*40; document.getElementById('saver').style.setProperty('--blob-x',x+'%'); document.getElementById('saver').style.setProperty('--blob-y',y+'%'); document.getElementById('saverTicker').textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
+  function clearSaver(){ var saverStage=document.getElementById('saverStage'); saverStage.innerHTML=''; sprites=[]; if(rafAnim){ cancelAnimationFrame(rafAnim); rafAnim=null; } if(rotator){ clearInterval(rotator); rotator=null; } }
+
+  function startBounce(images){ clearSaver(); var saverStage=document.getElementById('saverStage'); var W=saverStage.clientWidth, H=saverStage.clientHeight; var n=Math.min(images.length,6); sprites=[]; for(var i=0;i<n;i++){ var img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img); var w0=180, h0=100; sprites.push({el:img,x:Math.random()*(W-w0),y:Math.random()*(H-h0),vx:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),vy:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),w:w0,h:h0}); }
+    var step=function(){ W=saverStage.clientWidth; H=saverStage.clientHeight; for(var s of sprites){ s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; }
+      for(var s of sprites){ s.x+=s.vx; s.y+=s.vy; if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;} if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;} }
+      for(var i=0;i<sprites.length;i++){ for(var j=i+1;j<sprites.length;j++){ var a=sprites[i], b=sprites[j]; var ox=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x); var oy=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y); if(ox>0 && oy>0){ if(ox<oy){ if(a.x<b.x){a.x-=ox/2; b.x+=ox/2;} else {a.x+=ox/2; b.x-=ox/2;} a.vx*=-1; b.vx*=-1; } else { if(a.y<b.y){a.y-=oy/2; b.y+=oy/2;} else {a.y+=oy/2; b.y-=oy/2;} a.vy*=-1; b.vy*=-1; } a.x=Math.min(Math.max(0,a.x),W-a.w); a.y=Math.min(Math.max(0,a.y),H-a.h); b.x=Math.min(Math.max(0,b.x),W-b.w); b.y=Math.min(Math.max(0,b.y),H-b.h); } } }
+      for(var s of sprites){ s.el.style.transform='translate('+s.x+'px,'+s.y+'px)'; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function startStarfall(images){ clearSaver(); var saverStage=document.getElementById('saverStage'); var W=saverStage.clientWidth, H=saverStage.clientHeight; var N=Math.min(images.length*3,18); for(var i=0;i<N;i++){ var img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg'; var scale=0.55+Math.random()*0.25; var base=Math.min(window.innerWidth*0.10,160); var size=base*scale; img.style.width=size+'px'; var x=Math.random()*(W-size); var y=-Math.random()*H*0.8 - size; var sp={el:img,x:x,y:y,size:size,vx:(Math.random()-0.5)*0.4,vy:0.9+Math.random()*1.4,rot:(Math.random()*8-4),a:Math.random()*360}; saverStage.appendChild(img); sprites.push(sp); }
+    var step=function(){ W=saverStage.clientWidth; H=saverStage.clientHeight; for(var s of sprites){ s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5; if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); } s.el.style.transform='translate('+s.x+'px,'+s.y+'px) rotate('+s.a+'deg)'; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function applySaverMode(mode){ clearSaver(); var imgs=VALUES_IMAGES(DISPLAY.saver.gitBase); if(mode==='valores-rebotando') return startBounce(imgs); if(mode==='valores-lluvia') return startStarfall(imgs); }
+  function showSaver(force){ if(force!==true) force=false; var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; if(!force && (Date.now()-lastActivityTs)<idleMs) return; buildSaverFrame(); document.getElementById('saver').style.display='block'; document.getElementById('saverStatus').textContent='Mostrando'; var modes=['blob','valores-rebotando','valores-lluvia']; if(DISPLAY.saver.mode==='rotar'){ var i=0; applySaverMode(modes[i]); rotator=setInterval(function(){ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000); }else{ applySaverMode(DISPLAY.saver.mode); } }
+  function hideSaver(){ document.getElementById('saver').style.display='none'; document.getElementById('saverStatus').textContent='—'; clearSaver(); }
+  function scheduleSaver(){ clearTimeout(saverTO); var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; var wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(function(){ showSaver(false); }, wait+50); }
+
+  /* ========= CARGA ========= */
+  function tryFetch(url){ return fetch(url,{cache:'no-store',mode:'cors'}).then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); JSON_URL=url; return res.json(); }); }
+  function fetchJSON(){ return tryFetch(JSON_CANDIDATES[0]).catch(function(){ return tryFetch(JSON_CANDIDATES[1]); }); }
+  function setNet(status, ok, extra){ net.textContent = (status || '') + (extra?(' '+extra):''); if(ok){ net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)'; }else{ net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)'; } }
+
+  async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; var t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
+  async function loadAndRender(isForced){
+    if(isForced!==true) isForced=false;
+    if(paused && !isForced) return; if(isFetching) return; isFetching=true;
+    try{
+      var t0=performance.now();
+      var json=await fetchJSON();
+      var t1=performance.now();
+      setNet('OK', true, Math.round(t1-t0)+'ms');
+
+      document.getElementById('lastUpdate').innerText=(json.lastUpdate?new Date(json.lastUpdate):new Date()).toLocaleString();
+
+      renderStock(json.stock||[]);
+      var conv=transformItems(json.items||[]);
+      var hdr=extractHeaderRows(conv); updateHeaderNames(hdr.top,hdr.sub);
+      var map=itemsArrayToMap(conv);
+      var changed=updateDOM(map).changedCellsTotal;
+      deltaEl.textContent=changed>0?('• '+changed+' cambio(s)'):'';
+
+      /* Reel y promedio (solo FECHAS) */
+      var stats=computeFractureStats(conv);
+      updateDatesArray(stats.freq);
+
+      /* Totales / KPIs */
+      var totals=computeTotals(conv);
+      kpiTotal.textContent = totals.totalSlots;
+      kpiDone.textContent  = totals.hechas;
+      kpiRemain.textContent= totals.restantes;
+
+      var avgETA=computeAverageAndETA(stats.freq, totals.restantes);
+      kpiAvg.textContent = (avgETA.avg>0?fmt1(avgETA.avg):'—') + (avgETA.avg>0?' etapas/día':'');
+      kpiWindow.textContent = 'Ventana usada: '+(avgETA.usedDays||0)+' día(s)';
+      kpiETA.textContent = avgETA.etaText;
+
+      paintBadgesPerPozo(remainingPerPozo(conv));
+
+      if(changed>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
+      if(autoScroll.checked) requestAnimationFrame(function(){ scrollToLastWithData(LAST_N_TO_SHOW); });
+      requestAnimationFrame(fitRowsToViewport);
+    }catch(e){
+      console.error(e);
+      setNet('ERROR:', false, (e&&e.message?e.message:'')); 
+      document.getElementById('lastUpdate').innerHTML='<span style="color:salmon">Error de conexión</span>';
+      deltaEl.textContent='';
+    }finally{ isFetching=false; }
+  }
+
+  /* ====== Autoscroll: últimas N filas con datos, considerando pozos visibles ====== */
+  function hasVisibleData(o, visibleSet){
+    if(!o) return false;
+    var wells = (visibleSet && visibleSet.size) ? visibleSet : new Set([1,2,3,4,5,6]);
+    for (var p of wells) {
+      var t = (o['Pozo'+p]||'').toString().trim();
+      var e = o['Estado'+p];
+      if (t !== '' || (e && !isStop(e) && isFechaValida(e))) return true;
+    }
+    return false;
+  }
+  function scrollToLastWithData(n){
+    if(typeof n!=='number') n=LAST_N_TO_SHOW;
+    if(!autoScroll.checked) return;
+
+    var rows=[].slice.call(tbody.querySelectorAll('tr'));
+    var visibleSet = new Set(
+      (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
+        ? DISPLAY.view.visibleWells
+        : [1,2,3,4,5,6]
+    );
+
+    var idx=[];
+    rows.forEach(function(tr,i){
+      var id=tr.dataset.rowId;
+      if(hasVisibleData(latestDataMap[id], visibleSet)) idx.push(i);
+    });
+    if(!idx.length) return;
+
+    var startIndex = idx[Math.max(0, idx.length - n)];
+    var startRow   = rows[startIndex];
+    if(!startRow) return;
+
+    var headerH = hdrTop.offsetHeight + hdrSub.offsetHeight;
+    var targetTop = Math.max(0, startRow.offsetTop - headerH - 8);
+    var cur = tableContainer.scrollTop;
+    if (Math.abs(cur - targetTop) > 4) {
+      tableContainer.scrollTo({ top: targetTop, behavior: 'smooth' });
+    }
+  }
+
+  /* ========= BADGES RESTANTES POR POZO ========= */
   function remainingPerPozo(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
@@ -757,7 +911,6 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     return res;
   }
-
   function paintBadgesPerPozo(arr){
     var ths=document.querySelectorAll('#hdrTop th.pozoTop');
     for(var i=0;i<ths.length;i++){
@@ -765,188 +918,6 @@ document.addEventListener('DOMContentLoaded', function(){
       [].slice.call(th.querySelectorAll('.badge')).forEach(function(b){ b.remove(); });
       var val=arr[i]||0;
       if(val>0){ var b=document.createElement('span'); b.className='badge'; b.textContent=val; th.appendChild(b); }
-    }
-  }
-
-  /* ========= PROTECCIONES ========= */
-  function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
-  function applyNightDim(){ if(!DISPLAY.nightDim.enabled){ dimVeil.style.opacity=0; return; } var h=new Date().getHours(); var on=inRangeHour(h,DISPLAY.nightDim.startHour,DISPLAY.nightDim.endHour); dimVeil.style.opacity = on ? String(1 - clamp(DISPLAY.nightDim.dimLevel,0.2,1)) : '0'; }
-  function restartNight(){ clearInterval(nightTimer); applyNightDim(); nightTimer=setInterval(applyNightDim,5*60*1000); }
-  function restartShift(){ clearInterval(shiftTimer); document.documentElement.style.setProperty('--nudge-x','0px'); document.documentElement.style.setProperty('--nudge-y','0px'); if(!DISPLAY.pixelShift.enabled) return; var ms=Math.max(1,DISPLAY.pixelShift.intervalMin)*60*1000; shiftTimer=setInterval(function(){ var m=Math.max(0,DISPLAY.pixelShift.maxOffsetPx|0); var x=(Math.floor(Math.random()*(m*2+1))-m); var y=(Math.floor(Math.random()*(m*2+1))-m); document.documentElement.style.setProperty('--nudge-x',x+'px'); document.documentElement.style.setProperty('--nudge-y',y+'px'); },ms); }
-  function buildSaverFrame(){ var x=30+Math.random()*40, y=25+Math.random()*40; saver.style.setProperty('--blob-x',x+'%'); saver.style.setProperty('--blob-y',y+'%'); saverTicker.textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
-  function clearSaver(){ saverStage.innerHTML=''; sprites=[]; if(rafAnim){ cancelAnimationFrame(rafAnim); rafAnim=null; } if(rotator){ clearInterval(rotator); rotator=null; } }
-
-  /* Protector: rebote */
-  function startBounce(images){
-    clearSaver();
-    var W=saverStage.clientWidth, H=saverStage.clientHeight;
-    var n=Math.min(images.length,6);
-    sprites=[];
-    for(var i=0;i<n;i++){
-      var img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img);
-      var w0=180, h0=100;
-      sprites.push({el:img,x:Math.random()*(W-w0),y:Math.random()*(H-h0),vx:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),vy:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),w:w0,h:h0});
-    }
-    var step=function(){
-      W=saverStage.clientWidth; H=saverStage.clientHeight;
-      for(var s of sprites){ s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; }
-      for(var s of sprites){
-        s.x+=s.vx; s.y+=s.vy;
-        if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;}
-        if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;}
-      }
-      for(var i=0;i<sprites.length;i++){
-        for(var j=i+1;j<sprites.length;j++){
-          var a=sprites[i], b=sprites[j];
-          var ox=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x);
-          var oy=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y);
-          if(ox>0 && oy>0){
-            if(ox<oy){ if(a.x<b.x){a.x-=ox/2; b.x+=ox/2;} else {a.x+=ox/2; b.x-=ox/2;} a.vx*=-1; b.vx*=-1; }
-            else     { if(a.y<b.y){a.y-=oy/2; b.y+=oy/2;} else {a.y+=oy/2; b.y-=oy/2;} a.vy*=-1; b.vy*=-1; }
-            a.x=Math.min(Math.max(0,a.x),W-a.w); a.y=Math.min(Math.max(0,a.y),H-a.h);
-            b.x=Math.min(Math.max(0,b.x),W-b.w); b.y=Math.min(Math.max(0,b.y),H-b.h);
-          }
-        }
-      }
-      for(var s of sprites){ s.el.style.transform='translate('+s.x+'px,'+s.y+'px)'; }
-      rafAnim=requestAnimationFrame(step);
-    };
-    step();
-  }
-
-  /* Protector: lluvia (más frecuencia) */
-  function startStarfall(images){
-    clearSaver();
-    var W=saverStage.clientWidth, H=saverStage.clientHeight;
-    var N=Math.min(images.length*3,18);
-    for(var i=0;i<N;i++){
-      var img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg';
-      var scale=0.55+Math.random()*0.25; var base=Math.min(window.innerWidth*0.10,160);
-      var size=base*scale; img.style.width=size+'px';
-      var x=Math.random()*(W-size); var y=-Math.random()*H*0.8 - size;
-      var sp={el:img,x:x,y:y,size:size,vx:(Math.random()-0.5)*0.4,vy:0.9+Math.random()*1.4,rot:(Math.random()*8-4),a:Math.random()*360};
-      saverStage.appendChild(img); sprites.push(sp);
-    }
-    var step=function(){
-      W=saverStage.clientWidth; H=saverStage.clientHeight;
-      for(var s of sprites){
-        s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5;
-        if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size;
-        if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); }
-        s.el.style.transform='translate('+s.x+'px,'+s.y+'px) rotate('+s.a+'deg)';
-      }
-      rafAnim=requestAnimationFrame(step);
-    };
-    step();
-  }
-
-  function applySaverMode(mode){
-    clearSaver();
-    var imgs=VALUES_IMAGES(DISPLAY.saver.gitBase);
-    if(mode==='valores-rebotando') return startBounce(imgs);
-    if(mode==='valores-lluvia')    return startStarfall(imgs);
-  }
-  function showSaver(force){
-    if(force!==true) force=false;
-    var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000;
-    if(!force && (Date.now()-lastActivityTs)<idleMs) return;
-    buildSaverFrame();
-    saver.style.display='block'; saverStatus.textContent='Mostrando';
-    var modes=['blob','valores-rebotando','valores-lluvia'];
-    if(DISPLAY.saver.mode==='rotar'){
-      var i=0; applySaverMode(modes[i]);
-      rotator=setInterval(function(){ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000);
-    }else{
-      applySaverMode(DISPLAY.saver.mode);
-    }
-  }
-  function hideSaver(){ saver.style.display='none'; saverStatus.textContent='—'; clearSaver(); }
-  function scheduleSaver(){ clearTimeout(saverTO); var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; var wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(function(){ showSaver(false); }, wait+50); }
-
-  /* ========= CARGA ========= */
-  function tryFetch(url){ return fetch(url,{cache:'no-store',mode:'cors'}).then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); JSON_URL=url; return res.json(); }); }
-  function fetchJSON(){ return tryFetch(JSON_CANDIDATES[0]).catch(function(){ return tryFetch(JSON_CANDIDATES[1]); }); }
-  function setNet(status, ok, extra){ net.textContent = (status || '') + (extra?(' '+extra):''); if(ok){ net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)'; }else{ net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)'; } }
-
-  async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; var t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
-  async function loadAndRender(isForced){
-    if(isForced!==true) isForced=false;
-    if(paused && !isForced) return; if(isFetching) return; isFetching=true;
-    try{
-      var t0=performance.now();
-      var json=await fetchJSON();
-      var t1=performance.now();
-      setNet('OK', true, Math.round(t1-t0)+'ms');
-
-      lastUpdateEl.innerText=(json.lastUpdate?new Date(json.lastUpdate):new Date()).toLocaleString();
-
-      renderStock(json.stock||[]);
-      var conv=transformItems(json.items||[]);
-      var hdr=extractHeaderRows(conv); updateHeaderNames(hdr.top,hdr.sub);
-      var map=itemsArrayToMap(conv);
-      var changed=updateDOM(map).changedCellsTotal;
-      deltaEl.textContent=changed>0?('• '+changed+' cambio(s)'):'';
-
-      var stats=computeFractureStats(conv);   /* solo FECHAS */
-      fractureTotalEl.textContent='Total fracturas: '+stats.total;
-      updateDatesArray(stats.freq);
-
-      remainingEl.textContent='Etapas restantes: '+computeRemainingStages(conv);
-      paintBadgesPerPozo(remainingPerPozo(conv));
-
-      if(changed>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
-      if(autoScroll.checked) requestAnimationFrame(function(){ scrollToLastWithData(LAST_N_TO_SHOW); });
-      requestAnimationFrame(fitRowsToViewport);
-    }catch(e){
-      console.error(e);
-      setNet('ERROR:', false, (e&&e.message?e.message:''));
-      lastUpdateEl.innerHTML='<span style="color:salmon">Error de conexión</span>';
-      deltaEl.textContent='';
-    }finally{ isFetching=false; }
-  }
-
-  /* ====== Autoscroll: últimas N filas con datos, considerando pozos visibles ====== */
-  function hasVisibleData(o, visibleSet){
-    if(!o) return false;
-    var wells = (visibleSet && visibleSet.size)
-      ? visibleSet
-      : new Set([1,2,3,4,5,6]);
-    for (var p of wells) {
-      var t = (o['Pozo'+p]||'').toString().trim();
-      var e = o['Estado'+p];
-      if (t !== '' || (e && !isStop(e) && isFechaValida(e))) return true;
-    }
-    return false;
-  }
-
-  function scrollToLastWithData(n){
-    if(typeof n!=='number') n=LAST_N_TO_SHOW;
-    if(!autoScroll.checked) return;
-
-    var rows=[].slice.call(tbody.querySelectorAll('tr'));
-    var visibleSet = new Set(
-      (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
-        ? DISPLAY.view.visibleWells
-        : [1,2,3,4,5,6]
-    );
-
-    var idx=[];
-    rows.forEach(function(tr,i){
-      var id=tr.dataset.rowId;
-      if(hasVisibleData(latestDataMap[id], visibleSet)) idx.push(i);
-    });
-    if(!idx.length) return;
-
-    var startIndex = idx[Math.max(0, idx.length - n)];
-    var startRow   = rows[startIndex];
-    if(!startRow) return;
-
-    var headerH = hdrTop.offsetHeight + hdrSub.offsetHeight;
-    var targetTop = Math.max(0, startRow.offsetTop - headerH - 8);
-
-    var cur = tableContainer.scrollTop;
-    if (Math.abs(cur - targetTop) > 4) {
-      tableContainer.scrollTo({ top: targetTop, behavior: 'smooth' });
     }
   }
 
