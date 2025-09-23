@@ -41,8 +41,6 @@
     .speed .box{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
     .speed .h{font-size:11px; opacity:.8; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
     .speed .v{font-size:18px; font-weight:800; margin-top:2px}
-    .chip.toggle{cursor:pointer; border-color:#2b466f; background:#0f1520;}
-    .chip.toggle.on{background:#12223a; color:#dff0ff; border-color:#3b5f98}
 
     .pozo{display:grid; gap:8px; cursor:pointer}
     .pozo:hover{outline:1px solid #1f3e66}
@@ -79,6 +77,7 @@
     .nav-inner{display:flex; gap:8px; padding:10px 14px}
     .nav-inner button{flex:1}
 
+    /* Paleta por pozo (1..6) */
     .color-1{ --c-bg:linear-gradient(90deg,#ffd83a,#ffd83a); --c-fg:#001; }
     .color-2{ --c-bg:linear-gradient(90deg,#7ad39a,#5fbf87); --c-fg:#001; }
     .color-3{ --c-bg:linear-gradient(90deg,#74b3ff,#4686ff); --c-fg:#001; }
@@ -128,10 +127,7 @@
         </div>
         <div class="speed" id="speedRow">
           <div class="box">
-            <div class="h">
-              Promedio (últimos 7 días, sin hoy)
-              <span id="avgModeChip" class="chip toggle">Modo: Adaptativo</span>
-            </div>
+            <div class="h">Promedio (ver regla de ventana única)</div>
             <div class="v" id="avgPace">—</div>
             <div class="tiny muted" id="avgFoot">—</div>
           </div>
@@ -196,10 +192,6 @@ const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => new Intl.NumberFormat('es-AR').format(n);
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
-const prefs = {
-  get:(k,d)=>{ try{const v=localStorage.getItem(k); return v?JSON.parse(v):d;}catch(_){return d;} },
-  set:(k,v)=>{ try{localStorage.setItem(k,JSON.stringify(v));}catch(_){ } }
-};
 
 function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
 function isAbortCancel(v){
@@ -257,6 +249,7 @@ let gNames  = null;
 let gDaysLabels = [];
 let gDaysValues = [];
 
+/* Carga y transforma columnas FechaFracPozoN y SecuenciaPozoN */
 function extractFracturadoColumns(rows){
   const byPozo = {};
   if(!rows || !rows.length){ return byPozo; }
@@ -312,6 +305,7 @@ function computeStats(byPozo){
   return stats;
 }
 
+/* Agregado por día (solo FECHA; ABORTADA/CANCELADA NO suman por día) */
 function aggregateByDay(byPozo){
   const map = new Map(); // ymd -> count
   for (const [key, serie] of Object.entries(byPozo)){
@@ -322,45 +316,62 @@ function aggregateByDay(byPozo){
         if (ymd) map.set(ymd, (map.get(ymd)||0) + 1);
       } else if (isStop(o.fecha)){
         break;
-      } // ABORTADA/CANCELADA no suman por día
+      }
     }
   }
   // Devuelve orden DESC (más reciente primero)
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
-/* === PROMEDIO últimos 7 (sin hoy) con dos modos: adaptativo/fijo === */
-function computeAvgLast7ExcludeToday(daysArr, mode /* 'adaptive' | 'fixed' */){
-  // daysArr viene DESC: [['YYYY-MM-DD', count], ...]
-  const map = new Map(daysArr);
-  const tz = 'America/Argentina/Buenos_Aires';
-  const today = new Date();
-  const tzToday = new Date(today.toLocaleString('en-US', { timeZone: tz }));
+/* === PROMEDIO (modo único con fecha de inicio y cap en últimos 7) ===
+   - start = primer día con etapas
+   - end   = ayer (excluye hoy)
+   - si (días entre start..end) <= 7  => usa todos (incluye 0s)
+   - si > 7 => usa últimos 7 (end-6 .. end), incluye 0s */
+function computeAvgSinceStartCap7(daysArrDesc){
+  // Mapa de conteos por fecha (YYYY-MM-DD)
+  const map = new Map(daysArrDesc); // DESC
+  const allDaysAsc = Array.from(map.keys()).sort(); // ASC
+  if (allDaysAsc.length === 0) return { avg:0, usedDays:0, window:[] };
 
-  if (mode === 'adaptive'){
-    // MODO ADAPTATIVO: usa solo días con datos previos (1..7), sin hoy
-    const values = [];
-    for (let i=1; i<=7; i++){
-      const d = new Date(tzToday);
-      d.setDate(d.getDate() - i);
-      const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      if (map.has(ymd)) values.push(map.get(ymd)); // solo cuenta días existentes
-    }
-    const used = values.length || 1; // evita división por 0
-    const sum  = values.reduce((a,b)=>a+b,0);
-    return { avg: sum / used, window: values.slice().reverse(), usedDays: values.length };
-  } else {
-    // MODO FIJO: siempre 7 días previos, los faltantes cuentan 0
-    const values = [];
-    for (let i=1; i<=7; i++){
-      const d = new Date(tzToday);
-      d.setDate(d.getDate() - i);
-      const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      values.push(map.get(ymd) || 0);
-    }
-    const sum = values.reduce((a,b)=>a+b,0);
-    return { avg: sum / 7, window: values.slice().reverse(), usedDays: 7 };
+  // Fecha de inicio = primer día con etapas
+  const startYMD = allDaysAsc[0];
+
+  // Ayer según AR
+  const tz = 'America/Argentina/Buenos_Aires';
+  const now = new Date();
+  const tzNow = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+  const yesterday = new Date(tzNow.getFullYear(), tzNow.getMonth(), tzNow.getDate()-1);
+  const endYMD = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+
+  // Si inicio está después de ayer, no hay ventana válida
+  if (startYMD > endYMD) return { avg:0, usedDays:0, window:[] };
+
+  // Días totales entre start..end (inclusive)
+  const s = new Date(startYMD+'T00:00:00');
+  const e = new Date(endYMD+'T00:00:00');
+  const daysBetween = Math.floor((e - s) / 86400000) + 1;
+
+  // Ventana
+  let winStart = new Date(s);
+  let winLen   = daysBetween;
+  if (daysBetween > 7){
+    winStart = new Date(e); winStart.setDate(e.getDate() - 6);
+    winLen = 7;
   }
+
+  // Recolecta valores, agregando 0 donde no hay etapas
+  const values = [];
+  const labels = [];
+  for (let i=0;i<winLen;i++){
+    const d = new Date(winStart); d.setDate(winStart.getDate()+i);
+    const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    values.push(map.get(ymd) || 0);
+    labels.push(ymd);
+  }
+  const sum = values.reduce((a,b)=>a+b,0);
+  const avg = sum / (values.length || 1);
+  return { avg, usedDays: values.length, window: values, labels };
 }
 
 function computeETA(remaining, avgPerDay){
@@ -381,16 +392,12 @@ function renderKPIs(stats){
   $('#kpiRestantes .value').textContent = fmt(rest);
   return {totales, hechas, rest};
 }
-function renderSpeed(avg, etaDays, etaDate, usedDays, mode){
+function renderSpeed(avg, etaDays, etaDate, usedDays){
   $('#avgPace').textContent = (avg && avg>0) ? `${avg.toFixed(1)} etapas/día` : '—';
   $('#etaFinish').textContent = (etaDate)
     ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
     : '—';
-  const lbl = mode === 'adaptive' ? 'Adaptativo' : 'Fijo';
-  $('#avgFoot').textContent = `Modo: ${lbl} · Días usados: ${usedDays || (mode==='adaptive' ? 0 : 7)}`;
-  const chip = $('#avgModeChip');
-  chip.textContent = `Modo: ${lbl}`;
-  chip.classList.toggle('on', mode==='adaptive');
+  $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s) · Regla: desde inicio hasta ayer; si >7, últimos 7 (con 0 en días sin etapas).`;
 }
 const pozoIndex = (key)=> {
   const m = key.match(/pozo-(\d+)/i);
@@ -629,17 +636,15 @@ async function fetchData(){
   return await res.json();
 }
 
-let gDaysArrDesc = []; // cache de [['yyyy-mm-dd', count], ...] DESC
-function recomputeAndRender(avgMode){
-  // KPIs y tarjetas
+let gDaysArrDesc = []; // [['yyyy-mm-dd', count], ...] DESC
+function recomputeAndRender(){
   const totals = renderKPIs(gStats);
 
-  // Promedio + ETA
-  const { avg, usedDays } = computeAvgLast7ExcludeToday(gDaysArrDesc, avgMode);
+  // Promedio único (fecha inicio -> ayer; si >7, últimos 7; con 0s)
+  const { avg, usedDays } = computeAvgSinceStartCap7(gDaysArrDesc);
   const { etaDays, etaDate } = computeETA(totals.rest, avg);
-  renderSpeed(avg, etaDays, etaDate, usedDays, avgMode);
+  renderSpeed(avg, etaDays, etaDate, usedDays);
 
-  // Por día (gráfica + lista)
   renderDias(gDaysArrDesc);
 }
 
@@ -660,7 +665,7 @@ async function load(){
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
 
     renderPozos(stats, names);
-    recomputeAndRender(prefs.get('avgMode','adaptive'));
+    recomputeAndRender();
 
     const hash = (location.hash||'').replace('#','').trim();
     if (hash && stats[hash]) openDetail(hash);
@@ -690,28 +695,21 @@ $('#btnHelp').addEventListener('click', ()=>{
 });
 
 document.getElementById('btnInst').addEventListener('click', ()=>{
-  const mode = prefs.get('avgMode','adaptive')==='adaptive' ? 'Adaptativo' : 'Fijo';
   alert(
 `Notas de versión 1.0
 
-• Promedio de ritmo (últimos 7 días, sin hoy)
-   - Modo Adaptativo: promedia solo días con etapas dentro de los últimos 7 (si hay 4 días, promedia 4).
-   - Modo Fijo: siempre divide por 7; días sin etapas cuentan como 0.
-   - Modo actual: ${mode}.
-• ETA (fin estimado): etapas restantes / promedio diario (si el promedio = 0, no se muestra ETA).
 • Reglas de conteo:
    - "Realizadas": celdas con fecha o con los textos ABORTADA/CANCELADA.
    - "Totales": cantidad de filas hasta la primera celda "STOP" (sin incluirla).
    - "Restantes": Totales – Realizadas.
    - Gráfica/tabla por día: SOLO cuentan celdas con fecha (ABORTADA/CANCELADA no suman por día).
+• Promedio de ritmo (modo único):
+   - Fecha de inicio: primer día con etapas.
+   - Ventana: desde inicio hasta AYER. Si hay 7 o menos días, se usan todos (los días sin etapas cuentan 0).
+   - Si hay más de 7 días disponibles, se usan los ÚLTIMOS 7 (hasta AYER), contando 0 donde no hubo etapas.
+• ETA (fin estimado): etapas restantes / promedio diario (si el promedio = 0, no se muestra ETA).
 • Vista por pozo: cada tarjeta muestra Tot/Hechas/Rest y %; el color del encabezado corresponde al número de pozo.
-• Detalle de pozo: tocá un pozo para ver su gráfica por día y el listado de etapas (muestra fecha).
-• Datos: se leen de status.json y se refrescan con “Actualizar”.
-
-Sugerencias futuras:
-• Corte de “día operativo” configurable (ej. 06:00) para agrupar días.
-• Exportar CSV del detalle por pozo y del agregado por día.
-• Filtros: rango de fechas y selección de pozos visibles.`
+• Detalle de pozo: tocá un pozo para ver su gráfica por día y el listado de etapas (muestra fecha).`
   );
 });
 
@@ -725,22 +723,6 @@ window.addEventListener('resize', () => {
     drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues);
   }
 });
-
-/* === Toggle de modo de promedio (persistente) === */
-const avgChip = document.getElementById('avgModeChip');
-function updateAvgChip(){
-  const mode = prefs.get('avgMode','adaptive');
-  avgChip.textContent = `Modo: ${mode==='adaptive' ? 'Adaptativo' : 'Fijo'}`;
-  avgChip.classList.toggle('on', mode==='adaptive');
-}
-avgChip.addEventListener('click', ()=>{
-  const cur = prefs.get('avgMode','adaptive');
-  const next = cur === 'adaptive' ? 'fixed' : 'adaptive';
-  prefs.set('avgMode', next);
-  updateAvgChip();
-  if (gStats && gDaysArrDesc) recomputeAndRender(next);
-});
-updateAvgChip();
 
 /* ========= START ========= */
 load();
