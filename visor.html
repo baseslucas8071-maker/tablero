@@ -748,22 +748,64 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* ===== Promedio y ETA (usa solo fechas válidas) ===== */
-  function computeAverageAndETA(freq, restantes){
-    var arr = Array.from(freq.values()).sort(function(a,b){ return a.normalized.localeCompare(b.normalized); });
-    var used = Math.min(AVG_WINDOW_DAYS, arr.length);
-    var sum = 0;
-    for (var i=Math.max(0,arr.length-used); i<arr.length; i++){
-      sum += arr[i].count;
-    }
-    var avg = used>0 ? (sum/used) : 0;
-    var etaText = '—';
-    if(avg>0 && restantes>0){
-      var days = Math.ceil(restantes / avg);
-      var dt = new Date(); dt.setDate(dt.getDate()+days);
-      etaText = dt.getDate()+'/'+(dt.getMonth()+1)+'/'+dt.getFullYear()+' (≈ '+days+' día'+(days===1?'':'s')+')';
-    }
-    return {avg:avg,usedDays:used,etaText:etaText};
+ /* ===== Promedio y ETA (regla de ventana única) ===========================
+   Reglas:
+   1) Fecha de inicio = primer día con etapas (por fecha válida).
+   2) Período = desde inicio hasta AYER (hoy EXCLUIDO).
+   3) Si hay ≤7 días disponibles: promedia TODOS esos días (días sin etapas cuentan 0).
+   4) Si hay >7 días: usa SOLO los últimos 7 (hasta ayer), también contando 0.
+--------------------------------------------------------------------------- */
+function computeAverageAndETA(freq, restantes){
+  // freq es un Map normalizado "YYYY-MM-DD" -> { display, count, normalized }
+  var keys = Array.from(freq.keys()).sort(); // orden cronológico
+
+  if(keys.length === 0){
+    return { avg: 0, usedDays: 0, etaText: '—' };
   }
+
+  // Utilidades de fecha local (medianoche)
+  function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+  function fromNorm(s){ var a=s.split('-').map(Number); return new Date(a[0], a[1]-1, a[2]); }
+  function toNorm(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+  var today = startOfDay(new Date());
+  var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+
+  // 1) Inicio = primer día con etapas
+  var start = startOfDay(fromNorm(keys[0]));
+
+  // Si el inicio cae después de ayer, no hay ventana válida todavía
+  if(start > yesterday){
+    return { avg: 0, usedDays: 0, etaText: '—' };
+  }
+
+  // 2) Construimos la serie diaria desde inicio hasta AYER, contando 0 donde no hubo etapas
+  var counts = [];
+  var d = new Date(start);
+  while(d <= yesterday){
+    var k = toNorm(d);
+    var rec = freq.get(k);
+    counts.push(rec ? rec.count : 0);
+    d.setDate(d.getDate()+1);
+  }
+
+  // 3–4) Ventana única según tamaño (≤7: todos; >7: últimos 7)
+  var windowLen = Math.min(7, counts.length);
+  var slice = counts.length > 7 ? counts.slice(counts.length - 7) : counts;
+  var sum = slice.reduce(function(a,b){ return a+b; }, 0);
+  var avg = windowLen > 0 ? (sum / windowLen) : 0;
+
+  // ETA (si el promedio es 0, no se puede estimar)
+  var etaText = '—';
+  if(avg > 0 && restantes > 0){
+    var daysNeeded = Math.ceil(restantes / avg);
+    var eta = new Date(today); // hoy a 00:00
+    eta.setDate(eta.getDate() + daysNeeded);
+    etaText = eta.getDate()+'/'+(eta.getMonth()+1)+'/'+eta.getFullYear()+' (≈ '+daysNeeded+' día'+(daysNeeded===1?'':'s')+')';
+  }
+
+  return { avg: avg, usedDays: windowLen, etaText: etaText };
+}
 
   /* ========= PROTECCIONES / SAVER ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
