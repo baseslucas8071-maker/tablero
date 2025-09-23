@@ -397,7 +397,7 @@ function renderSpeed(avg, etaDays, etaDate, usedDays){
   $('#etaFinish').textContent = (etaDate)
     ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
     : '—';
-  $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s) · Regla: desde inicio hasta ayer; si >7, últimos 7 (con 0 en días sin etapas).`;
+  $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s).`;
 }
 const pozoIndex = (key)=> {
   const m = key.match(/pozo-(\d+)/i);
