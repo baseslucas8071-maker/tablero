@@ -610,7 +610,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "FRACTURANDO",
+      "FechaFracPozo1": "FB 90 bbl",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "45922",
       "FechaFracPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-23T04:43:33.5180939Z",
+  "lastUpdate": "2025-09-23T04:52:28.7558956Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
