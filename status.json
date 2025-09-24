@@ -687,7 +687,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "4928",
-      "TPNPozo2": "Conquistar el mundo",
+      "TPNPozo2": "",
       "TPNPozo3": "4965 C. O.",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-24T17:43:18.8750576Z",
+  "lastUpdate": "2025-09-24T17:43:53.6760753Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
