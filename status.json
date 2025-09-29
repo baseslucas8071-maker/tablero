@@ -969,7 +969,7 @@
     {
       "FechaFracPozo1": "FLOWBACK",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "INYECC PD",
+      "FechaFracPozo3": "ESP. DECIS",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-09-29T18:02:18.3609991Z",
+  "lastUpdate": "2025-09-29T18:36:27.5715492Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
