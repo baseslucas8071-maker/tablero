@@ -134,6 +134,7 @@
           <div class="box">
             <div class="h">Fin estimado</div>
             <div class="v" id="etaFinish">—</div>
+            <div class="tiny muted" id="etaTime">—</div>
           </div>
         </div>
         <div class="tiny muted" id="lastUpdate" style="margin-top:8px">—</div>
@@ -184,7 +185,8 @@
 /* ========= CONFIG ========= */
 const CONFIG = {
   DATA_URL: 'status.json',
-  MAX_ETAPAS: 12
+  MAX_ETAPAS: 12,
+  DAY_CUTOFF_HOUR: 0 // 0 = medianoche; usar 6 para día operativo 06:00
 };
 
 /* ========= HELPERS ========= */
@@ -192,6 +194,10 @@ const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => new Intl.NumberFormat('es-AR').format(n);
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function fmtDate(d){ return d.toLocaleDateString('es-AR'); }
+function fmtTime(d){ return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
 
 function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
 function isAbortCancel(v){
@@ -323,13 +329,8 @@ function aggregateByDay(byPozo){
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
-/* === PROMEDIO (modo único con fecha de inicio y cap en últimos 7) ===
-   - start = primer día con etapas
-   - end   = ayer (excluye hoy)
-   - si (días entre start..end) <= 7  => usa todos (incluye 0s)
-   - si > 7 => usa últimos 7 (end-6 .. end), incluye 0s */
+/* === PROMEDIO (modo único con fecha de inicio y cap en últimos 7) === */
 function computeAvgSinceStartCap7(daysArrDesc){
-  // Mapa de conteos por fecha (YYYY-MM-DD)
   const map = new Map(daysArrDesc); // DESC
   const allDaysAsc = Array.from(map.keys()).sort(); // ASC
   if (allDaysAsc.length === 0) return { avg:0, usedDays:0, window:[] };
@@ -344,15 +345,12 @@ function computeAvgSinceStartCap7(daysArrDesc){
   const yesterday = new Date(tzNow.getFullYear(), tzNow.getMonth(), tzNow.getDate()-1);
   const endYMD = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
 
-  // Si inicio está después de ayer, no hay ventana válida
   if (startYMD > endYMD) return { avg:0, usedDays:0, window:[] };
 
-  // Días totales entre start..end (inclusive)
   const s = new Date(startYMD+'T00:00:00');
   const e = new Date(endYMD+'T00:00:00');
   const daysBetween = Math.floor((e - s) / 86400000) + 1;
 
-  // Ventana
   let winStart = new Date(s);
   let winLen   = daysBetween;
   if (daysBetween > 7){
@@ -360,7 +358,6 @@ function computeAvgSinceStartCap7(daysArrDesc){
     winLen = 7;
   }
 
-  // Recolecta valores, agregando 0 donde no hay etapas
   const values = [];
   const labels = [];
   for (let i=0;i<winLen;i++){
@@ -374,11 +371,56 @@ function computeAvgSinceStartCap7(daysArrDesc){
   return { avg, usedDays: values.length, window: values, labels };
 }
 
-function computeETA(remaining, avgPerDay){
-  if (!avgPerDay || avgPerDay <= 0 || !isFinite(avgPerDay)) return {etaDays:null, etaDate:null};
-  const etaDays = Math.ceil(remaining / avgPerDay);
-  const etaDate = addDays(new Date(), etaDays);
-  return {etaDays, etaDate};
+/* ======= ETA con HORA (corrige "≈ 1 día" cuando entra hoy) ======= */
+function hoursLeftUntilCutoff(now = new Date(), corteHora = 0) {
+  const end = new Date(now);
+  if (corteHora === 0) {
+    end.setHours(23,59,59,999);
+  } else {
+    if (now.getHours() < corteHora || (now.getHours() === corteHora && now.getMinutes() === 0)) {
+      end.setHours(corteHora,0,0,0);
+    } else {
+      end.setDate(end.getDate() + 1);
+      end.setHours(corteHora,0,0,0);
+    }
+  }
+  return (end - now) / 36e5; // horas
+}
+
+function estimateFinishWithTime(remaining, avgPerDay, now = new Date(), corteHora = 0) {
+  if (!isFinite(remaining) || remaining <= 0) {
+    return { approx:"", dateLabel: fmtDate(now), timeLabel: fmtTime(now), target: now };
+  }
+  if (!isFinite(avgPerDay) || avgPerDay <= 0) {
+    return { approx:"—", dateLabel:"", timeLabel:"", target:null };
+  }
+
+  const hoursNeeded = (remaining / avgPerDay) * 24;
+  const hoursLeftToday = hoursLeftUntilCutoff(now, corteHora);
+
+  let approx, daysNeeded;
+  if (hoursNeeded <= hoursLeftToday) {
+    approx = "≈ hoy";
+    daysNeeded = 0;
+  } else {
+    daysNeeded = Math.ceil(hoursNeeded / 24);
+    approx = `≈ ${daysNeeded} día${daysNeeded > 1 ? "s" : ""}`;
+  }
+
+  const target = new Date(now.getTime() + hoursNeeded * 3600 * 1000);
+
+  // Redondeo amable a 5 minutos
+  const roundTo = 5; // minutos
+  const m = target.getMinutes();
+  const rounded = new Date(target);
+  rounded.setMinutes(Math.round(m / roundTo) * roundTo, 0, 0);
+
+  return {
+    approx,
+    dateLabel: fmtDate(target),
+    timeLabel: fmtTime(rounded),
+    target: rounded
+  };
 }
 
 /* ========= RENDER (HOME) ========= */
@@ -392,11 +434,15 @@ function renderKPIs(stats){
   $('#kpiRestantes .value').textContent = fmt(rest);
   return {totales, hechas, rest};
 }
-function renderSpeed(avg, etaDays, etaDate, usedDays){
+function renderSpeed(avg, etaObj, usedDays){
   $('#avgPace').textContent = (avg && avg>0) ? `${avg.toFixed(1)} etapas/día` : '—';
-  $('#etaFinish').textContent = (etaDate)
-    ? `${etaDate.toLocaleDateString('es-AR')} (≈ ${etaDays} días)`
-    : '—';
+  if (etaObj && etaObj.target){
+    $('#etaFinish').innerHTML = `${etaObj.dateLabel} <span class="muted">(${etaObj.approx})</span>`;
+    $('#etaTime').textContent = `~ ${etaObj.timeLabel}`;
+  } else {
+    $('#etaFinish').textContent = '—';
+    $('#etaTime').textContent = '—';
+  }
   $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s).`;
 }
 const pozoIndex = (key)=> {
@@ -640,11 +686,18 @@ let gDaysArrDesc = []; // [['yyyy-mm-dd', count], ...] DESC
 function recomputeAndRender(){
   const totals = renderKPIs(gStats);
 
-  // Promedio único (fecha inicio -> ayer; si >7, últimos 7; con 0s)
+  // Promedio único
   const { avg, usedDays } = computeAvgSinceStartCap7(gDaysArrDesc);
-  const { etaDays, etaDate } = computeETA(totals.rest, avg);
-  renderSpeed(avg, etaDays, etaDate, usedDays);
 
+  // ETA con hora
+  const etaObj = estimateFinishWithTime(
+    totals.rest,
+    avg,
+    new Date(),
+    CONFIG.DAY_CUTOFF_HOUR
+  );
+
+  renderSpeed(avg, etaObj, usedDays);
   renderDias(gDaysArrDesc);
 }
 
@@ -707,7 +760,9 @@ document.getElementById('btnInst').addEventListener('click', ()=>{
    - Fecha de inicio: primer día con etapas.
    - Ventana: desde inicio hasta AYER. Si hay 7 o menos días, se usan todos (los días sin etapas cuentan 0).
    - Si hay más de 7 días disponibles, se usan los ÚLTIMOS 7 (hasta AYER), contando 0 donde no hubo etapas.
-• ETA (fin estimado): etapas restantes / promedio diario (si el promedio = 0, no se muestra ETA).
+• ETA (fin estimado):
+   - Se calcula con horas: remaining/avg → horas. Si entra antes del corte del día (${CONFIG.DAY_CUTOFF_HOUR===0?'medianoche':`${CONFIG.DAY_CUTOFF_HOUR}:00`}), muestra "≈ hoy".
+   - Además de la fecha, se muestra la hora estimada (línea secundaria). 
 • Vista por pozo: cada tarjeta muestra Tot/Hechas/Rest y %; el color del encabezado corresponde al número de pozo.
 • Detalle de pozo: tocá un pozo para ver su gráfica por día y el listado de etapas (muestra fecha).`
   );
