@@ -199,7 +199,6 @@
           <div class="kpi">
             <div class="kpi-label">Fin estimado</div>
             <div id="kpiETA" class="kpi-sub">—</div>
-            <div id="kpiETATime" class="kpi-note">—</div>
           </div>
         </div>
 
@@ -331,9 +330,6 @@ document.addEventListener('DOMContentLoaded', function(){
   /* Ventana para promedio (días) */
   var AVG_WINDOW_DAYS = 7;
 
-  /* Hora de corte del día operativo (0=medianoche; usar 6 si cierra 06:00) */
-  var DAY_CUTOFF_HOUR = 0;
-
   document.getElementById('autoN').textContent = LAST_N_TO_SHOW;
 
   var UA = navigator.userAgent || '';
@@ -350,7 +346,6 @@ document.addEventListener('DOMContentLoaded', function(){
   var clamp=function(v,a,b){ return Math.min(b,Math.max(a,v)); };
   var pad2=function(n){ return String(n).padStart(2,'0'); };
   var fmt1=function(n){ return (Math.round(n*10)/10).toString().replace('.',','); };
-  var fmtTime=function(d){ return pad2(d.getHours())+':'+pad2(d.getMinutes()); };
 
   var toRawURL=function(u){
     if(!u) return '';
@@ -417,8 +412,17 @@ document.addEventListener('DOMContentLoaded', function(){
       kpiRemain=document.getElementById('kpiRemain'),
       kpiAvg=document.getElementById('kpiAvg'),
       kpiWindow=document.getElementById('kpiWindow'),
-      kpiETA=document.getElementById('kpiETA'),
-      kpiETATime=document.getElementById('kpiETATime');
+      kpiETA=document.getElementById('kpiETA');
+
+  var modal=document.getElementById('settingsModal');
+  var setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
+  var setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
+  var setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
+  var setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
+  var btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
+  var btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
+  var btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
+  var wellChooser=document.getElementById('wellChooser');
 
   /* ========= HEADER ACCIONES ========= */
   autoScroll.checked=prefs.get('ui:autoScroll',true);
@@ -434,7 +438,47 @@ document.addEventListener('DOMContentLoaded', function(){
   btnFull.onclick=function(){ var fs=document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement||document.mozFullScreenElement; fs?exitFull():enterFull(); };
 
   btnSettings.onclick=openSettings;
-  btnCloseSettings.onclick=function(){ modal.style.display='none'; };
+  btnClose.onclick=function(){ modal.style.display='none'; };
+  btnReset.onclick=function(){ localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload(); };
+
+  btnSave.onclick=function(){
+    try{
+      saveSettings(true);
+      fitRowsToViewport();
+      applyWellVisibility();
+      if (autoScroll.checked) setTimeout(function(){ scrollToLastWithData(LAST_N_TO_SHOW); }, 0);
+      net.textContent='Ajustes guardados';
+      net.style.background='rgba(0,180,60,.25)'; net.style.borderColor='rgba(0,180,60,.35)';
+    }catch(err){
+      console.error(err);
+      net.textContent='Error guardando ajustes';
+      net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
+      modal.style.display='none';
+    }
+  };
+  btnLoadDetected.onclick=mergeDetectedItems;
+  btnAddRule.onclick=function(){ addRuleRow({display:'',unit:'',low:'',mid:''}); };
+  btnTestSaver.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); saveSettings(false); modal.style.display='none'; setTimeout(function(){ showSaver(true); },0); clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000); });
+
+  /* ========= ACTIVIDAD ========= */
+  var activityEvts=['mousemove','pointermove','touchmove','touchstart','click','wheel','keydown'];
+  var lastInput={x:null,y:null,t:0};
+  activityEvts.forEach(function(ev){ window.addEventListener(ev,markActivity,{passive:true}); });
+  function markActivity(e){
+    var now=Date.now();
+    if(e && (e.type==='mousemove' || e.type==='pointermove' || e.type==='touchmove')){
+      var p = (e && e.touches && e.touches[0]) ? e.touches[0] : e;
+      var x = p && typeof p.clientX==='number' ? p.clientX : 0;
+      var y = p && typeof p.clientY==='number' ? p.clientY : 0;
+      if(lastInput.x!=null){
+        var dx=Math.abs(x-lastInput.x), dy=Math.abs(y-lastInput.y), dt=now-lastInput.t;
+        if(dx<4 && dy<4 && dt<350) return;
+      }
+      lastInput={x:x,y:y,t:now};
+    }
+    lastActivityTs=now; hideSaver(); scheduleSaver();
+  }
+  window.addEventListener('keydown',function(e){ if(e.key==='Escape'){modal.style.display='none'; hideSaver();}});
 
   /* ========= TABLA ========= */
   function initializeDOM(){
@@ -507,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var maybeFormatDate=function(v){ var p=parseDateValue(v); return p?p.display:(v==null?'':v); };
   var isStop=function(v){ return String(v==null?'':v).trim().toUpperCase()==='STOP'; };
   var isFechaValida=function(v){ return parseDateValue(v)!==null; }
+
   function isAbortOrCancel(v){
     var s = String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
     return s.includes('ABORTADA') || s.includes('CANCELADA');
@@ -702,83 +747,75 @@ document.addEventListener('DOMContentLoaded', function(){
     return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
   }
 
-  /* ===== Promedio y ETA (regla de ventana única + hora) =================== */
+  /* ===== Promedio y ETA (regla de ventana única + hora estimada) =====
+     - Inicio = primer día con etapas (por fecha válida).
+     - Período = desde inicio hasta AYER (hoy EXCLUIDO).
+     - Si hay ≤7 días: promedia TODOS (incluyendo días 0).
+     - Si hay >7: usa SOLO los últimos 7 (hasta AYER), incluyendo 0s.
+     - ETA: usa horas (remaining/avg * 24). Si entra antes del corte del día
+       (medianoche), muestra "≈ hoy". Además añade la hora aproximada. */
   function computeAverageAndETA(freq, restantes){
-    var keys = Array.from(freq.keys()).sort(); // ASC
+    var keys = Array.from(freq.keys()).sort();
     if(keys.length === 0){
-      return { avg: 0, usedDays: 0, etaText: '—', etaTimeLabel:'—' };
+      return { avg: 0, usedDays: 0, etaText: '—' };
     }
 
     function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
     function fromNorm(s){ var a=s.split('-').map(Number); return new Date(a[0], a[1]-1, a[2]); }
     function toNorm(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+    function pad2(n){ return String(n).padStart(2,'0'); }
 
-    var now = new Date();
-    var today = startOfDay(now);
+    var today = startOfDay(new Date());
     var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
 
     var start = startOfDay(fromNorm(keys[0]));
     if(start > yesterday){
-      return { avg: 0, usedDays: 0, etaText: '—', etaTimeLabel:'—' };
+      return { avg: 0, usedDays: 0, etaText: '—' };
     }
 
-    var counts = [], d = new Date(start);
-    while(d <= yesterday){
+    var counts = [];
+    for (var d=new Date(start); d<=yesterday; d.setDate(d.getDate()+1)) {
       var k = toNorm(d);
       var rec = freq.get(k);
       counts.push(rec ? rec.count : 0);
-      d.setDate(d.getDate()+1);
     }
+
     var slice = counts.length > 7 ? counts.slice(counts.length - 7) : counts;
+    var windowLen = slice.length;
     var sum = slice.reduce(function(a,b){ return a+b; }, 0);
-    var avg = slice.length ? (sum / slice.length) : 0;
+    var avg = windowLen > 0 ? (sum / windowLen) : 0;
 
-    // ETA con hora
-    if(!(avg>0) || !(restantes>0)){
-      return { avg: avg, usedDays: slice.length, etaText: '—', etaTimeLabel:'—' };
+    if (!(avg > 0) || !(restantes > 0)) {
+      return { avg: avg, usedDays: windowLen, etaText: '—' };
     }
 
-    function hoursLeftUntilCutoff(now, cutoffHour){
-      var end = new Date(now);
-      if(cutoffHour === 0){
-        end.setHours(23,59,59,999);
-      }else{
-        if(now.getHours() < cutoffHour || (now.getHours()===cutoffHour && now.getMinutes()===0)){
-          end.setHours(cutoffHour,0,0,0);
-        }else{
-          end.setDate(end.getDate()+1);
-          end.setHours(cutoffHour,0,0,0);
-        }
-      }
-      return (end - now) / 36e5; // horas
+    var now = new Date();
+    function hoursLeftUntilCutoff(n){
+      var end = new Date(n);
+      end.setHours(23,59,59,999); // medianoche
+      return (end - n) / 36e5;
     }
-
     var hoursNeeded = (restantes / avg) * 24;
-    var hoursLeftToday = hoursLeftUntilCutoff(now, DAY_CUTOFF_HOUR);
+    var hoursLeftToday = hoursLeftUntilCutoff(now);
 
-    var approx, daysNeeded;
-    if(hoursNeeded <= hoursLeftToday){
+    var approx;
+    if (hoursNeeded <= hoursLeftToday) {
       approx = '≈ hoy';
-      daysNeeded = 0;
-    }else{
-      daysNeeded = Math.ceil(hoursNeeded / 24);
-      approx = '≈ ' + daysNeeded + ' día' + (daysNeeded>1?'s':'');
+    } else {
+      var daysNeeded = Math.ceil(hoursNeeded / 24);
+      approx = '≈ ' + daysNeeded + ' día' + (daysNeeded===1 ? '' : 's');
     }
 
     var target = new Date(now.getTime() + hoursNeeded*3600*1000);
-    var rounded = new Date(target);
-    var m = rounded.getMinutes();
-    rounded.setMinutes(Math.round(m/5)*5, 0, 0); // redondeo 5'
+    var roundTo = 5; // minutos
+    var m = target.getMinutes();
+    target.setMinutes(Math.round(m/roundTo)*roundTo, 0, 0);
 
-    var dateLabel = rounded.getDate()+'/'+(rounded.getMonth()+1)+'/'+rounded.getFullYear();
-    var timeLabel = fmtTime(rounded);
+    var dateLabel = target.getDate() + '/' + (target.getMonth()+1) + '/' + target.getFullYear();
+    var timeLabel = pad2(target.getHours()) + ':' + pad2(target.getMinutes());
+    var etaText = dateLabel + ' (' + approx + ') · ~ ' + timeLabel;
 
-    return {
-      avg: avg,
-      usedDays: slice.length,
-      etaText: dateLabel + ' (' + approx + ')',
-      etaTimeLabel: '~ ' + timeLabel
-    };
+    return { avg: avg, usedDays: windowLen, etaText: etaText };
   }
 
   /* ========= PROTECCIONES / SAVER ========= */
@@ -788,6 +825,18 @@ document.addEventListener('DOMContentLoaded', function(){
   function restartShift(){ clearInterval(shiftTimer); document.documentElement.style.setProperty('--nudge-x','0px'); document.documentElement.style.setProperty('--nudge-y','0px'); if(!DISPLAY.pixelShift.enabled) return; var ms=Math.max(1,DISPLAY.pixelShift.intervalMin)*60*1000; shiftTimer=setInterval(function(){ var m=Math.max(0,DISPLAY.pixelShift.maxOffsetPx|0); var x=(Math.floor(Math.random()*(m*2+1))-m); var y=(Math.floor(Math.random()*(m*2+1))-m); document.documentElement.style.setProperty('--nudge-x',x+'px'); document.documentElement.style.setProperty('--nudge-y',y+'px'); },ms); }
   function buildSaverFrame(){ var x=30+Math.random()*40, y=25+Math.random()*40; document.getElementById('saver').style.setProperty('--blob-x',x+'%'); document.getElementById('saver').style.setProperty('--blob-y',y+'%'); document.getElementById('saverTicker').textContent=new Date().toLocaleString()+'  —  (mover mouse/tecla para salir)'; }
   function clearSaver(){ var saverStage=document.getElementById('saverStage'); saverStage.innerHTML=''; sprites=[]; if(rafAnim){ cancelAnimationFrame(rafAnim); rafAnim=null; } if(rotator){ clearInterval(rotator); rotator=null; } }
+
+  function startBounce(images){ clearSaver(); var saverStage=document.getElementById('saverStage'); var W=saverStage.clientWidth, H=saverStage.clientHeight; var n=Math.min(images.length,6); sprites=[]; for(var i=0;i<n;i++){ var img=document.createElement('img'); img.src=images[i%images.length]; img.className='bImg'; saverStage.appendChild(img); var w0=180, h0=100; sprites.push({el:img,x:Math.random()*(W-w0),y:Math.random()*(H-h0),vx:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),vy:(Math.random()<.5?-1:1)*(1.0+Math.random()*0.8),w:w0,h:h0}); }
+    var step=function(){ W=saverStage.clientWidth; H=saverStage.clientHeight; for(var s of sprites){ s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; }
+      for(var s of sprites){ s.x+=s.vx; s.y+=s.vy; if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;} if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;} }
+      for(var i=0;i<sprites.length;i++){ for(var j=i+1;j<sprites.length;j++){ var a=sprites[i], b=sprites[j]; var ox=Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x); var oy=Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y); if(ox>0 && oy>0){ if(ox<oy){ if(a.x<b.x){a.x-=ox/2; b.x+=ox/2;} else {a.x+=ox/2; b.x-=ox/2;} a.vx*=-1; b.vx*=-1; } else { if(a.y<b.y){a.y-=oy/2; b.y+=oy/2;} else {a.y+=oy/2; b.y-=oy/2;} a.vy*=-1; b.vy*=-1; } a.x=Math.min(Math.max(0,a.x),W-a.w); a.y=Math.min(Math.max(0,a.y),H-a.h); b.x=Math.min(Math.max(0,b.x),W-b.w); b.y=Math.min(Math.max(0,b.y),H-b.h); } } }
+      for(var s of sprites){ s.el.style.transform='translate('+s.x+'px,'+s.y+'px)'; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function startStarfall(images){ clearSaver(); var saverStage=document.getElementById('saverStage'); var W=saverStage.clientWidth, H=saverStage.clientHeight; var N=Math.min(images.length*3,18); for(var i=0;i<N;i++){ var img=document.createElement('img'); img.src=images[i%images.length]; img.className='fallImg'; var scale=0.55+Math.random()*0.25; var base=Math.min(window.innerWidth*0.10,160); var size=base*scale; img.style.width=size+'px'; var x=Math.random()*(W-size); var y=-Math.random()*H*0.8 - size; var sp={el:img,x:x,y:y,size:size,vx:(Math.random()-0.5)*0.4,vy:0.9+Math.random()*1.4,rot:(Math.random()*8-4),a:Math.random()*360}; saverStage.appendChild(img); sprites.push(sp); }
+    var step=function(){ W=saverStage.clientWidth; H=saverStage.clientHeight; for(var s of sprites){ s.y+=s.vy; s.x+=s.vx; s.a+=s.rot*0.5; if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; if(s.y>H+30){ s.y=-s.size - Math.random()*H*0.4; s.x=Math.random()*(W - s.size); } s.el.style.transform='translate('+s.x+'px,'+s.y+'px) rotate('+s.a+'deg)'; } rafAnim=requestAnimationFrame(step); }; step(); }
+  function applySaverMode(mode){ clearSaver(); var imgs=VALUES_IMAGES(DISPLAY.saver.gitBase); if(mode==='valores-rebotando') return startBounce(imgs); if(mode==='valores-lluvia') return startStarfall(imgs); }
+  function showSaver(force){ if(force!==true) force=false; var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; if(!force && (Date.now()-lastActivityTs)<idleMs) return; buildSaverFrame(); document.getElementById('saver').style.display='block'; document.getElementById('saverStatus').textContent='Mostrando'; var modes=['blob','valores-rebotando','valores-lluvia']; if(DISPLAY.saver.mode==='rotar'){ var i=0; applySaverMode(modes[i]); rotator=setInterval(function(){ i=(i+1)%modes.length; applySaverMode(modes[i]); }, Math.max(1,DISPLAY.saver.rotateEveryMin)*60*1000); }else{ applySaverMode(DISPLAY.saver.mode); } }
+  function hideSaver(){ document.getElementById('saver').style.display='none'; document.getElementById('saverStatus').textContent='—'; clearSaver(); }
+  function scheduleSaver(){ clearTimeout(saverTO); var idleMs=Math.max(1,DISPLAY.saver.idleMinutes)*60*1000; var wait=Math.max(0,idleMs-(Date.now()-lastActivityTs)); saverTO=setTimeout(function(){ showSaver(false); }, wait+50); }
 
   /* ========= CARGA ========= */
   function tryFetch(url){ return fetch(url,{cache:'no-store',mode:'cors'}).then(function(res){ if(!res.ok) throw new Error('HTTP '+res.status); JSON_URL=url; return res.json(); }); }
@@ -826,8 +875,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var avgETA=computeAverageAndETA(stats.freq, totals.restantes);
       kpiAvg.textContent = (avgETA.avg>0?fmt1(avgETA.avg):'—') + (avgETA.avg>0?' etapas/día':'');
       kpiWindow.textContent = 'Ventana usada: '+(avgETA.usedDays||0)+' día(s)';
-      kpiETA.textContent = avgETA.etaText || '—';
-      kpiETATime.textContent = avgETA.etaTimeLabel || '—';
+      kpiETA.textContent = avgETA.etaText;
 
       paintBadgesPerPozo(remainingPerPozo(conv));
 
@@ -842,7 +890,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }finally{ isFetching=false; }
   }
 
-  /* ====== Autoscroll, restantes por pozo, settings, saver, etc. ====== */
+  /* ====== Autoscroll: últimas N filas con datos, considerando pozos visibles ====== */
   function hasVisibleData(o, visibleSet){
     if(!o) return false;
     var wells = (visibleSet && visibleSet.size) ? visibleSet : new Set([1,2,3,4,5,6]);
@@ -883,6 +931,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
+  /* ========= BADGES RESTANTES POR POZO ========= */
   function remainingPerPozo(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
@@ -925,37 +974,54 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  /* ========= MODAL & ajustes ========= */
-  var modal=document.getElementById('settingsModal');
-  var setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
-  var setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
-  var setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
-  var setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
-  var btnSave=document.getElementById('btnSaveSettings'), btnCloseSettings=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
-  var btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
-  var btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
-  var wellChooser=document.getElementById('wellChooser');
-
-  btnReset.onclick=function(){ localStorage.removeItem('stock:rules');localStorage.removeItem('display:cfg');location.reload(); };
-  btnSave.onclick=function(){
-    try{
-      saveSettings(true);
-      fitRowsToViewport();
-      applyWellVisibility();
-      if (autoScroll.checked) setTimeout(function(){ scrollToLastWithData(LAST_N_TO_SHOW); }, 0);
-      net.textContent='Ajustes guardados';
-      net.style.background='rgba(0,180,60,.25)'; net.style.borderColor='rgba(0,180,60,.35)';
-    }catch(err){
-      console.error(err);
-      net.textContent='Error guardando ajustes';
-      net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)';
-      modal.style.display='none';
+  /* ========= VISTA (Pozos visibles) ========= */
+  function buildWellChooser(){
+    if(!wellChooser) return;
+    wellChooser.innerHTML='';
+    var current = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
+      ? DISPLAY.view.visibleWells.slice()
+      : [1,2,3,4,5,6];
+    for(var p=1;p<=POZOS;p++){
+      (function(pp){
+        var lab=document.createElement('label');
+        var chk=document.createElement('input'); chk.type='checkbox'; chk.value=String(pp);
+        chk.checked = current.indexOf(pp)>=0;
+        chk.onchange=function(){
+          var set = new Set(DISPLAY.view && DISPLAY.view.visibleWells || []);
+          if(chk.checked) set.add(pp); else set.delete(pp);
+          var arr=Array.from(set).sort(function(a,b){return a-b;});
+          if(arr.length===0){ arr=[1]; chk.checked=true; }
+          DISPLAY.view = { visibleWells: arr };
+        };
+        lab.appendChild(chk); lab.appendChild(document.createTextNode(' Pozo '+pp));
+        wellChooser.appendChild(lab);
+      })(p);
     }
-  };
-  btnLoadDetected.onclick=mergeDetectedItems;
-  btnAddRule.onclick=function(){ addRuleRow({display:'',unit:'',low:'',mid:''}); };
-  btnTestSaver.addEventListener('click', function(e){ e.preventDefault(); e.stopImmediatePropagation(); saveSettings(false); modal.style.display='none'; setTimeout(function(){ showSaver(true); },0); clearTimeout(testingTO); testingTO=setTimeout(hideSaver,12000); });
+  }
+  function applyWellVisibility(){
+    var visible = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
+      ? new Set(DISPLAY.view.visibleWells)
+      : new Set([1,2,3,4,5,6]);
+    var topThs=hdrTop.querySelectorAll('th.pozoTop');
+    for(var i=0;i<topThs.length;i++){ var p=i+1; topThs[i].style.display = visible.has(p)?'':'none'; }
+    var ths = hdrSub.querySelectorAll('th');
+    for(var p=1;p<=POZOS;p++){
+      var b=(p-1)*3+1;
+      for(var k=0;k<3;k++){ var el=ths[b+k]; if(el) el.style.display = visible.has(p)?'':'none'; }
+    }
+    var trs=tbody.querySelectorAll('tr');
+    for(var r=0;r<trs.length;r++){
+      var tr=trs[r];
+      for(var p2=1;p2<=POZOS;p2++){
+        ['Seq','Pozo','Estado'].forEach(function(type){
+          var td=tr.querySelector('td[data-col="'+type+p2+'"]');
+          if(td) td.style.display = visible.has(p2)?'':'none';
+        });
+      }
+    }
+  }
 
+  /* ========= MODAL ========= */
   function openSettings(){
     setPozoFont.value=DISPLAY.pozoFont; setStockFont.value=DISPLAY.stockFont; setCellFont.value=DISPLAY.cellFont;
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
@@ -1016,59 +1082,8 @@ document.addEventListener('DOMContentLoaded', function(){
     STOCK_RULES=Object.fromEntries(detected.entries()); drawRulesTable();
   }
 
-  function buildWellChooser(){
-    if(!wellChooser) return;
-    wellChooser.innerHTML='';
-    var current = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
-      ? DISPLAY.view.visibleWells.slice()
-      : [1,2,3,4,5,6];
-    for(var p=1;p<=POZOS;p++){
-      (function(pp){
-        var lab=document.createElement('label');
-        var chk=document.createElement('input'); chk.type='checkbox'; chk.value=String(pp);
-        chk.checked = current.indexOf(pp)>=0;
-        chk.onchange=function(){
-          var set = new Set(DISPLAY.view && DISPLAY.view.visibleWells || []);
-          if(chk.checked) set.add(pp); else set.delete(pp);
-          var arr=Array.from(set).sort(function(a,b){return a-b;});
-          if(arr.length===0){ arr=[1]; chk.checked=true; }
-          DISPLAY.view = { visibleWells: arr };
-        };
-        lab.appendChild(chk); lab.appendChild(document.createTextNode(' Pozo '+pp));
-        wellChooser.appendChild(lab);
-      })(p);
-    }
-  }
-  function applyWellVisibility(){
-    var visible = (DISPLAY.view && Array.isArray(DISPLAY.view.visibleWells))
-      ? new Set(DISPLAY.view.visibleWells)
-      : new Set([1,2,3,4,5,6]);
-    var topThs=hdrTop.querySelectorAll('th.pozoTop');
-    for(var i=0;i<topThs.length;i++){ var p=i+1; topThs[i].style.display = visible.has(p)?'':'none'; }
-    var ths = hdrSub.querySelectorAll('th');
-    for(var p=1;p<=POZOS;p++){
-      var b=(p-1)*3+1;
-      for(var k=0;k<3;k++){ var el=ths[b+k]; if(el) el.style.display = visible.has(p)?'':'none'; }
-    }
-    var trs=tbody.querySelectorAll('tr');
-    for(var r=0;r<trs.length;r++){
-      var tr=trs[r];
-      for(var p2=1;p2<=POZOS;p2++){
-        ['Seq','Pozo','Estado'].forEach(function(type){
-          var td=tr.querySelector('td[data-col="'+type+p2+'"]');
-          if(td) td.style.display = visible.has(p2)?'':'none';
-        });
-      }
-    }
-  }
-
-  /* ========= SAVER helpers (recortado a lo esencial para no alargar) ========= */
-  function showSaver(){ /* … mismo comportamiento … */ }
-  function hideSaver(){ /* … */ }
-  function scheduleSaver(){ /* … */ }
-
   /* ========= INIT ========= */
-  function applyDisplay(){ applyFontVars(); /*night/shift*/ }
+  function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
   initializeDOM(); applyDisplay(); fitRowsToViewport(); applyWellVisibility();
   loadAndRender(true);
   setInterval(function(){ loadAndRender(false); }, REFRESH_SECONDS*1000);
