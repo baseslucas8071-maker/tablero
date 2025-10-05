@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-05T02:27:17.7132610Z",
+  "lastUpdate": "2025-10-05T02:27:49.7602991Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
@@ -1322,12 +1322,12 @@
       "STOCK": "25,038"
     },
     {
-      "ITEM": "GEL TOTE",
-      "STOCK": "0"
+      "ITEM": "DRP-2340",
+      "STOCK": "11,680"
     },
     {
-      "ITEM": "",
-      "STOCK": ""
+      "ITEM": "DRMAX-9115",
+      "STOCK": "7,525"
     }
   ]
 }
