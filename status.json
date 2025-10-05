@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "FechaFracPozo1": "BdC-1001(h) T7",
+      "FechaFracPozo1": "BdC-1004(h) T7",
       "FechaFracPozo2": "BdC-1002(h) T6",
       "FechaFracPozo3": "BdC-1003(h) T7",
       "FechaFracPozo4": "X",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-05T12:37:08.4997993Z",
+  "lastUpdate": "2025-10-05T12:38:55.5550701Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
