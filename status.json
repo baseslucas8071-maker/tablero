@@ -1303,11 +1303,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-05T01:33:49.3983602Z",
+  "lastUpdate": "2025-10-05T01:34:22.3771267Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "100 M3"
+      "STOCK": "-18618"
     },
     {
       "ITEM": "ARENA #100",
@@ -1315,7 +1315,7 @@
     },
     {
       "ITEM": "ARENA #30/70",
-      "STOCK": "1000 Tn"
+      "STOCK": "133.38"
     },
     {
       "ITEM": "GEL BOLSONES",
