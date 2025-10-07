@@ -211,7 +211,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "consultar para cerrar pozos aledaños",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-07T17:30:54.4936273Z",
+  "lastUpdate": "2025-10-07T17:36:53.9547532Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
