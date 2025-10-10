@@ -234,7 +234,7 @@
     {
       "FechaFracPozo1": "consultar para cerrar\n pozo cercano",
       "FechaFracPozo2": "consultar para cerrar\n pozo cercano",
-      "FechaFracPozo3": "STAND BY",
+      "FechaFracPozo3": "FRACTURANDO",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-10T23:55:43.5166101Z",
+  "lastUpdate": "2025-10-10T23:56:14.6958432Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
