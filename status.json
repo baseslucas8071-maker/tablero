@@ -213,7 +213,7 @@
     {
       "FechaFracPozo1": "consultar para cerrar\n pozo cercano",
       "FechaFracPozo2": "consultar para cerrar\n pozo cercano",
-      "FechaFracPozo3": "consultar para cerrar \npozo cercano",
+      "FechaFracPozo3": "WL consultar para cerrar \npozo cercano",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -226,7 +226,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5782",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-10T11:15:12.8876117Z",
+  "lastUpdate": "2025-10-10T11:15:44.2527767Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
@@ -1323,11 +1323,11 @@
     },
     {
       "ITEM": "DRP-2340",
-      "STOCK": "38435 kg"
+      "STOCK": "31855 kg"
     },
     {
       "ITEM": "DRMAX-9115",
-      "STOCK": "12800 kg"
+      "STOCK": "11200 kg"
     }
   ]
 }
