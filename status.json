@@ -255,7 +255,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "Antes de realizar esta etapa \nhay que cerrar el pozo BdC-3",
+      "FechaFracPozo3": "WL RIIH",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-11T06:20:21.7208781Z",
+  "lastUpdate": "2025-10-11T06:20:56.9725072Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
