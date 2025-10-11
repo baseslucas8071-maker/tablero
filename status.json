@@ -254,7 +254,7 @@
     },
     {
       "FechaFracPozo1": "45941",
-      "FechaFracPozo2": "",
+      "FechaFracPozo2": "Pesca WL",
       "FechaFracPozo3": "45941",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -274,7 +274,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "wire line",
+      "FechaFracPozo1": "stand by",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "45941",
       "FechaFracPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-11T19:56:11.6853855Z",
+  "lastUpdate": "2025-10-11T19:56:40.9967408Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
