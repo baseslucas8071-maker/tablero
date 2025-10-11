@@ -254,7 +254,7 @@
     },
     {
       "FechaFracPozo1": "45941",
-      "FechaFracPozo2": "Pesca WL",
+      "FechaFracPozo2": "WL",
       "FechaFracPozo3": "45941",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-11T19:56:40.9967408Z",
+  "lastUpdate": "2025-10-11T19:57:16.0983980Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
