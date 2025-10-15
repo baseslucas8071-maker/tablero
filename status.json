@@ -444,7 +444,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "WL",
+      "FechaFracPozo3": "WL RIIH",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-15T10:28:42.0539110Z",
+  "lastUpdate": "2025-10-15T10:29:19.2759382Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
