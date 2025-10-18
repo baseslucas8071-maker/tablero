@@ -990,7 +990,7 @@
     {
       "FechaFracPozo1": "STOP",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "PBA TPN",
+      "FechaFracPozo3": "PBA TPN KUREHA",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-18T06:18:00.8957187Z",
+  "lastUpdate": "2025-10-18T06:23:26.7098232Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
