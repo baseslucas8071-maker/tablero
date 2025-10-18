@@ -990,7 +990,7 @@
     {
       "FechaFracPozo1": "STOP",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "STOP",
+      "FechaFracPozo3": "PBA TPN",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1011,7 +1011,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "STOP",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "STOP",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-18T06:01:02.8609676Z",
+  "lastUpdate": "2025-10-18T06:18:00.8957187Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
