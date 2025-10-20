@@ -694,7 +694,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "FRACTURANDO",
+      "FechaFracPozo1": "45950",
       "FechaFracPozo2": "LIMPIEZA POST SO",
       "FechaFracPozo3": "45949",
       "FechaFracPozo4": "",
@@ -716,8 +716,8 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
-      "FechaFracPozo3": "STAND BY",
+      "FechaFracPozo2": "WL",
+      "FechaFracPozo3": "STAND BY1",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-20T02:46:23.1737662Z",
+  "lastUpdate": "2025-10-20T05:11:51.7555244Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
