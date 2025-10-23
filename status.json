@@ -883,7 +883,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "22/10//2025",
+      "FechaFracPozo1": "45952",
       "FechaFracPozo2": "45952",
       "FechaFracPozo3": "45952",
       "FechaFracPozo4": "",
@@ -1001,7 +1001,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
+      "TPNPozo1": "TPN KUREHA",
       "TPNPozo2": "3557",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-23T03:08:52.3110319Z",
+  "lastUpdate": "2025-10-23T03:11:00.5936206Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
