@@ -1001,7 +1001,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "PBA TPN KUREHA",
+      "TPNPozo1": "",
       "TPNPozo2": "3557",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2025-10-23T03:04:18.8185691Z",
+  "lastUpdate": "2025-10-23T03:08:52.3110319Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
