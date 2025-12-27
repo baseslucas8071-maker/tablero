@@ -21,7 +21,7 @@
     --row-h:44px; --nudge-x:0px; --nudge-y:0px; --overscan:0px;
   }
 
-  html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif}
+  html,body{height:100%;margin:0;background:var(--bg);color:#fff;font-family:Inter,Segoe UI,Arial,sans-serif; overflow:hidden;}
   .wrap{padding:calc(14px + var(--overscan));box-sizing:border-box;display:flex;flex-direction:column;height:100%;transform:translate(var(--nudge-x),var(--nudge-y));transition:transform .25s ease;}
 
   header{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -128,8 +128,18 @@
   #saver .ticker{position:absolute;left:0;right:0;bottom:5%;text-align:center;font-size:14px;color:#cfe8ff;opacity:.9}
   #saverStage{position:absolute;inset:0;overflow:hidden}
 
-  .bImg{position:absolute;width:min(14vw,200px);height:auto;user-select:none;pointer-events:none;opacity:.95;filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));}
-  .fallImg{position:absolute;width:min(10vw,160px);height:auto;opacity:.92;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));}
+  /* Animaciones optimizadas para GPU */
+  .bImg, .fallImg{
+      position:absolute;
+      width:min(14vw,200px);
+      height:auto;
+      user-select:none;
+      pointer-events:none;
+      opacity:.95;
+      filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));
+      will-change: transform; /* CLAVE PARA TV */
+  }
+  .fallImg{ width:min(10vw,160px); opacity:.92; filter:drop-shadow(0 10px 20px rgba(0,0,0,.35)); }
 
   .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.5);z-index:9998}
   .modal-card{width:min(900px,96vw);max-height:90vh;overflow:auto;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
@@ -185,7 +195,6 @@
   <main>
     <div class="board">
 
-      <!-- ===== KPIs + Reel ===== -->
       <div class="bar" style="flex-wrap:wrap">
         <div class="kpis" style="flex:1 1 680px">
           <div class="kpi"><div class="kpi-label">Etapas totales</div><div id="kpiTotal" class="kpi-value">0</div></div>
@@ -207,7 +216,6 @@
         </div>
       </div>
 
-      <!-- ===== STOCK ===== -->
       <div class="bar">
         <div class="stockwrap">
           <div class="stocklabel">STOCK ACTUAL:</div>
@@ -215,7 +223,6 @@
         </div>
       </div>
 
-      <!-- ===== TABLA ===== -->
       <div class="table-container" id="tableContainer">
         <table id="mainTable">
           <thead>
@@ -238,7 +245,6 @@
   </main>
 </div>
 
-<!-- ===== Modal Ajustes ===== -->
 <div id="settingsModal" class="modal" aria-modal="true" role="dialog" aria-label="Ajustes">
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
@@ -682,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var it=conv[i];
       if(!it.fila||!it.fila.trim()) continue;
       for(var p=1;p<=POZOS;p++){
-        var pdt=parseDateValue(it['Estado'+p]);     // solo FECHA
+        var pdt=parseDateValue(it['Estado'+p]);      // solo FECHA
         if(pdt){tot++; var cur=f.get(pdt.normalized); if(cur) cur.count++; else f.set(pdt.normalized,{display:pdt.display,count:1,normalized:pdt.normalized});}
       }
     }
@@ -747,13 +753,7 @@ document.addEventListener('DOMContentLoaded', function(){
     return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
   }
 
-  /* ===== Promedio y ETA (regla de ventana única + hora estimada) =====
-     - Inicio = primer día con etapas (por fecha válida).
-     - Período = desde inicio hasta AYER (hoy EXCLUIDO).
-     - Si hay ≤7 días: promedia TODOS (incluyendo días 0).
-     - Si hay >7: usa SOLO los últimos 7 (hasta AYER), incluyendo 0s.
-     - ETA: usa horas (remaining/avg * 24). Si entra antes del corte del día
-       (medianoche), muestra "≈ hoy". Además añade la hora aproximada. */
+  /* ===== Promedio y ETA (regla de ventana única + hora estimada) ===== */
   function computeAverageAndETA(freq, restantes){
     var keys = Array.from(freq.keys()).sort();
     if(keys.length === 0){
@@ -818,7 +818,7 @@ document.addEventListener('DOMContentLoaded', function(){
     return { avg: avg, usedDays: windowLen, etaText: etaText };
   }
 
-/* ========= PROTECCIONES / SAVER ========= */
+  /* ========= PROTECCIONES / SAVER (OPTIMIZADO TV) ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
 
   function applyNightDim(){ 
@@ -873,7 +873,7 @@ document.addEventListener('DOMContentLoaded', function(){
       img.src=images[i%images.length]; 
       img.className='bImg'; 
       img.style.position='absolute';
-      img.style.willChange='transform'; // Optimización TV
+      img.style.willChange='transform';
       saverStage.appendChild(img); 
       var w0=180, h0=100; 
       sprites.push({el:img, x:Math.random()*(W-w0), y:Math.random()*(H-h0), vx:(Math.random()<.5?-1:1)*(1.2+Math.random()), vy:(Math.random()<.5?-1:1)*(1.2+Math.random()), w:w0, h:h0}); 
@@ -885,7 +885,6 @@ document.addEventListener('DOMContentLoaded', function(){
         s.x+=s.vx; s.y+=s.vy; 
         if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;} 
         if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;} 
-        // Uso de translate3d para fluidez máxima
         s.el.style.transform='translate3d('+s.x+'px,'+s.y+'px, 0)'; 
       }
       rafAnim=requestAnimationFrame(step); 
@@ -935,7 +934,6 @@ document.addEventListener('DOMContentLoaded', function(){
     var imgs=VALUES_IMAGES(DISPLAY.saver.gitBase); 
     if(mode==='valores-rebotando') return startBounce(imgs); 
     if(mode==='valores-lluvia') return startStarfall(imgs); 
-    // Si es 'blob' o 'rotar', buildSaverFrame ya se encarga del fondo
   }
 
   function showSaver(force){ 
@@ -973,8 +971,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* ========= CARGA ========= */
   function tryFetch(url){ 
-    // Agregamos un marcador de tiempo para que la URL sea siempre única
-    var freshUrl = url + (url.indexOf('?') > -1 ? '&' : '?') + 'cachebuster=' + Date.now();
+    var freshUrl = url + (url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now();
     return fetch(freshUrl, {cache:'no-store', mode:'cors'}).then(function(res){ 
       if(!res.ok) throw new Error('HTTP '+res.status); 
       JSON_URL=url; 
