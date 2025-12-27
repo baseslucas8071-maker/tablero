@@ -185,7 +185,7 @@
 /* ========= CONFIG ========= */
 const CONFIG = {
   DATA_URL: 'status.json',
-  MAX_ETAPAS: 12,
+  MAX_ETAPAS: 62, // Actualizado a 62 etapas
   DAY_CUTOFF_HOUR: 0 // 0 = medianoche; usar 6 para día operativo 06:00
 };
 
@@ -634,13 +634,21 @@ function renderDetail(pozoKey){
   let idxEt = 0;
   for (const o of serie){
     if (isStop(o.fecha)) break;
-    if (!isValidDateCell(o.fecha)) continue;
+    // Mostrar todas las celdas aunque no tengan fecha, para ver gaps
     idxEt++;
-    const ymd = parseToYMD(o.fecha);
-    const dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR');
+    let dateDisp = "—";
+    let sub = "";
+    if (isValidDateCell(o.fecha)){
+       const ymd = parseToYMD(o.fecha);
+       sub = ymd;
+       dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR');
+    } else if(isAbortCancel(o.fecha)){
+       dateDisp = o.fecha; 
+    }
+
     const el = document.createElement('div');
     el.className='item';
-    el.innerHTML = `<div class="left"><div class="h">Etapa ${idxEt}</div><div class="tiny muted">${ymd}</div></div><div class="right">${dateDisp}</div>`;
+    el.innerHTML = `<div class="left"><div class="h">Etapa ${idxEt}</div><div class="tiny muted">${sub}</div></div><div class="right">${dateDisp}</div>`;
     list.appendChild(el);
   }
 
