@@ -137,7 +137,7 @@
       pointer-events:none;
       opacity:.95;
       filter:drop-shadow(0 10px 24px rgba(0,0,0,.35));
-      will-change: transform; /* CLAVE PARA TV */
+      will-change: transform;
   }
   .fallImg{ width:min(10vw,160px); opacity:.92; filter:drop-shadow(0 10px 20px rgba(0,0,0,.35)); }
 
@@ -181,6 +181,11 @@
       <div class="meta">Actualiza automáticamente</div>
     </div>
     <div class="controls">
+      <div style="display:flex;align-items:center;gap:4px;margin-right:12px;background:rgba(255,255,255,0.06);padding:3px 6px;border-radius:8px;border:1px solid rgba(255,255,255,0.1)">
+        <button class="btn secondary" id="btnZoomOut" style="padding:0 8px;font-size:18px;line-height:24px;height:28px" title="Reducir tamaño">-</button>
+        <span id="txtZoom" style="font-size:13px;min-width:40px;text-align:center;font-weight:700;color:#cfe8ff">100%</span>
+        <button class="btn secondary" id="btnZoomIn" style="padding:0 8px;font-size:18px;line-height:24px;height:28px" title="Aumentar tamaño">+</button>
+      </div>
       <label class="switch">
         <input id="autoScroll" type="checkbox" />
         Auto-scroll (últimas <span id="autoN"></span>)
@@ -429,6 +434,31 @@ document.addEventListener('DOMContentLoaded', function(){
   var btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
   var btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
   var wellChooser=document.getElementById('wellChooser');
+
+  /* ========= ZOOM LOGIC ========= */
+  var zoomLevel = prefs.get('ui:zoom', 1.0);
+  var txtZoom = document.getElementById('txtZoom');
+  
+  function applyZoom(z){
+    z = clamp(z, 0.5, 1.5); // Limitar entre 50% y 150%
+    zoomLevel = z;
+    document.body.style.zoom = zoomLevel; // Método preferido para TVs
+    
+    // Fallback para navegadores raros (Firefox, algunos Linux)
+    if(typeof document.body.style.zoom === 'undefined' || document.body.style.zoom === ''){
+        document.body.style.transform = 'scale('+zoomLevel+')';
+        document.body.style.transformOrigin = '0 0';
+        document.body.style.width = (100/zoomLevel)+'%';
+        document.body.style.height = (100/zoomLevel)+'%';
+    }
+    
+    txtZoom.textContent = Math.round(zoomLevel*100) + '%';
+    prefs.set('ui:zoom', zoomLevel);
+    requestAnimationFrame(fitRowsToViewport);
+  }
+  
+  document.getElementById('btnZoomOut').onclick = function(){ applyZoom(zoomLevel - 0.05); };
+  document.getElementById('btnZoomIn').onclick = function(){ applyZoom(zoomLevel + 0.05); };
 
   /* ========= HEADER ACCIONES ========= */
   autoScroll.checked=prefs.get('ui:autoScroll',true);
@@ -1223,6 +1253,10 @@ document.addEventListener('DOMContentLoaded', function(){
   /* ========= INIT ========= */
   function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
   initializeDOM(); applyDisplay(); fitRowsToViewport(); applyWellVisibility();
+  
+  // Aplicar zoom guardado al cargar
+  applyZoom(zoomLevel);
+  
   loadAndRender(true);
   setInterval(function(){ loadAndRender(false); }, REFRESH_SECONDS*1000);
 
