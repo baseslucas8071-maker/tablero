@@ -383,6 +383,8 @@ document.addEventListener('DOMContentLoaded', function(){
   function canonicalizeName(raw){
     var s=(raw==null?'':String(raw)).toUpperCase();
     s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    s=s.replace(/\s*:\s*$/,'');
+    s=s.replace(/ARENA\s*MALLA\s*/g,'ARENA ');
     s=s.replace(/\s+/g,' ').trim();
     s=s.replace(/^GASOIL$/,'GAS OIL');
     return s;
@@ -392,7 +394,9 @@ document.addEventListener('DOMContentLoaded', function(){
   var STOCK_RULES=prefs.get('stock:rules',{
     [canonicalizeName('GAS OIL')]:{display:'GAS OIL',unit:'M3',low:50,mid:150},
     [canonicalizeName('ARENA #100')]:{display:'ARENA #100',unit:'Tn',low:100,mid:300},
+    [canonicalizeName('ARENA #30/70')]:{display:'ARENA #30/70',unit:'Tn',low:300,mid:800},
     [canonicalizeName('GEL BOLSONES')]:{display:'GEL BOLSONES',unit:'ud',low:10,mid:25},
+    [canonicalizeName('GEL TOTE')]:{display:'GEL TOTE',unit:'ud',low:5,mid:15},
   });
 
   // CONFIGURACION DISPLAY (Incluye KPI manual)
@@ -796,13 +800,13 @@ document.addEventListener('DOMContentLoaded', function(){
     return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
   }
 
-  /* ===== Promedio y ETA (regla de ventana única + hora estimada) ===== */
+  /* ===== Promedio y ETA (Lógica Desacoplada) ===== */
   function computeAverageAndETA(freq, restantes){
-    // Determinar promedio real (histórico)
+    // 1. CALCULAR PROMEDIO REAL (HISTÓRICO)
+    // Siempre calculamos esto para mostrar la realidad operativa
     var keys = Array.from(freq.keys()).sort();
-    var avg = 0;
+    var realAvg = 0;
     var usedDays = 0;
-    var actualNote = 'Ventana usada: —';
 
     if (keys.length > 0) {
         function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
@@ -823,48 +827,61 @@ document.addEventListener('DOMContentLoaded', function(){
             var slice = counts.length > 7 ? counts.slice(counts.length - 7) : counts;
             usedDays = slice.length;
             var sum = slice.reduce(function(a,b){ return a+b; }, 0);
-            avg = usedDays > 0 ? (sum / usedDays) : 0;
-            actualNote = 'Ventana usada: '+usedDays+' día(s)';
+            realAvg = usedDays > 0 ? (sum / usedDays) : 0;
         }
     }
 
-    // CHECK MANUAL OVERRIDE
+    // 2. DETERMINAR VELOCIDAD DE CÁLCULO PARA ETA
+    var calcSpeed = realAvg; // Por defecto usamos la real
+    var isManual = false;
+
+    // Si está activado el manual, el ETA usa la velocidad fija (ej: 10)
+    // PERO el realAvg se mantiene intacto para mostrarlo en el KPI de Promedio
     if (DISPLAY.kpi && DISPLAY.kpi.useManual && DISPLAY.kpi.manualSpeed > 0) {
-        avg = DISPLAY.kpi.manualSpeed;
-        actualNote = 'Configuración manual (Fija)';
+        calcSpeed = DISPLAY.kpi.manualSpeed;
+        isManual = true;
     }
 
-    if (!(avg > 0) || !(restantes > 0)) {
-      return { avg: avg, usedDays: usedDays, etaText: '—', note: actualNote };
+    // 3. CALCULAR ETA (Usando calcSpeed)
+    var etaText = '—';
+    var etaSub = '';
+    
+    if (calcSpeed > 0 && restantes > 0) {
+        var now = new Date();
+        function hoursLeftUntilCutoff(n){
+          var end = new Date(n);
+          end.setHours(23,59,59,999); 
+          return (end - n) / 36e5;
+        }
+        var hoursNeeded = (restantes / calcSpeed) * 24;
+        var hoursLeftToday = hoursLeftUntilCutoff(now);
+
+        var approx;
+        if (hoursNeeded <= hoursLeftToday) {
+          approx = '≈ hoy';
+        } else {
+          var daysNeeded = Math.ceil(hoursNeeded / 24);
+          approx = '≈ ' + daysNeeded + ' día' + (daysNeeded===1 ? '' : 's');
+        }
+
+        var target = new Date(now.getTime() + hoursNeeded*3600*1000);
+        var roundTo = 5; 
+        var m = target.getMinutes();
+        target.setMinutes(Math.round(m/roundTo)*roundTo, 0, 0);
+
+        var dateLabel = target.getDate() + '/' + (target.getMonth()+1) + '/' + target.getFullYear();
+        var timeLabel = pad2(target.getHours()) + ':' + pad2(target.getMinutes());
+        etaText = dateLabel + ' (' + approx + ') · ~ ' + timeLabel;
     }
 
-    var now = new Date();
-    function hoursLeftUntilCutoff(n){
-      var end = new Date(n);
-      end.setHours(23,59,59,999); // medianoche
-      return (end - n) / 36e5;
-    }
-    var hoursNeeded = (restantes / avg) * 24;
-    var hoursLeftToday = hoursLeftUntilCutoff(now);
-
-    var approx;
-    if (hoursNeeded <= hoursLeftToday) {
-      approx = '≈ hoy';
-    } else {
-      var daysNeeded = Math.ceil(hoursNeeded / 24);
-      approx = '≈ ' + daysNeeded + ' día' + (daysNeeded===1 ? '' : 's');
-    }
-
-    var target = new Date(now.getTime() + hoursNeeded*3600*1000);
-    var roundTo = 5; // minutos
-    var m = target.getMinutes();
-    target.setMinutes(Math.round(m/roundTo)*roundTo, 0, 0);
-
-    var dateLabel = target.getDate() + '/' + (target.getMonth()+1) + '/' + target.getFullYear();
-    var timeLabel = pad2(target.getHours()) + ':' + pad2(target.getMinutes());
-    var etaText = dateLabel + ' (' + approx + ') · ~ ' + timeLabel;
-
-    return { avg: avg, usedDays: usedDays, etaText: etaText, note: actualNote };
+    // Retornamos ambos datos por separado
+    return { 
+        realAvg: realAvg,       // Dato histórico puro
+        usedDays: usedDays,     // Días usados para el histórico
+        etaText: etaText,       // Texto del ETA calculado
+        calcSpeed: calcSpeed,   // La velocidad que se usó para el ETA
+        isManual: isManual      // Flag para saber si es manual
+    };
   }
 
   /* ========= PROTECCIONES / SAVER (OPTIMIZADO TV) ========= */
@@ -1059,10 +1076,22 @@ document.addEventListener('DOMContentLoaded', function(){
       kpiDone.textContent  = totals.hechas;
       kpiRemain.textContent= totals.restantes;
 
-      var avgETA=computeAverageAndETA(stats.freq, totals.restantes);
-      kpiAvg.textContent = (avgETA.avg>0?fmt1(avgETA.avg):'—') + (avgETA.avg>0?' etapas/día':'');
-      kpiWindow.textContent = avgETA.note || ('Ventana usada: '+(avgETA.usedDays||0)+' día(s)');
-      kpiETA.textContent = avgETA.etaText;
+      var avgData = computeAverageAndETA(stats.freq, totals.restantes);
+      
+      // 1. KPI PROMEDIO: Muestra SIEMPRE la realidad histórica
+      kpiAvg.textContent = (avgData.realAvg > 0 ? fmt1(avgData.realAvg) : '—') + (avgData.realAvg > 0 ? ' etapas/día' : '');
+      document.getElementById('kpiWindow').textContent = 'Ventana usada: ' + (avgData.usedDays||0) + ' día(s)';
+
+      // 2. KPI ETA: Muestra el cálculo (puede ser basado en 10 o en el real)
+      kpiETA.textContent = avgData.etaText;
+      
+      // Nota visual para saber qué se está usando
+      var labelETA = kpiETA.parentElement.querySelector('.kpi-label');
+      if(avgData.isManual){
+          labelETA.innerHTML = 'Fin estimado <span style="color:#ffcc66;font-size:10px">(Base: '+avgData.calcSpeed+' et/día)</span>';
+      } else {
+          labelETA.textContent = 'Fin estimado';
+      }
 
       paintBadgesPerPozo(remainingPerPozo(conv));
 
