@@ -77,6 +77,16 @@
     .nav-inner{display:flex; gap:8px; padding:10px 14px}
     .nav-inner button{flex:1}
 
+    /* Modal Overlay */
+    .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s}
+    .overlay.open{opacity:1; pointer-events:all}
+    .modal-box{background:#111; border:1px solid #222; width:90%; max-width:400px; border-radius:16px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,.8); transform:translateY(20px); transition:transform .2s}
+    .overlay.open .modal-box{transform:translateY(0)}
+    .modal-head{font-weight:800; font-size:18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center}
+    .form-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:10px; background:#080808; border-radius:8px; border:1px solid #1a1a1a}
+    .form-row input[type="number"]{width:60px; background:#222; border:1px solid #333; color:#fff; padding:6px; border-radius:6px; font-weight:700; text-align:center}
+    .form-row input[type="checkbox"]{transform:scale(1.3)}
+
     /* Paleta por pozo (1..6) */
     .color-1{ --c-bg:linear-gradient(90deg,#ffd83a,#ffd83a); --c-fg:#001; }
     .color-2{ --c-bg:linear-gradient(90deg,#7ad39a,#5fbf87); --c-fg:#001; }
@@ -104,8 +114,9 @@
         </div>
         <div class="grow"></div>
         <div class="toolbar">
-          <button id="btnRefresh" title="Actualizar datos">Actualizar</button>
-          <button id="btnInst">Notas v1.0</button>
+          <button id="btnRefresh" title="Actualizar">↻</button>
+          <button id="btnCfg" title="Ajustes">⚙️</button>
+          <button id="btnInst">?</button>
         </div>
       </div>
       <div class="tabs" id="mainTabs">
@@ -127,7 +138,7 @@
         </div>
         <div class="speed" id="speedRow">
           <div class="box">
-            <div class="h">Promedio (ver regla de ventana única)</div>
+            <div class="h">Promedio (Real)</div>
             <div class="v" id="avgPace">—</div>
             <div class="tiny muted" id="avgFoot">—</div>
           </div>
@@ -179,21 +190,49 @@
     </footer>
   </div>
 
+  <div class="overlay" id="modalSettings">
+    <div class="modal-box">
+      <div class="modal-head">
+        Ajustes
+        <button id="btnCloseCfg" class="chip">✕</button>
+      </div>
+      <div class="form-row">
+        <span>Velocidad Fija (Manual)</span>
+        <input type="checkbox" id="cfgUseManual">
+      </div>
+      <div class="form-row">
+        <span>Etapas por día</span>
+        <input type="number" id="cfgManualVal" min="1" max="100" step="0.1">
+      </div>
+      <small class="muted" style="display:block; margin-bottom:12px">
+        Si se activa, el tiempo restante se calcula usando este valor fijo. El promedio histórico se muestra igual.
+      </small>
+      <div style="text-align:right">
+        <button id="btnSaveCfg" style="background:var(--accent); color:#000; border:none">Guardar</button>
+      </div>
+    </div>
+  </div>
+
 <script>
 "use strict";
 
 /* ========= CONFIG ========= */
 const CONFIG = {
   DATA_URL: 'status.json',
-  MAX_ETAPAS: 62, // Actualizado a 62 etapas
-  DAY_CUTOFF_HOUR: 0 // 0 = medianoche; usar 6 para día operativo 06:00
+  MAX_ETAPAS: 62, // Actualizado a 62
+  DAY_CUTOFF_HOUR: 0 
+};
+
+// Preferencias locales
+let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || {
+  useManual: true,
+  manualSpeed: 10
 };
 
 /* ========= HELPERS ========= */
 const $  = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => new Intl.NumberFormat('es-AR').format(n);
-const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
 
 function pad2(n){ return String(n).padStart(2,'0'); }
 function fmtDate(d){ return d.toLocaleDateString('es-AR'); }
@@ -205,7 +244,6 @@ function isAbortCancel(v){
   return s === 'ABORTADA' || s === 'CANCELADA';
 }
 
-// Excel serial → Date (base 1899-12-30)
 function excelSerialToDate(x){
   const n = Number(x);
   if(!isFinite(n)) return null;
@@ -251,22 +289,16 @@ function parseToYMD(v){
 let gByPozo = null;
 let gStats  = null;
 let gNames  = null;
-
 let gDaysLabels = [];
 let gDaysValues = [];
+let gDaysArrDesc = [];
 
-/* Carga y transforma columnas FechaFracPozoN y SecuenciaPozoN */
 function extractFracturadoColumns(rows){
   const byPozo = {};
   if(!rows || !rows.length){ return byPozo; }
-
   const keys = Object.keys(rows[0] || {});
   const fechaCols = keys.filter(k => /^FechaFracPozo\d+$/i.test(k));
-  if (!fechaCols.length){
-    console.error('No se encontraron columnas FechaFracPozoN.');
-    alert('No se detectaron columnas FechaFracPozoN en status.json.');
-    return byPozo;
-  }
+  if (!fechaCols.length) return byPozo;
 
   const namesMap = {};
   const nameRow = rows[0] || {};
@@ -276,9 +308,7 @@ function extractFracturadoColumns(rows){
     if(val && val.toUpperCase() !== "X"){ namesMap[`pozo-${n}`] = val; }
   }
 
-  const dataRows = rows
-    .map(r => ({...r, _fila:String(r.Fila||'').trim()}))
-    .filter(r => /^#?\d+$/i.test(r._fila));
+  const dataRows = rows.map(r => ({...r, _fila:String(r.Fila||'').trim()})).filter(r => /^#?\d+$/i.test(r._fila));
 
   for (const fk of fechaCols){
     const n = fk.match(/(\d+)/)[1];
@@ -290,12 +320,10 @@ function extractFracturadoColumns(rows){
       sec:   seqKey ? (r[seqKey] ?? "") : ""
     }));
   }
-
   byPozo.__names = namesMap;
   return byPozo;
 }
 
-/* ========= CÓMPUTO ========= */
 function computeStats(byPozo){
   const stats = {};
   for(const [pozo, serieObjs] of Object.entries(byPozo)){
@@ -303,7 +331,6 @@ function computeStats(byPozo){
     const stopIdx = serieObjs.findIndex(o => isStop(o.fecha));
     const totalCells = (stopIdx >= 0) ? stopIdx : Math.min(serieObjs.length, CONFIG.MAX_ETAPAS);
     const considered = serieObjs.slice(0, totalCells);
-
     const realizadas = considered.filter(o => isValidDateCell(o.fecha) || isAbortCancel(o.fecha)).length;
     const restantes  = Math.max(0, totalCells - realizadas);
     stats[pozo] = { total: totalCells, realizadas, restantes, serie: considered };
@@ -311,41 +338,33 @@ function computeStats(byPozo){
   return stats;
 }
 
-/* Agregado por día (solo FECHA; ABORTADA/CANCELADA NO suman por día) */
 function aggregateByDay(byPozo){
-  const map = new Map(); // ymd -> count
+  const map = new Map();
   for (const [key, serie] of Object.entries(byPozo)){
     if (key === "__names") continue;
     for (const o of serie){
       if (isValidDateCell(o.fecha)){
         const ymd = parseToYMD(o.fecha);
         if (ymd) map.set(ymd, (map.get(ymd)||0) + 1);
-      } else if (isStop(o.fecha)){
-        break;
-      }
+      } else if (isStop(o.fecha)){ break; }
     }
   }
-  // Devuelve orden DESC (más reciente primero)
   return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
 }
 
-/* === PROMEDIO (modo único con fecha de inicio y cap en últimos 7) === */
 function computeAvgSinceStartCap7(daysArrDesc){
-  const map = new Map(daysArrDesc); // DESC
-  const allDaysAsc = Array.from(map.keys()).sort(); // ASC
-  if (allDaysAsc.length === 0) return { avg:0, usedDays:0, window:[] };
+  const map = new Map(daysArrDesc);
+  const allDaysAsc = Array.from(map.keys()).sort();
+  if (allDaysAsc.length === 0) return { avg:0, usedDays:0 };
 
-  // Fecha de inicio = primer día con etapas
   const startYMD = allDaysAsc[0];
-
-  // Ayer según AR
   const tz = 'America/Argentina/Buenos_Aires';
   const now = new Date();
   const tzNow = new Date(now.toLocaleString('en-US', { timeZone: tz }));
   const yesterday = new Date(tzNow.getFullYear(), tzNow.getMonth(), tzNow.getDate()-1);
   const endYMD = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
 
-  if (startYMD > endYMD) return { avg:0, usedDays:0, window:[] };
+  if (startYMD > endYMD) return { avg:0, usedDays:0 };
 
   const s = new Date(startYMD+'T00:00:00');
   const e = new Date(endYMD+'T00:00:00');
@@ -359,32 +378,24 @@ function computeAvgSinceStartCap7(daysArrDesc){
   }
 
   const values = [];
-  const labels = [];
   for (let i=0;i<winLen;i++){
     const d = new Date(winStart); d.setDate(winStart.getDate()+i);
     const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     values.push(map.get(ymd) || 0);
-    labels.push(ymd);
   }
   const sum = values.reduce((a,b)=>a+b,0);
   const avg = sum / (values.length || 1);
-  return { avg, usedDays: values.length, window: values, labels };
+  return { avg, usedDays: values.length };
 }
 
-/* ======= ETA con HORA (corrige "≈ 1 día" cuando entra hoy) ======= */
 function hoursLeftUntilCutoff(now = new Date(), corteHora = 0) {
   const end = new Date(now);
-  if (corteHora === 0) {
-    end.setHours(23,59,59,999);
-  } else {
-    if (now.getHours() < corteHora || (now.getHours() === corteHora && now.getMinutes() === 0)) {
-      end.setHours(corteHora,0,0,0);
-    } else {
-      end.setDate(end.getDate() + 1);
-      end.setHours(corteHora,0,0,0);
-    }
+  if (corteHora === 0) { end.setHours(23,59,59,999); } 
+  else {
+    if (now.getHours() < corteHora || (now.getHours() === corteHora && now.getMinutes() === 0)) { end.setHours(corteHora,0,0,0); } 
+    else { end.setDate(end.getDate() + 1); end.setHours(corteHora,0,0,0); }
   }
-  return (end - now) / 36e5; // horas
+  return (end - now) / 36e5;
 }
 
 function estimateFinishWithTime(remaining, avgPerDay, now = new Date(), corteHora = 0) {
@@ -394,64 +405,81 @@ function estimateFinishWithTime(remaining, avgPerDay, now = new Date(), corteHor
   if (!isFinite(avgPerDay) || avgPerDay <= 0) {
     return { approx:"—", dateLabel:"", timeLabel:"", target:null };
   }
-
   const hoursNeeded = (remaining / avgPerDay) * 24;
   const hoursLeftToday = hoursLeftUntilCutoff(now, corteHora);
-
   let approx, daysNeeded;
   if (hoursNeeded <= hoursLeftToday) {
-    approx = "≈ hoy";
-    daysNeeded = 0;
+    approx = "≈ hoy"; daysNeeded = 0;
   } else {
     daysNeeded = Math.ceil(hoursNeeded / 24);
     approx = `≈ ${daysNeeded} día${daysNeeded > 1 ? "s" : ""}`;
   }
-
   const target = new Date(now.getTime() + hoursNeeded * 3600 * 1000);
-
-  // Redondeo amable a 5 minutos
-  const roundTo = 5; // minutos
+  const roundTo = 5; 
   const m = target.getMinutes();
   const rounded = new Date(target);
   rounded.setMinutes(Math.round(m / roundTo) * roundTo, 0, 0);
-
-  return {
-    approx,
-    dateLabel: fmtDate(target),
-    timeLabel: fmtTime(rounded),
-    target: rounded
-  };
+  return { approx, dateLabel: fmtDate(target), timeLabel: fmtTime(rounded), target: rounded };
 }
 
-/* ========= RENDER (HOME) ========= */
+/* ========= RENDER & LOGIC ========= */
 function renderKPIs(stats){
   const all = Object.values(stats);
   const totales = all.reduce((a,b)=>a+b.total,0);
   const hechas  = all.reduce((a,b)=>a+b.realizadas,0);
   const rest    = all.reduce((a,b)=>a+b.restantes,0);
-  $('#kpiTotales .value').textContent   = fmt(totales);
+  $('#kpiTotales .value').textContent = fmt(totales);
   $('#kpiRealizadas .value').textContent= fmt(hechas);
   $('#kpiRestantes .value').textContent = fmt(rest);
   return {totales, hechas, rest};
 }
-function renderSpeed(avg, etaObj, usedDays){
-  $('#avgPace').textContent = (avg && avg>0) ? `${avg.toFixed(1)} etapas/día` : '—';
+
+function renderSpeed(avgReal, etaObj, usedDays, isManual, manualVal){
+  // Promedio (Siempre Real)
+  $('#avgPace').textContent = (avgReal && avgReal>0) ? `${avgReal.toFixed(1)} etapas/día` : '—';
+  $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s).`;
+
+  // ETA (Puede ser Manual)
   if (etaObj && etaObj.target){
     $('#etaFinish').innerHTML = `${etaObj.dateLabel} <span class="muted">(${etaObj.approx})</span>`;
     $('#etaTime').textContent = `~ ${etaObj.timeLabel}`;
+    
+    // Nota visual si es manual
+    if(isManual){
+        $('#etaTime').innerHTML += ` <span style="color:var(--warn); display:block; font-size:10px; margin-top:2px">(Base: ${manualVal} et/día)</span>`;
+    }
   } else {
     $('#etaFinish').textContent = '—';
     $('#etaTime').textContent = '—';
   }
-  $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s).`;
 }
-const pozoIndex = (key)=> {
-  const m = key.match(/pozo-(\d+)/i);
-  return m ? parseInt(m[1],10) : 0;
-};
+
+function recomputeAndRender(){
+  const totals = renderKPIs(gStats);
+
+  // 1. Promedio Real
+  const { avg: histAvg, usedDays } = computeAvgSinceStartCap7(gDaysArrDesc);
+
+  // 2. Velocidad para ETA (Fija vs Real)
+  let calcSpeed = histAvg;
+  let isManual = false;
+  
+  if(PREFS.useManual && PREFS.manualSpeed > 0){
+      calcSpeed = PREFS.manualSpeed;
+      isManual = true;
+  }
+
+  // 3. Calculo
+  const etaObj = estimateFinishWithTime(totals.rest, calcSpeed, new Date(), CONFIG.DAY_CUTOFF_HOUR);
+
+  renderSpeed(histAvg, etaObj, usedDays, isManual, PREFS.manualSpeed);
+  renderDias(gDaysArrDesc);
+}
+
+/* ... (Funciones de renderizado de pozos y detalle igual que antes) ... */
+const pozoIndex = (key)=> { const m = key.match(/pozo-(\d+)/i); return m ? parseInt(m[1],10) : 0; };
 function renderPozos(stats, names){
-  const cont = $('#viewPozos');
-  cont.innerHTML = '';
+  const cont = $('#viewPozos'); cont.innerHTML = '';
   const entries = Object.entries(stats).sort((a,b)=> a[0].localeCompare(b[0]));
   for(const [pozo, s] of entries){
     const pct = s.total>0 ? Math.round((s.realizadas/s.total)*100) : 0;
@@ -463,331 +491,160 @@ function renderPozos(stats, names){
     el.innerHTML = `
       <div class="pozo-title">
         <div class="name">${title}</div>
-        <div class="meta">
-          <span class="badge">Tot: ${s.total}</span>
-          <span class="badge">Hechas: ${s.realizadas}</span>
-          <span class="badge">Rest: ${s.restantes}</span>
-        </div>
+        <div class="meta"><span class="badge">Tot: ${s.total}</span><span class="badge">Hechas: ${s.realizadas}</span><span class="badge">Rest: ${s.restantes}</span></div>
       </div>
-      <div class="row">
-        <div class="progress"><i style="width:${pct}%"></i></div>
-        <div class="pct">${pct}%</div>
-      </div>
+      <div class="row"><div class="progress"><i style="width:${pct}%"></i></div><div class="pct">${pct}%</div></div>
     `;
     el.addEventListener('click', ()=> openDetail(pozo));
     cont.appendChild(el);
   }
 }
-
-/* ====== POR DÍA (gráfica + lista) ====== */
 function renderDias(daysArr){
   const recent = daysArr.slice(0, 20).reverse();
-  gDaysLabels = recent.map(d=>d[0]);
-  gDaysValues = recent.map(d=>d[1]);
-
-  if ($('#viewDias').style.display !== 'none') {
-    drawBarChart($('#daysChart'), gDaysLabels, gDaysValues);
-  }
-
-  const box = $('#daysListBox');
-  box.innerHTML = '';
-  const list = document.createElement('div');
-  list.className='list';
-  box.appendChild(list);
-
+  gDaysLabels = recent.map(d=>d[0]); gDaysValues = recent.map(d=>d[1]);
+  if ($('#viewDias').style.display !== 'none') { drawBarChart($('#daysChart'), gDaysLabels, gDaysValues); }
+  const box = $('#daysListBox'); box.innerHTML = '';
+  const list = document.createElement('div'); list.className='list'; box.appendChild(list);
   if(daysArr.length===0){
-    const empty = document.createElement('div');
-    empty.className='muted';
-    empty.textContent = 'Sin etapas registradas por día aún.';
-    box.appendChild(empty);
+    const empty = document.createElement('div'); empty.className='muted'; empty.textContent = 'Sin datos recientes.'; box.appendChild(empty);
   } else {
     const todayYMD = new Date().toISOString().slice(0,10);
     for(const [ymd, count] of daysArr){
       const d = new Date(ymd+'T00:00:00');
       const ddmmyy = d.toLocaleDateString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
-      const it = document.createElement('div');
-      it.className='item';
+      const it = document.createElement('div'); it.className='item';
       it.innerHTML = `<div class="left"><div class="h">${ddmmyy}</div><div class="tiny muted">${ymd===todayYMD?'Hoy':'—'}</div></div><div class="right">${fmt(count)}</div>`;
       list.appendChild(it);
     }
   }
 }
-
-/* ========= RENDER (DETALLE) ========= */
 function dailyCountsForSerie(serie){
   const map = new Map();
   for (const o of serie){
-    if (isValidDateCell(o.fecha)){
-      const ymd = parseToYMD(o.fecha);
-      if (ymd) map.set(ymd, (map.get(ymd)||0)+1);
-    } else if (isStop(o.fecha)){
-      break;
-    }
+    if (isValidDateCell(o.fecha)){ const ymd = parseToYMD(o.fecha); if (ymd) map.set(ymd, (map.get(ymd)||0)+1); }
+    else if (isStop(o.fecha)) break;
   }
   return Array.from(map.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
 }
-
-/* --- Gráfica (con etiquetas numéricas en cada barra) --- */
 function drawBarChart(canvas, labels, values){
-  const ctx = canvas.getContext('2d');
-  const DPR = window.devicePixelRatio || 1;
-
+  const ctx = canvas.getContext('2d'); const DPR = window.devicePixelRatio || 1;
   const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
-  const cssW = canvas.clientWidth || parentW || 700;
-  const cssH = canvas.clientHeight || 220;
-
-  const w = Math.max(50, Math.round(cssW * DPR));
-  const h = Math.max(50, Math.round(cssH * DPR));
-  if (canvas.width !== w)  canvas.width = w;
-  if (canvas.height !== h) canvas.height = h;
+  const cssW = canvas.clientWidth || parentW || 700; const cssH = canvas.clientHeight || 220;
+  const w = Math.max(50, Math.round(cssW * DPR)); const h = Math.max(50, Math.round(cssH * DPR));
+  if (canvas.width !== w)  canvas.width = w; if (canvas.height !== h) canvas.height = h;
   ctx.setTransform(DPR,0,0,DPR,0,0);
-
-  const ymdToDisp = ymd => {
-    const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    return m ? `${m[3]}/${m[2]}` : ymd;
-  };
-
-  ctx.clearRect(0,0,cssW,cssH);
-  ctx.fillStyle = '#0a0a0a';
-  ctx.fillRect(0,0,cssW,cssH);
-
-  const P = {l: 12, r: 8, t: 8, b: 40};
-  const W = Math.max(10, cssW - P.l - P.r);
-  const H = Math.max(10, cssH - P.t - P.b);
-
-  const maxV = Math.max(1, ...values);
-  const count = Math.max(1, values.length);
-  const stepX = W / count;
-  const barW  = Math.max(8, Math.floor(stepX - 6));
-
-  ctx.strokeStyle = '#1e1e1e';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  for (let y=0; y<=4; y++){
-    const yy = P.t + H - (H * y / 4);
-    ctx.moveTo(P.l, yy); ctx.lineTo(P.l+W, yy);
-  }
-  ctx.stroke();
-
-  ctx.font = '11px Inter, system-ui, sans-serif';
-  ctx.textAlign = 'center';
+  const ymdToDisp = ymd => { const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}/${m[2]}` : ymd; };
+  ctx.clearRect(0,0,cssW,cssH); ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0,0,cssW,cssH);
+  const P = {l: 12, r: 8, t: 8, b: 40}; const W = Math.max(10, cssW - P.l - P.r); const H = Math.max(10, cssH - P.t - P.b);
+  const maxV = Math.max(1, ...values); const count = Math.max(1, values.length);
+  const stepX = W / count; const barW  = Math.max(8, Math.floor(stepX - 6));
+  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1; ctx.beginPath();
+  for (let y=0; y<=4; y++){ const yy = P.t + H - (H * y / 4); ctx.moveTo(P.l, yy); ctx.lineTo(P.l+W, yy); } ctx.stroke();
+  ctx.font = '11px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
   for (let i=0;i<count;i++){
-    const v = values[i] || 0;
-    const hBar = Math.round(H * v / maxV);
-    const x = P.l + i*stepX + (stepX - barW)/2;
-    const y = P.t + H - hBar;
-
-    const grad = ctx.createLinearGradient(0,y,0,y+hBar);
-    grad.addColorStop(0, '#47a3ff');
-    grad.addColorStop(1, '#60dbfb');
-    ctx.fillStyle = grad;
-    ctx.fillRect(x, y, barW, hBar);
-
-    const cx = x + barW/2;
-    const inside = hBar > 18;
-    ctx.fillStyle = inside ? '#0b0b0b' : '#cfe8ff';
-    const ty = inside ? (y + 12) : (y - 4);
+    const v = values[i] || 0; const hBar = Math.round(H * v / maxV);
+    const x = P.l + i*stepX + (stepX - barW)/2; const y = P.t + H - hBar;
+    const grad = ctx.createLinearGradient(0,y,0,y+hBar); grad.addColorStop(0, '#47a3ff'); grad.addColorStop(1, '#60dbfb');
+    ctx.fillStyle = grad; ctx.fillRect(x, y, barW, hBar);
+    const cx = x + barW/2; const inside = hBar > 18;
+    ctx.fillStyle = inside ? '#0b0b0b' : '#cfe8ff'; const ty = inside ? (y + 12) : (y - 4);
     ctx.fillText(String(v), cx, ty);
   }
-
   ctx.fillStyle = '#cfe8ff';
   for (let i=0;i<count;i++){
-    const lbl = ymdToDisp(labels[i] || '');
-    const x = P.l + i*stepX + stepX/2;
-    const y = P.t + H + 18;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(-Math.PI/4);
-    ctx.textAlign = 'right';
-    ctx.fillText(lbl, 0, 0);
-    ctx.restore();
+    const lbl = ymdToDisp(labels[i] || ''); const x = P.l + i*stepX + stepX/2; const y = P.t + H + 18;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(-Math.PI/4); ctx.textAlign = 'right'; ctx.fillText(lbl, 0, 0); ctx.restore();
   }
 }
-
 function renderDetail(pozoKey){
-  const serie = gStats[pozoKey].serie;
-  const name  = gNames[pozoKey] || pozoKey.toUpperCase().replace('-', ' ');
+  const serie = gStats[pozoKey].serie; const name  = gNames[pozoKey] || pozoKey.toUpperCase().replace('-', ' ');
   $('#detailTitle').textContent = name;
-
-  const idx = pozoIndex(pozoKey);
-  const bar = $('#detailBar');
+  const idx = pozoIndex(pozoKey); const bar = $('#detailBar');
   bar.classList.remove('color-1','color-2','color-3','color-4','color-5','color-6');
   if (idx>=1 && idx<=6) bar.classList.add(`color-${idx}`);
-
-  const s   = gStats[pozoKey];
-  const pct = s.total>0 ? Math.round(100*s.realizadas/s.total) : 0;
-  $('#dTot').textContent   = fmt(s.total);
-  $('#dDone').textContent  = fmt(s.realizadas);
-  $('#dLeft').textContent  = fmt(s.restantes);
-  $('#dPct').textContent   = pct + '%';
-
-  const fechas = serie
-    .filter(o=>isValidDateCell(o.fecha))
-    .map(o=>parseToYMD(o.fecha));
+  const s = gStats[pozoKey]; const pct = s.total>0 ? Math.round(100*s.realizadas/s.total) : 0;
+  $('#dTot').textContent = fmt(s.total); $('#dDone').textContent = fmt(s.realizadas); $('#dLeft').textContent = fmt(s.restantes); $('#dPct').textContent = pct + '%';
+  const fechas = serie.filter(o=>isValidDateCell(o.fecha)).map(o=>parseToYMD(o.fecha));
   const first = fechas.length ? new Date(fechas[0]+'T00:00:00') : null;
   const last  = fechas.length ? new Date(fechas[fechas.length-1]+'T00:00:00') : null;
   $('#dFirst').textContent = first ? first.toLocaleDateString('es-AR') : '—';
   $('#dLast').textContent  = last  ? last.toLocaleDateString('es-AR')  : '—';
-
-  const list = $('#dList');
-  list.innerHTML = '';
-  let idxEt = 0;
+  const list = $('#dList'); list.innerHTML = ''; let idxEt = 0;
   for (const o of serie){
     if (isStop(o.fecha)) break;
-    // Mostrar todas las celdas aunque no tengan fecha, para ver gaps
-    idxEt++;
-    let dateDisp = "—";
-    let sub = "";
-    if (isValidDateCell(o.fecha)){
-       const ymd = parseToYMD(o.fecha);
-       sub = ymd;
-       dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR');
-    } else if(isAbortCancel(o.fecha)){
-       dateDisp = o.fecha; 
-    }
-
-    const el = document.createElement('div');
-    el.className='item';
+    idxEt++; let dateDisp = "—"; let sub = "";
+    if (isValidDateCell(o.fecha)){ const ymd = parseToYMD(o.fecha); sub = ymd; dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR'); }
+    else if(isAbortCancel(o.fecha)){ dateDisp = o.fecha; }
+    const el = document.createElement('div'); el.className='item';
     el.innerHTML = `<div class="left"><div class="h">Etapa ${idxEt}</div><div class="tiny muted">${sub}</div></div><div class="right">${dateDisp}</div>`;
     list.appendChild(el);
   }
-
   let daily = dailyCountsForSerie(serie);
   if (daily.length > 14) daily = daily.slice(daily.length-14);
-  const labels = daily.map(d=>d[0]);
-  const values = daily.map(d=>d[1]);
+  const labels = daily.map(d=>d[0]); const values = daily.map(d=>d[1]);
   drawBarChart($('#pozoChart'), labels, values);
 }
 
-/* ========= NAVEGACIÓN ========= */
-function openDetail(pozoKey){
-  $('#mainTabs').style.display='none';
-  $('#topCard').style.display='none';
-  $('#viewPozos').style.display='none';
-  $('#viewDias').style.display='none';
-  $('#detailBar').style.display='';
-  $('#viewDetail').style.display='grid';
-  renderDetail(pozoKey);
-  location.hash = pozoKey;
-}
-function closeDetail(){
-  $('#detailBar').classList.remove('color-1','color-2','color-3','color-4','color-5','color-6');
-  $('#detailBar').style.display='none';
-  $('#viewDetail').style.display='none';
-  $('#mainTabs').style.display='';
-  $('#topCard').style.display='';
-  const active = document.querySelector('.tab.active')?.dataset.view || 'pozos';
-  $('#viewPozos').style.display = active==='pozos' ? '' : 'none';
-  $('#viewDias').style.display  = active==='dias'  ? '' : 'none';
-  history.replaceState(null, '', location.pathname + location.search);
-}
+function openDetail(pozoKey){ $('#mainTabs').style.display='none'; $('#topCard').style.display='none'; $('#viewPozos').style.display='none'; $('#viewDias').style.display='none'; $('#detailBar').style.display=''; $('#viewDetail').style.display='grid'; renderDetail(pozoKey); location.hash = pozoKey; }
+function closeDetail(){ $('#detailBar').classList.remove('color-1','color-2','color-3','color-4','color-5','color-6'); $('#detailBar').style.display='none'; $('#viewDetail').style.display='none'; $('#mainTabs').style.display=''; $('#topCard').style.display=''; const active = document.querySelector('.tab.active')?.dataset.view || 'pozos'; $('#viewPozos').style.display = active==='pozos' ? '' : 'none'; $('#viewDias').style.display = active==='dias' ? '' : 'none'; history.replaceState(null, '', location.pathname + location.search); }
 $('#btnBack').addEventListener('click', closeDetail);
 
-/* ========= DATA LOAD ========= */
-async function fetchData(){
-  const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`, { cache:'no-store' });
-  if(!res.ok){ throw new Error('No se pudo cargar el JSON: '+res.status); }
-  return await res.json();
-}
-
-let gDaysArrDesc = []; // [['yyyy-mm-dd', count], ...] DESC
-function recomputeAndRender(){
-  const totals = renderKPIs(gStats);
-
-  // Promedio único
-  const { avg, usedDays } = computeAvgSinceStartCap7(gDaysArrDesc);
-
-  // ETA con hora
-  const etaObj = estimateFinishWithTime(
-    totals.rest,
-    avg,
-    new Date(),
-    CONFIG.DAY_CUTOFF_HOUR
-  );
-
-  renderSpeed(avg, etaObj, usedDays);
-  renderDias(gDaysArrDesc);
-}
+async function fetchData(){ const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`, { cache:'no-store' }); if(!res.ok){ throw new Error('HTTP '+res.status); } return await res.json(); }
 
 async function load(){
   try{
     const data = await fetchData();
     const rows = data.items || data.rows || data || [];
-
     const byPozo = extractFracturadoColumns(rows);
     const names  = byPozo.__names || {};
     const stats  = computeStats(byPozo);
-    const dias   = aggregateByDay(byPozo); // DESC
-
+    const dias   = aggregateByDay(byPozo);
     gByPozo = byPozo; gStats = stats; gNames = names; gDaysArrDesc = dias;
-
     const lu = (data.meta?.lastUpdate) || data.lastUpdate || new Date().toISOString();
     const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
     $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
-
     renderPozos(stats, names);
     recomputeAndRender();
-
-    const hash = (location.hash||'').replace('#','').trim();
-    if (hash && stats[hash]) openDetail(hash);
-
-  }catch(err){
-    console.error(err);
-    alert('Error cargando datos: '+err.message);
-  }
+    const hash = (location.hash||'').replace('#','').trim(); if (hash && stats[hash]) openDetail(hash);
+  }catch(err){ console.error(err); alert('Error: '+err.message); }
 }
 
-/* ========= UI ========= */
+/* Settings Logic */
+const elModal = $('#modalSettings');
+const elUseManual = $('#cfgUseManual');
+const elManualVal = $('#cfgManualVal');
+
+function openSettings(){
+  elUseManual.checked = PREFS.useManual;
+  elManualVal.value = PREFS.manualSpeed;
+  elModal.classList.add('open');
+}
+function closeSettings(){ elModal.classList.remove('open'); }
+function saveSettings(){
+  PREFS.useManual = elUseManual.checked;
+  PREFS.manualSpeed = Number(elManualVal.value) || 10;
+  localStorage.setItem('mobile_prefs', JSON.stringify(PREFS));
+  closeSettings();
+  recomputeAndRender();
+}
+
+$('#btnCfg').addEventListener('click', openSettings);
+$('#btnCloseCfg').addEventListener('click', closeSettings);
+$('#btnSaveCfg').addEventListener('click', saveSettings);
+
+/* UI Tabs */
 $$('.tab').forEach(t => t.addEventListener('click', ()=> {
-  const view = t.dataset.view;
-  $$('.tab').forEach(x=> x.classList.toggle('active', x===t));
+  const view = t.dataset.view; $$('.tab').forEach(x=> x.classList.toggle('active', x===t));
   $('#viewPozos').style.display = view==='pozos' ? '' : 'none';
   $('#viewDias').style.display  = view==='dias'  ? '' : 'none';
-
-  if (view === 'dias') {
-    requestAnimationFrame(()=> {
-      drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues);
-    });
-  }
+  if (view === 'dias') { requestAnimationFrame(()=> { drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues); }); }
 }));
 $('#btnRefresh').addEventListener('click', load);
-$('#btnHelp').addEventListener('click', ()=>{
-  alert('Tocá un pozo para abrir su detalle. Usá "Notas v1.0" para ver reglas y definiciones.');
-});
+$('#btnHelp').addEventListener('click', ()=>{ alert('Tocá un pozo para ver detalles. Usá ⚙️ para configurar el cálculo de ETA.'); });
+$('#btnInst').addEventListener('click', ()=>{ alert('Versión móvil v1.2\n\nEl ETA puede usar velocidad fija (10 et/día) o real. Configúralo en ⚙️.'); });
+$('#btnShare').addEventListener('click', async ()=>{ try{ await navigator.share({ title:'Visor móvil', url: location.href }); }catch(_){} });
+window.addEventListener('resize', () => { const diasVisible = $('#viewDias').style.display !== 'none'; if (diasVisible && gDaysLabels.length) { drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues); } });
 
-document.getElementById('btnInst').addEventListener('click', ()=>{
-  alert(
-`Notas de versión 1.0
-
-• Reglas de conteo:
-   - "Realizadas": celdas con fecha o con los textos ABORTADA/CANCELADA.
-   - "Totales": cantidad de filas hasta la primera celda "STOP" (sin incluirla).
-   - "Restantes": Totales – Realizadas.
-   - Gráfica/tabla por día: SOLO cuentan celdas con fecha (ABORTADA/CANCELADA no suman por día).
-• Promedio de ritmo (modo único):
-   - Fecha de inicio: primer día con etapas.
-   - Ventana: desde inicio hasta AYER. Si hay 7 o menos días, se usan todos (los días sin etapas cuentan 0).
-   - Si hay más de 7 días disponibles, se usan los ÚLTIMOS 7 (hasta AYER), contando 0 donde no hubo etapas.
-• ETA (fin estimado):
-   - Se calcula con horas: remaining/avg → horas. Si entra antes del corte del día (${CONFIG.DAY_CUTOFF_HOUR===0?'medianoche':`${CONFIG.DAY_CUTOFF_HOUR}:00`}), muestra "≈ hoy".
-   - Además de la fecha, se muestra la hora estimada (línea secundaria). 
-• Vista por pozo: cada tarjeta muestra Tot/Hechas/Rest y %; el color del encabezado corresponde al número de pozo.
-• Detalle de pozo: tocá un pozo para ver su gráfica por día y el listado de etapas (muestra fecha).`
-  );
-});
-
-$('#btnShare').addEventListener('click', async ()=>{
-  try{ await navigator.share({ title:'Visor móvil – Etapas', text:'Estado de etapas', url: location.href }); }catch(_){}
-});
-
-window.addEventListener('resize', () => {
-  const diasVisible = $('#viewDias').style.display !== 'none';
-  if (diasVisible && gDaysLabels.length) {
-    drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues);
-  }
-});
-
-/* ========= START ========= */
 load();
 </script>
 </body>
