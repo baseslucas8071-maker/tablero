@@ -186,6 +186,7 @@
         <span id="txtZoom" style="font-size:13px;min-width:40px;text-align:center;font-weight:700;color:#cfe8ff">100%</span>
         <button class="btn secondary" id="btnZoomIn" style="padding:0 8px;font-size:18px;line-height:24px;height:28px" title="Aumentar tamaño">+</button>
       </div>
+
       <label class="switch">
         <input id="autoScroll" type="checkbox" />
         Auto-scroll (últimas <span id="autoN"></span>)
@@ -206,7 +207,7 @@
           <div class="kpi"><div class="kpi-label">Realizadas</div><div id="kpiDone" class="kpi-value kpi-green">0</div></div>
           <div class="kpi"><div class="kpi-label">Restantes</div><div id="kpiRemain" class="kpi-value kpi-amber">0</div></div>
           <div class="kpi">
-            <div class="kpi-label">Promedio</div>
+            <div class="kpi-label">Velocidad Promedio</div>
             <div id="kpiAvg" class="kpi-sub">—</div>
             <div id="kpiWindow" class="kpi-note">Ventana usada: —</div>
           </div>
@@ -254,10 +255,25 @@
   <div class="modal-card">
     <div class="modal-head"><strong>Ajustes rápidos</strong></div>
     <div class="modal-body">
+      
+      <section>
+        <h4>Cálculo de Estimaciones</h4>
+        <div class="grid g2">
+          <label style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="setUseManualSpeed"> 
+            Usar velocidad fija
+          </label>
+          <label>Etapas por día
+            <input type="number" id="setManualSpeed" min="1" max="100" step="0.1">
+          </label>
+        </div>
+        <small style="opacity:0.7">Si se activa, el tiempo restante se calcula usando este valor fijo en lugar del promedio histórico.</small>
+      </section>
+
       <section class="grid g3">
         <label>Tamaño “POZO #n” <input type="number" id="setPozoFont" min="12" max="40" step="1"></label>
         <label>Tamaño “STOCK” <input type="number" id="setStockFont" min="10" max="30" step="1"></label>
-        <label>Tamaño datos (TPN/FRACTURADO) <input type="number" id="setCellFont" min="12" max="32" step="1"></label>
+        <label>Tamaño datos <input type="number" id="setCellFont" min="12" max="32" step="1"></label>
       </section>
 
       <section>
@@ -274,7 +290,7 @@
           <label>Minutos inactivo <input type="number" id="setSaverIdle" min="1" max="120" step="1"></label>
           <label>Rotar cada (min) <input type="number" id="setRotateEvery" min="1" max="60" step="1"></label>
           <div class="full" style="display:flex;gap:8px;align-items:center">
-            <button class="btn secondary" id="btnTestSaver">Probar protector</button>
+            <button class="btn secondary" id="btnTestSaver">Probar</button>
             <span class="pill small" id="saverStatus">—</span>
           </div>
         </div>
@@ -302,14 +318,13 @@
       <section>
         <h4>Pozos visibles</h4>
         <div id="wellChooser" class="full"></div>
-        <small style="opacity:.75">Tip: siempre queda al menos 1 pozo visible.</small>
       </section>
 
       <section>
         <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
-          <h4>Reglas de stock <small style="opacity:.65">(umbral bajo/medio y unidad)</small></h4>
+          <h4>Reglas de stock</h4>
           <div>
-            <button class="btn secondary" id="btnLoadDetected">Cargar ítems detectados</button>
+            <button class="btn secondary" id="btnLoadDetected">Cargar ítems</button>
             <button class="btn secondary" id="btnAddRule">Añadir regla</button>
           </div>
         </div>
@@ -337,9 +352,6 @@ document.addEventListener('DOMContentLoaded', function(){
   ];
   var JSON_URL=JSON_CANDIDATES[0];
   var REFRESH_SECONDS=15, ROWS=62, POZOS=6, LAST_N_TO_SHOW=7, REEL_SIZE=2;
-
-  /* Ventana para promedio (días) */
-  var AVG_WINDOW_DAYS = 7;
 
   document.getElementById('autoN').textContent = LAST_N_TO_SHOW;
 
@@ -371,8 +383,6 @@ document.addEventListener('DOMContentLoaded', function(){
   function canonicalizeName(raw){
     var s=(raw==null?'':String(raw)).toUpperCase();
     s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    s=s.replace(/\s*:\s*$/,'');
-    s=s.replace(/ARENA\s*MALLA\s*/g,'ARENA ');
     s=s.replace(/\s+/g,' ').trim();
     s=s.replace(/^GASOIL$/,'GAS OIL');
     return s;
@@ -382,18 +392,22 @@ document.addEventListener('DOMContentLoaded', function(){
   var STOCK_RULES=prefs.get('stock:rules',{
     [canonicalizeName('GAS OIL')]:{display:'GAS OIL',unit:'M3',low:50,mid:150},
     [canonicalizeName('ARENA #100')]:{display:'ARENA #100',unit:'Tn',low:100,mid:300},
-    [canonicalizeName('ARENA #30/70')]:{display:'ARENA #30/70',unit:'Tn',low:300,mid:800},
     [canonicalizeName('GEL BOLSONES')]:{display:'GEL BOLSONES',unit:'ud',low:10,mid:25},
-    [canonicalizeName('GEL TOTE')]:{display:'GEL TOTE',unit:'ud',low:5,mid:15},
   });
 
+  // CONFIGURACION DISPLAY (Incluye KPI manual)
+  // Por defecto: useManual=true, manualSpeed=10 (Pedido del usuario)
   var DISPLAY=prefs.get('display:cfg',{
     pozoFont:20, stockFont:16, cellFont:19,
     saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:2, gitBase:DEFAULT_VALUES_BASE },
     nightDim:{ enabled:true, startHour:1, endHour:6, dimLevel:0.65 },
     pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 },
-    view:{ visibleWells:[1,2,3,4,5,6] }
+    view:{ visibleWells:[1,2,3,4,5,6] },
+    kpi: { useManual: true, manualSpeed: 10 }
   });
+  
+  // Backward compatibility check
+  if (!DISPLAY.kpi) DISPLAY.kpi = { useManual: true, manualSpeed: 10 };
   if (!DISPLAY.view || !Array.isArray(DISPLAY.view.visibleWells)) {
     DISPLAY.view = { visibleWells:[1,2,3,4,5,6] };
     prefs.set('display:cfg', DISPLAY);
@@ -426,10 +440,13 @@ document.addEventListener('DOMContentLoaded', function(){
       kpiETA=document.getElementById('kpiETA');
 
   var modal=document.getElementById('settingsModal');
+  // Inputs Settings
   var setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
   var setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
   var setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
   var setShiftEnabled=document.getElementById('setShiftEnabled'), setShiftEvery=document.getElementById('setShiftEvery'), setShiftPixels=document.getElementById('setShiftPixels');
+  var setUseManualSpeed=document.getElementById('setUseManualSpeed'), setManualSpeed=document.getElementById('setManualSpeed');
+  
   var btnSave=document.getElementById('btnSaveSettings'), btnClose=document.getElementById('btnCloseSettings'), btnReset=document.getElementById('btnReset');
   var btnLoadDetected=document.getElementById('btnLoadDetected'), btnAddRule=document.getElementById('btnAddRule'), rulesBody=document.getElementById('rulesBody');
   var btnTestSaver=document.getElementById('btnTestSaver'), saverStatus=document.getElementById('saverStatus');
@@ -440,23 +457,19 @@ document.addEventListener('DOMContentLoaded', function(){
   var txtZoom = document.getElementById('txtZoom');
   
   function applyZoom(z){
-    z = clamp(z, 0.5, 1.5); // Limitar entre 50% y 150%
+    z = clamp(z, 0.5, 1.5);
     zoomLevel = z;
-    document.body.style.zoom = zoomLevel; // Método preferido para TVs
-    
-    // Fallback para navegadores raros (Firefox, algunos Linux)
+    document.body.style.zoom = zoomLevel; 
     if(typeof document.body.style.zoom === 'undefined' || document.body.style.zoom === ''){
         document.body.style.transform = 'scale('+zoomLevel+')';
         document.body.style.transformOrigin = '0 0';
         document.body.style.width = (100/zoomLevel)+'%';
         document.body.style.height = (100/zoomLevel)+'%';
     }
-    
     txtZoom.textContent = Math.round(zoomLevel*100) + '%';
     prefs.set('ui:zoom', zoomLevel);
     requestAnimationFrame(fitRowsToViewport);
   }
-  
   document.getElementById('btnZoomOut').onclick = function(){ applyZoom(zoomLevel - 0.05); };
   document.getElementById('btnZoomIn').onclick = function(){ applyZoom(zoomLevel + 0.05); };
 
@@ -556,7 +569,7 @@ document.addEventListener('DOMContentLoaded', function(){
     document.documentElement.style.setProperty('--row-h', rowH+'px');
   }
 
-  /* ========= FECHAS ========= */
+  /* ========= FECHAS / DATOS ========= */
   var excelSerialToDateTime = function(num){
     var baseUTC = Date.UTC(1899,11,30);
     var ms = Math.round(num * 86400000);
@@ -785,38 +798,44 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* ===== Promedio y ETA (regla de ventana única + hora estimada) ===== */
   function computeAverageAndETA(freq, restantes){
+    // Determinar promedio real (histórico)
     var keys = Array.from(freq.keys()).sort();
-    if(keys.length === 0){
-      return { avg: 0, usedDays: 0, etaText: '—' };
+    var avg = 0;
+    var usedDays = 0;
+    var actualNote = 'Ventana usada: —';
+
+    if (keys.length > 0) {
+        function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+        function fromNorm(s){ var a=s.split('-').map(Number); return new Date(a[0], a[1]-1, a[2]); }
+        function toNorm(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+
+        var today = startOfDay(new Date());
+        var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+        var start = startOfDay(fromNorm(keys[0]));
+
+        if(start <= yesterday){
+            var counts = [];
+            for (var d=new Date(start); d<=yesterday; d.setDate(d.getDate()+1)) {
+              var k = toNorm(d);
+              var rec = freq.get(k);
+              counts.push(rec ? rec.count : 0);
+            }
+            var slice = counts.length > 7 ? counts.slice(counts.length - 7) : counts;
+            usedDays = slice.length;
+            var sum = slice.reduce(function(a,b){ return a+b; }, 0);
+            avg = usedDays > 0 ? (sum / usedDays) : 0;
+            actualNote = 'Ventana usada: '+usedDays+' día(s)';
+        }
     }
 
-    function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
-    function fromNorm(s){ var a=s.split('-').map(Number); return new Date(a[0], a[1]-1, a[2]); }
-    function toNorm(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
-    function pad2(n){ return String(n).padStart(2,'0'); }
-
-    var today = startOfDay(new Date());
-    var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-
-    var start = startOfDay(fromNorm(keys[0]));
-    if(start > yesterday){
-      return { avg: 0, usedDays: 0, etaText: '—' };
+    // CHECK MANUAL OVERRIDE
+    if (DISPLAY.kpi && DISPLAY.kpi.useManual && DISPLAY.kpi.manualSpeed > 0) {
+        avg = DISPLAY.kpi.manualSpeed;
+        actualNote = 'Configuración manual (Fija)';
     }
-
-    var counts = [];
-    for (var d=new Date(start); d<=yesterday; d.setDate(d.getDate()+1)) {
-      var k = toNorm(d);
-      var rec = freq.get(k);
-      counts.push(rec ? rec.count : 0);
-    }
-
-    var slice = counts.length > 7 ? counts.slice(counts.length - 7) : counts;
-    var windowLen = slice.length;
-    var sum = slice.reduce(function(a,b){ return a+b; }, 0);
-    var avg = windowLen > 0 ? (sum / windowLen) : 0;
 
     if (!(avg > 0) || !(restantes > 0)) {
-      return { avg: avg, usedDays: windowLen, etaText: '—' };
+      return { avg: avg, usedDays: usedDays, etaText: '—', note: actualNote };
     }
 
     var now = new Date();
@@ -845,7 +864,7 @@ document.addEventListener('DOMContentLoaded', function(){
     var timeLabel = pad2(target.getHours()) + ':' + pad2(target.getMinutes());
     var etaText = dateLabel + ' (' + approx + ') · ~ ' + timeLabel;
 
-    return { avg: avg, usedDays: windowLen, etaText: etaText };
+    return { avg: avg, usedDays: usedDays, etaText: etaText, note: actualNote };
   }
 
   /* ========= PROTECCIONES / SAVER (OPTIMIZADO TV) ========= */
@@ -1042,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
       var avgETA=computeAverageAndETA(stats.freq, totals.restantes);
       kpiAvg.textContent = (avgETA.avg>0?fmt1(avgETA.avg):'—') + (avgETA.avg>0?' etapas/día':'');
-      kpiWindow.textContent = 'Ventana usada: '+(avgETA.usedDays||0)+' día(s)';
+      kpiWindow.textContent = avgETA.note || ('Ventana usada: '+(avgETA.usedDays||0)+' día(s)');
       kpiETA.textContent = avgETA.etaText;
 
       paintBadgesPerPozo(remainingPerPozo(conv));
@@ -1195,6 +1214,12 @@ document.addEventListener('DOMContentLoaded', function(){
     setSaverMode.value=DISPLAY.saver.mode; setRotateEvery.value=DISPLAY.saver.rotateEveryMin; setSaverIdle.value=DISPLAY.saver.idleMinutes;
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
+    
+    // KPI Settings
+    var kpi = DISPLAY.kpi || { useManual: true, manualSpeed: 10 };
+    setUseManualSpeed.checked = !!kpi.useManual;
+    setManualSpeed.value = kpi.manualSpeed || 10;
+
     drawRulesTable(); buildWellChooser(); modal.style.display='flex';
   }
   function saveSettings(close){
@@ -1213,6 +1238,12 @@ document.addEventListener('DOMContentLoaded', function(){
     DISPLAY.pixelShift.enabled=!!setShiftEnabled.checked;
     DISPLAY.pixelShift.intervalMin=clamp(+setShiftEvery.value||2,1,60);
     DISPLAY.pixelShift.maxOffsetPx=clamp(+setShiftPixels.value||2,0,10);
+
+    // Save KPI
+    DISPLAY.kpi = {
+        useManual: !!setUseManualSpeed.checked,
+        manualSpeed: clamp(+setManualSpeed.value||10, 0.1, 100)
+    };
 
     var rows=[].slice.call(rulesBody.querySelectorAll('.rule-row')); var next={};
     for(var i=0;i<rows.length;i++){
