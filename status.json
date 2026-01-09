@@ -108,7 +108,7 @@
     {
       "FechaFracPozo1": "46024",
       "FechaFracPozo2": "46031",
-      "FechaFracPozo3": "Fracturando",
+      "FechaFracPozo3": "46031",
       "FechaFracPozo4": "46026",
       "FechaFracPozo5": "46021",
       "FechaFracPozo6": "",
@@ -128,7 +128,7 @@
     },
     {
       "FechaFracPozo1": "46024",
-      "FechaFracPozo2": "STDBY",
+      "FechaFracPozo2": "Fracturando",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "46028",
       "FechaFracPozo5": "46021",
@@ -193,7 +193,7 @@
       "FechaFracPozo1": "46025",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
-      "FechaFracPozo4": "WL 1",
+      "FechaFracPozo4": "WL",
       "FechaFracPozo5": "46024",
       "FechaFracPozo6": "",
       "Fila": "#08",
@@ -206,7 +206,7 @@
       "TPNPozo1": "6423 ORIE",
       "TPNPozo2": "",
       "TPNPozo3": "",
-      "TPNPozo4": "5562",
+      "TPNPozo4": "5538",
       "TPNPozo5": "6390",
       "TPNPozo6": ""
     },
@@ -227,7 +227,7 @@
       "TPNPozo1": "6373 ORIE",
       "TPNPozo2": "",
       "TPNPozo3": "",
-      "TPNPozo4": "5502",
+      "TPNPozo4": "",
       "TPNPozo5": "6330 ORIE",
       "TPNPozo6": ""
     },
@@ -248,7 +248,7 @@
       "TPNPozo1": "6323 ORIE",
       "TPNPozo2": "",
       "TPNPozo3": "",
-      "TPNPozo4": "5442",
+      "TPNPozo4": "",
       "TPNPozo5": "6270 ORIE",
       "TPNPozo6": ""
     },
@@ -1345,7 +1345,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-09T10:31:41.8846967Z",
+  "lastUpdate": "2026-01-09T10:52:39.3522217Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
