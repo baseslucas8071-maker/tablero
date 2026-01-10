@@ -150,7 +150,7 @@
     {
       "FechaFracPozo1": "46024",
       "FechaFracPozo2": "46031",
-      "FechaFracPozo3": "sdtby",
+      "FechaFracPozo3": "FRACTURANDO",
       "FechaFracPozo4": "46028",
       "FechaFracPozo5": "46024",
       "FechaFracPozo6": "",
@@ -170,7 +170,7 @@
     },
     {
       "FechaFracPozo1": "46025",
-      "FechaFracPozo2": "FRACTURADO",
+      "FechaFracPozo2": "45666",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "SUSPENDIDA",
       "FechaFracPozo5": "46024",
@@ -191,9 +191,9 @@
     },
     {
       "FechaFracPozo1": "46025",
-      "FechaFracPozo2": "",
+      "FechaFracPozo2": "WL",
       "FechaFracPozo3": "",
-      "FechaFracPozo4": "Stand BY",
+      "FechaFracPozo4": "Cancelada",
       "FechaFracPozo5": "46024",
       "FechaFracPozo6": "",
       "Fila": "#08",
@@ -204,7 +204,7 @@
       "SecuenciaPozo5": "46024.5",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6423 ORIE",
-      "TPNPozo2": "",
+      "TPNPozo2": "6403.9",
       "TPNPozo3": "",
       "TPNPozo4": "5538",
       "TPNPozo5": "6390",
@@ -1345,11 +1345,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-10T01:09:23.6594134Z",
+  "lastUpdate": "2026-01-10T03:12:31.7974951Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "164209 lts"
+      "STOCK": "201209 lts"
     },
     {
       "ITEM": "ARENA #100",
