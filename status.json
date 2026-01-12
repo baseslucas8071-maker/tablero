@@ -298,7 +298,7 @@
       "FechaFracPozo1": "46028",
       "FechaFracPozo2": "46033",
       "FechaFracPozo3": "",
-      "FechaFracPozo4": "STDBY 1",
+      "FechaFracPozo4": "Fracturando",
       "FechaFracPozo5": "46026",
       "FechaFracPozo6": "",
       "Fila": "#13",
@@ -317,14 +317,14 @@
     },
     {
       "FechaFracPozo1": "46028",
-      "FechaFracPozo2": "WL",
+      "FechaFracPozo2": "STDBY 1",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "46026",
       "FechaFracPozo6": "",
       "Fila": "#14",
       "SecuenciaPozo1": "46028.4166666667",
-      "SecuenciaPozo2": "",
+      "SecuenciaPozo2": "46034.0152777778",
       "SecuenciaPozo3": "",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "46026.3506944444",
@@ -1345,7 +1345,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-12T03:35:00.0546352Z",
+  "lastUpdate": "2026-01-12T04:01:03.2910445Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
@@ -1361,11 +1361,11 @@
     },
     {
       "ITEM": "Flojet 533 EM",
-      "STOCK": "15138 kg"
+      "STOCK": "19974 kg"
     },
     {
       "ITEM": "DRP-2340",
-      "STOCK": "97068 kg"
+      "STOCK": "87646 kg"
     },
     {
       "ITEM": "DRMAX-9115",
