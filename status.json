@@ -374,7 +374,7 @@
       "TPNPozo1": "6022.5 ",
       "TPNPozo2": "5973.9",
       "TPNPozo3": "",
-      "TPNPozo4": "REAXION",
+      "TPNPozo4": "5058 ori/slb",
       "TPNPozo5": "5910 ORIE",
       "TPNPozo6": ""
     },
@@ -1345,7 +1345,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-12T23:29:30.1427816Z",
+  "lastUpdate": "2026-01-12T23:30:07.1092644Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
