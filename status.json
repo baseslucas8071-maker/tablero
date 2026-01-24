@@ -631,7 +631,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "ESPERA WL",
       "FechaFracPozo2": "46038",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "46040",
@@ -1345,7 +1345,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-24T23:41:49.0990095Z",
+  "lastUpdate": "2026-01-24T23:42:23.8469056Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
