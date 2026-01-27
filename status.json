@@ -719,14 +719,14 @@
       "FechaFracPozo2": "46039",
       "FechaFracPozo3": "46049",
       "FechaFracPozo4": "46042",
-      "FechaFracPozo5": "wl",
+      "FechaFracPozo5": "FRAC 2",
       "FechaFracPozo6": "",
       "Fila": "#33",
       "SecuenciaPozo1": "46047.9930555556",
       "SecuenciaPozo2": "46039.4652777778",
       "SecuenciaPozo3": "46048.9791666667",
       "SecuenciaPozo4": "46041.7777777778",
-      "SecuenciaPozo5": "",
+      "SecuenciaPozo5": "46049.2583333333",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5174.5",
       "TPNPozo2": "4953.9",
@@ -799,7 +799,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "FRAC 3",
       "FechaFracPozo2": "46041",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "46042",
@@ -1345,11 +1345,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-27T08:45:46.7892300Z",
+  "lastUpdate": "2026-01-27T09:19:16.5567761Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "108288 lts"
+      "STOCK": "107540 lts"
     },
     {
       "ITEM": "ARENA #100",
