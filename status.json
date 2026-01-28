@@ -772,7 +772,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5074.5",
       "TPNPozo2": "4833.9",
-      "TPNPozo3": "5093",
+      "TPNPozo3": "5143",
       "TPNPozo4": "3954",
       "TPNPozo5": "4770",
       "TPNPozo6": ""
@@ -793,7 +793,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5024.5",
       "TPNPozo2": "4773.9",
-      "TPNPozo3": "5043",
+      "TPNPozo3": "5143",
       "TPNPozo4": "3894",
       "TPNPozo5": "4710",
       "TPNPozo6": ""
@@ -814,7 +814,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "4974.5",
       "TPNPozo2": "4713.9",
-      "TPNPozo3": "4993",
+      "TPNPozo3": "5143",
       "TPNPozo4": "3834",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -835,9 +835,9 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "4924.5",
       "TPNPozo2": "4653.9",
-      "TPNPozo3": "4943",
+      "TPNPozo3": "5143",
       "TPNPozo4": "3774",
-      "TPNPozo5": "4830",
+      "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
@@ -858,7 +858,7 @@
       "TPNPozo2": "4594.9",
       "TPNPozo3": "",
       "TPNPozo4": "3714",
-      "TPNPozo5": "4770",
+      "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
@@ -877,9 +877,9 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "4533.9",
-      "TPNPozo3": "",
+      "TPNPozo3": "5093",
       "TPNPozo4": "3654",
-      "TPNPozo5": "4710",
+      "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
@@ -898,7 +898,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "4473.9",
-      "TPNPozo3": "",
+      "TPNPozo3": "5043",
       "TPNPozo4": "3594",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -919,7 +919,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "4413.9",
-      "TPNPozo3": "",
+      "TPNPozo3": "4993",
       "TPNPozo4": "3534",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -940,7 +940,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "4353.9",
-      "TPNPozo3": "",
+      "TPNPozo3": "4943",
       "TPNPozo4": "Tpn Prueba",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1345,7 +1345,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-01-28T05:16:10.1314103Z",
+  "lastUpdate": "2026-01-28T05:16:40.5646854Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
