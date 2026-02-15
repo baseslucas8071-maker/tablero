@@ -49,7 +49,7 @@
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
-      "Fila": "#00",
+      "Fila": "#0",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "",
       "SecuenciaPozo3": "",
@@ -72,10 +72,10 @@
       "FechaFracPozo6": "",
       "Fila": "#01",
       "SecuenciaPozo1": "",
-      "SecuenciaPozo2": "WL 1",
-      "SecuenciaPozo3": "WL2",
-      "SecuenciaPozo4": "WL3",
-      "SecuenciaPozo5": "WL4",
+      "SecuenciaPozo2": "",
+      "SecuenciaPozo3": "WL1",
+      "SecuenciaPozo4": "WL2",
+      "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6381",
       "TPNPozo2": "6428",
@@ -224,11 +224,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "6101",
-      "TPNPozo2": "6148",
-      "TPNPozo3": "6048",
-      "TPNPozo4": "6187",
-      "TPNPozo5": "6085",
+      "TPNPozo1": "",
+      "TPNPozo2": "",
+      "TPNPozo3": "",
+      "TPNPozo4": "",
+      "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
@@ -245,11 +245,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "6061",
-      "TPNPozo2": "6108",
-      "TPNPozo3": "6008",
-      "TPNPozo4": "6147",
-      "TPNPozo5": "6045",
+      "TPNPozo1": "",
+      "TPNPozo2": "",
+      "TPNPozo3": "",
+      "TPNPozo4": "",
+      "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
@@ -266,11 +266,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "6021",
-      "TPNPozo2": "6068",
-      "TPNPozo3": "5968",
-      "TPNPozo4": "6107",
-      "TPNPozo5": "6005",
+      "TPNPozo1": "",
+      "TPNPozo2": "",
+      "TPNPozo3": "",
+      "TPNPozo4": "",
+      "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-02-15T11:19:11.5704684Z",
+  "lastUpdate": "2026-02-15T11:20:33.8011579Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
