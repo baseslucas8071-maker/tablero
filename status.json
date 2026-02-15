@@ -59,7 +59,7 @@
       "TPNPozo1": "",
       "TPNPozo2": "",
       "TPNPozo3": "",
-      "TPNPozo4": "6467",
+      "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -80,7 +80,7 @@
       "TPNPozo1": "6381",
       "TPNPozo2": "6428",
       "TPNPozo3": "6328",
-      "TPNPozo4": "6427",
+      "TPNPozo4": "6467",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -101,7 +101,7 @@
       "TPNPozo1": "6341",
       "TPNPozo2": "6388",
       "TPNPozo3": "6288",
-      "TPNPozo4": "6387",
+      "TPNPozo4": "6427",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -122,7 +122,7 @@
       "TPNPozo1": "6301",
       "TPNPozo2": "6348",
       "TPNPozo3": "6248",
-      "TPNPozo4": "6347",
+      "TPNPozo4": "6387",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -143,7 +143,7 @@
       "TPNPozo1": "6261",
       "TPNPozo2": "6308",
       "TPNPozo3": "6208",
-      "TPNPozo4": "",
+      "TPNPozo4": "6347",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -164,7 +164,7 @@
       "TPNPozo1": "6221",
       "TPNPozo2": "6268",
       "TPNPozo3": "6168",
-      "TPNPozo4": "",
+      "TPNPozo4": "6307",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -185,7 +185,7 @@
       "TPNPozo1": "6181",
       "TPNPozo2": "6228",
       "TPNPozo3": "6128",
-      "TPNPozo4": "",
+      "TPNPozo4": "6267",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -206,7 +206,7 @@
       "TPNPozo1": "6141",
       "TPNPozo2": "6188",
       "TPNPozo3": "6088",
-      "TPNPozo4": "",
+      "TPNPozo4": "6227",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -227,7 +227,7 @@
       "TPNPozo1": "6101",
       "TPNPozo2": "6148",
       "TPNPozo3": "6048",
-      "TPNPozo4": "",
+      "TPNPozo4": "6187",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-02-15T04:46:32.9980191Z",
+  "lastUpdate": "2026-02-15T04:47:06.6340007Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
