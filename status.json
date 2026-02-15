@@ -49,7 +49,7 @@
       "FechaFracPozo4": "E. 0 15/02/2026",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
-      "Fila": "#01",
+      "Fila": "",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "",
       "SecuenciaPozo3": "",
@@ -70,7 +70,7 @@
       "FechaFracPozo4": "ADM",
       "FechaFracPozo5": "WL",
       "FechaFracPozo6": "",
-      "Fila": "#011",
+      "Fila": "#01",
       "SecuenciaPozo1": "       TRACTOR",
       "SecuenciaPozo2": "46068.5430555556",
       "SecuenciaPozo3": "46068.6298611111",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-02-15T20:55:44.4669450Z",
+  "lastUpdate": "2026-02-15T20:56:48.1627125Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
