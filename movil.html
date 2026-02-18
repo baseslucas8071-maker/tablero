@@ -641,7 +641,7 @@ $$('.tab').forEach(t => t.addEventListener('click', ()=> {
 }));
 $('#btnRefresh').addEventListener('click', load);
 $('#btnHelp').addEventListener('click', ()=>{ alert('Tocá un pozo para ver detalles. Usá ⚙️ para configurar el cálculo de ETA.'); });
-$('#btnInst').addEventListener('click', ()=>{ alert('Versión móvil v1.2\n\nEl ETA puede usar velocidad fija (10 et/día) o real. Configúralo en ⚙️.'); });
+$('#btnInst').addEventListener('click', ()=>{ alert('Versión móvil v1.2\n\nEl ETA puede usar velocidad fija (8 et/día) o real. Configúralo en ⚙️.'); });
 $('#btnShare').addEventListener('click', async ()=>{ try{ await navigator.share({ title:'Visor móvil', url: location.href }); }catch(_){} });
 window.addEventListener('resize', () => { const diasVisible = $('#viewDias').style.display !== 'none'; if (diasVisible && gDaysLabels.length) { drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues); } });
 
