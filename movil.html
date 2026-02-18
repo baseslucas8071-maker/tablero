@@ -622,7 +622,7 @@ function openSettings(){
 function closeSettings(){ elModal.classList.remove('open'); }
 function saveSettings(){
   PREFS.useManual = elUseManual.checked;
-  PREFS.manualSpeed = Number(elManualVal.value) || 10;
+  PREFS.manualSpeed = Number(elManualVal.value) || 8;
   localStorage.setItem('mobile_prefs', JSON.stringify(PREFS));
   closeSettings();
   recomputeAndRender();
