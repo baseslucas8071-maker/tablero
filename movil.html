@@ -38,7 +38,7 @@
     .speed{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
     .speed .box{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
     .speed .h{font-size:11px; opacity:.8}
-    .speed .v{font-size:18px; font-weight:800; margin-top:2px}
+    .speed .v{font-size:18px; font-weight:800; margin-top:2px; line-height: 1.2;}
 
     .pozo{display:grid; gap:8px; cursor:pointer; margin-bottom:4px}
     .pozo-title{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:10px; background:#101010}
@@ -117,9 +117,9 @@
         <div id="lastUpdate" style="font-size:11px; opacity:0.5; margin-top:8px; text-align:center"></div>
       </section>
 
-      <section id="viewPozos"></section>
+      <section id="viewPozos" class="pozos"></section>
 
-      <section id="viewDias" style="display:none">
+      <section id="viewDias" class="dias" style="display:none">
         <section class="card pad" style="margin-bottom:10px"><canvas id="daysChart"></canvas></section>
         <div id="daysListBox"></div>
       </section>
@@ -151,7 +151,7 @@
 "use strict";
 
 const CONFIG = {
-  DATA_URL: 'https://baseslucas8071-maker.github.io/tablero/status.json',
+  DATA_URL: 'status.json',
   MAX_ETAPAS: 70 
 };
 
@@ -189,7 +189,6 @@ async function load() {
     const json = await res.json();
     const rows = json.items || [];
     
-    // 1. Detectar encabezados y nombres (Robusto)
     const names = {};
     const firstRow = rows[0] || {};
     Object.keys(firstRow).forEach(k => {
@@ -200,7 +199,6 @@ async function load() {
       }
     });
 
-    // 2. Procesar filas (Límite 70)
     const stats = {};
     const dailyMap = new Map();
     const dataRows = rows.filter(r => {
@@ -233,6 +231,7 @@ async function load() {
     
     $('#lastUpdate').textContent = `Sincronizado: ${new Date().toLocaleTimeString()}`;
     renderMain();
+    if($('#viewDias').style.display !== 'none') renderDays();
   } catch (e) { console.error("Error cargando datos:", e); }
 }
 
@@ -251,10 +250,12 @@ function renderMain() {
   $('#avgPace').textContent = `${avg.toFixed(1)} et/día`;
 
   const speed = PREFS.useManual ? PREFS.manualSpeed : avg;
+  const speedLabel = PREFS.useManual ? `Manual: ${speed}` : `Real: ${avg.toFixed(1)}`;
+
   if(speed > 0 && r > 0) {
     const dLeft = r / speed;
     const target = new Date(Date.now() + dLeft * 86400000);
-    $('#etaFinish').textContent = target.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'});
+    $('#etaFinish').innerHTML = `${target.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})} <div style="font-size:10px; opacity:0.6; font-weight:normal">(Base: ${speedLabel} et/día)</div>`;
   } else { $('#etaFinish').textContent = "—"; }
 
   const cont = $('#viewPozos'); cont.innerHTML = '';
@@ -275,6 +276,26 @@ function renderMain() {
     `;
     el.onclick = () => openDetail(id);
     cont.appendChild(el);
+  });
+}
+
+function renderDays() {
+  const box = $('#daysListBox');
+  if(!box) return;
+  box.innerHTML = '<div class="list"></div>';
+  
+  if (gDays.length === 0) {
+    box.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5">Sin datos registrados</div>';
+    return;
+  }
+
+  gDays.forEach(([ymd, count]) => {
+    const item = document.createElement('div');
+    item.className = 'item';
+    const dateParts = ymd.split('-');
+    const displayDate = `${dateParts[2]}/${dateParts[1]}`;
+    item.innerHTML = `<div class="left"><strong>${displayDate}</strong></div><div class="right">${count} etapas</div>`;
+    box.firstChild.appendChild(item);
   });
 }
 
@@ -327,7 +348,28 @@ $('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked;
 
 $$('.tab').forEach(t => t.onclick = () => {
   $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
-  const v = t.dataset.view; $('#viewPozos').style.display = v==='pozos'?'grid':'none'; $('#viewDias').style.display = v==='dias'?'block':'none';
+  const v = t.dataset.view; 
+  $('#viewPozos').style.display = v==='pozos'?'grid':'none'; 
+  $('#viewDias').style.display = v==='dias'?'block':'none';
+  if(v === 'dias') {
+    renderDays();
+    setTimeout(() => {
+        const canv = $('#daysChart');
+        const ctx = canv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+        const w = canv.clientWidth, h = canv.clientHeight;
+        canv.width = w * dpr; canv.height = h * dpr;
+        ctx.scale(dpr, dpr); ctx.clearRect(0,0,w,h);
+        const data = gDays.slice(0, 10).reverse();
+        const max = Math.max(1, ...data.map(d=>d[1])), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
+        const stepX = chartW / Math.max(1, data.length);
+        data.forEach((d, i) => {
+            const bw = Math.max(10, stepX - 15), bh = (d[1]/max)*chartH, x = pad + i*stepX + (stepX-bw)/2, y = h - pad - bh;
+            ctx.fillStyle = '#47a3ff'; ctx.fillRect(x, y, bw, bh);
+            ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(d[1], x+bw/2, y-5);
+            ctx.font = '8px sans-serif'; ctx.fillText(d[0].split('-').slice(1).reverse().join('/'), x+bw/2, h-5);
+        });
+    }, 50);
+  }
 });
 
 load();
