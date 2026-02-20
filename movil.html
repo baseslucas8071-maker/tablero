@@ -3,18 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Visor móvil – Etapas (70 Max)</title>
+  <title>Visor Móvil PAD - Dinastía AI</title>
   <style>
     :root{
       --bg:#000; --card:#0b0b0b; --muted:#cfe8ff; --ok:#1ad598; --warn:#ffc857; --bad:#ff6b6b; --ink:#e8f0ff;
       --accent:#47a3ff; --soft:#111; --ring:#2d2d2d; --shadow: 0 6px 20px rgba(0,0,0,.55);
     }
-    html,body{height:100%; margin:0; background:#000; color:var(--ink); font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;}
+    html,body{height:100%; margin:0; background:#000; color:var(--ink); font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif; overflow-x:hidden;}
     .wrap{min-height:100%; display:flex; flex-direction:column;}
     header{position:sticky; top:0; z-index:10; background:linear-gradient(180deg, #000, rgba(0,0,0,.85)); border-bottom:1px solid #1a1a1a;}
     .bar{display:flex; align-items:center; gap:10px; padding:12px 14px}
     .title{font-size:18px; font-weight:700; letter-spacing:.2px}
-    .sub{font-size:12px; opacity:.8}
     .grow{flex:1}
     button, .chip{appearance:none; border:1px solid var(--ring); background:var(--soft); color:var(--ink); border-radius:12px; padding:8px 12px; font:inherit; font-weight:600}
     button:active{transform:scale(.98)}
@@ -31,81 +30,61 @@
 
     .kpis{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px}
     .kpi{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
-    .kpi .label{font-size:14px; opacity:.8}
-    .kpi .value{font-size:26px; font-weight:800; margin-top:2px}
+    .kpi .label{font-size:12px; opacity:.8}
+    .kpi .value{font-size:24px; font-weight:800; margin-top:2px}
     .kpi.ok .value{color:var(--ok)}
     .kpi.warn .value{color:var(--warn)}
-    .kpi.bad .value{color:var(--bad)}
 
     .speed{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
     .speed .box{background:#090909; border:1px solid #161616; border-radius:12px; padding:10px}
-    .speed .h{font-size:11px; opacity:.8; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .speed .h{font-size:11px; opacity:.8}
     .speed .v{font-size:18px; font-weight:800; margin-top:2px}
 
-    .pozo{display:grid; gap:8px; cursor:pointer}
-    .pozo:hover{outline:1px solid #1f3e66}
-
+    .pozo{display:grid; gap:8px; cursor:pointer; margin-bottom:4px}
     .pozo-title{display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:10px; background:#101010}
-    .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
+    .pozo-title .name{font-weight:900; font-size:18px}
     .meta{display:flex; gap:8px}
-    .badge{font-size:13px; background:#090909; border:1px solid #222; padding:5px 10px; border-radius:999px; font-weight:700}
-    
+    .badge{font-size:13px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); padding:4px 10px; border-radius:999px; font-weight:700}
+
     .row{display:flex; align-items:center; gap:14px}
     .progress{height:12px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden; flex:1}
     .progress > i{display:block; height:100%; background:linear-gradient(90deg, #47a3ff, #60dbfb)}
-    .pct{width:58px; text-align:right; font-size:14px; font-weight:800}
+    .pct{width:50px; text-align:right; font-size:14px; font-weight:800}
 
     .list{display:grid; gap:10px}
     .item{display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:12px; border:1px solid #161616; background:#0a0a0a}
-    .item .left{display:flex; flex-direction:column}
     .item .left .h{font-weight:700}
     .item .right{font-weight:800}
 
-    .muted{opacity:.75}
-    .tiny{font-size:11px}
-
     .backbar{display:flex; align-items:center; gap:10px; padding:8px 14px}
     .backbar .t{font-weight:900; font-size:18px}
-    .back{border-radius:10px}
-    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    .summary{display:grid; gap:8px}
-    .kv{display:flex; align-items:center; justify-content:space-between; background:#0a0a0a; border:1px solid #161616; padding:10px 12px; border-radius:12px}
+    
     canvas{width:100%; height:220px; display:block}
 
-    footer.nav{position:sticky; bottom:0; background:linear-gradient(0deg, #000, rgba(0,0,0,.85)); border-top:1px solid #1a1a1a;}
-    .nav-inner{display:flex; gap:8px; padding:10px 14px}
-    .nav-inner button{flex:1}
-
-    .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; display:none; align-items:center; justify-content:center}
+    .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:none; align-items:center; justify-content:center}
     .overlay.open{display:flex}
-    .modal-box{background:#111; border:1px solid #222; width:90%; max-width:400px; border-radius:16px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,.8)}
-    .modal-head{font-weight:800; font-size:18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center}
-    .form-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:10px; background:#080808; border-radius:8px; border:1px solid #1a1a1a}
-    .form-row input[type="number"]{width:60px; background:#222; border:1px solid #333; color:#fff; padding:6px; border-radius:6px; font-weight:700; text-align:center}
-    .form-row input[type="checkbox"]{transform:scale(1.3)}
+    .modal-box{background:#111; border:1px solid #222; width:90%; max-width:400px; border-radius:16px; padding:16px}
+    .form-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:10px; background:#080808; border-radius:8px}
 
-    .color-1{ --c-bg:linear-gradient(90deg,#ffd83a,#ffd83a); --c-fg:#001; }
-    .color-2{ --c-bg:linear-gradient(90deg,#7ad39a,#5fbf87); --c-fg:#001; }
-    .color-3{ --c-bg:linear-gradient(90deg,#74b3ff,#4686ff); --c-fg:#001; }
-    .color-4{ --c-bg:linear-gradient(90deg,#ff7b7b,#ff4c4c); --c-fg:#001; }
-    .color-5{ --c-bg:linear-gradient(90deg,#ffffff,#f2f6f9); --c-fg:#001; }
-    .color-6{ --c-bg:linear-gradient(90deg,#e8c3ff,#d79bf6); --c-fg:#201; }
-    .pozo.color-1 .pozo-title, .pozo.color-2 .pozo-title, .pozo.color-3 .pozo-title, .pozo.color-4 .pozo-title, .pozo.color-5 .pozo-title, .pozo.color-6 .pozo-title{ background:var(--c-bg); color:var(--c-fg); }
-    #detailBar[class*="color-"] .t{ background:var(--c-bg); color:var(--c-fg); padding:6px 10px; border-radius:10px; }
-
-    @media (min-width:720px){ main{max-width:720px; margin:0 auto} }
+    /* Colores por pozo */
+    .color-1{ --c-bg:linear-gradient(90deg,#ffd83a,#ffd83a); --c-fg:#000; }
+    .color-2{ --c-bg:linear-gradient(90deg,#7ad39a,#5fbf87); --c-fg:#000; }
+    .color-3{ --c-bg:linear-gradient(90deg,#74b3ff,#4686ff); --c-fg:#000; }
+    .color-4{ --c-bg:linear-gradient(90deg,#ff7b7b,#ff4c4c); --c-fg:#000; }
+    .color-5{ --c-bg:linear-gradient(90deg,#ffffff,#f2f6f9); --c-fg:#000; }
+    .color-6{ --c-bg:linear-gradient(90deg,#e8c3ff,#d79bf6); --c-fg:#000; }
+    .pozo[class*="color-"] .pozo-title, #detailBar[class*="color-"] .t{ background:var(--c-bg); color:var(--c-fg); }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
       <div class="bar">
-        <div><div class="title">Visor móvil PAD</div></div>
+        <div class="title">Visor Móvil PAD</div>
         <div class="grow"></div>
         <div class="toolbar">
           <button id="btnRefresh">↻</button>
           <button id="btnCfg">⚙️</button>
-          <button id="btnInst">?</button>
         </div>
       </div>
       <div class="tabs" id="mainTabs">
@@ -113,7 +92,7 @@
         <div class="tab" data-view="dias">Por día</div>
       </div>
       <div class="backbar" id="detailBar" style="display:none">
-        <button class="back" id="btnBack">← Volver</button>
+        <button id="btnBack">← Volver</button>
         <div class="t" id="detailTitle">Pozo</div>
       </div>
     </header>
@@ -121,62 +100,50 @@
     <main>
       <section class="card pad" id="topCard">
         <div class="kpis">
-          <div class="kpi" id="kpiTotales"><div class="label">Etapas totales</div><div class="value">—</div></div>
-          <div class="kpi ok" id="kpiRealizadas"><div class="label">Realizadas</div><div class="value">—</div></div>
+          <div class="kpi" id="kpiTotales"><div class="label">Total Etapas</div><div class="value">—</div></div>
+          <div class="kpi ok" id="kpiRealizadas"><div class="label">Hechas</div><div class="value">—</div></div>
           <div class="kpi warn" id="kpiRestantes"><div class="label">Restantes</div><div class="value">—</div></div>
         </div>
-        <div class="speed" id="speedRow">
+        <div class="speed">
           <div class="box">
             <div class="h">Promedio Real</div>
             <div class="v" id="avgPace">—</div>
-            <div class="tiny muted" id="avgFoot">—</div>
           </div>
           <div class="box">
             <div class="h">Fin estimado</div>
             <div class="v" id="etaFinish">—</div>
-            <div class="tiny muted" id="etaTime">—</div>
           </div>
         </div>
-        <div class="tiny muted" id="lastUpdate" style="margin-top:8px; text-align:center"></div>
+        <div id="lastUpdate" style="font-size:11px; opacity:0.5; margin-top:8px; text-align:center"></div>
       </section>
 
-      <section id="viewPozos" class="pozos"></section>
+      <section id="viewPozos"></section>
 
-      <section id="viewDias" class="dias" style="display:none">
-        <section class="card pad"><canvas id="daysChart"></canvas></section>
-        <section id="daysListBox" class="card pad"></section>
+      <section id="viewDias" style="display:none">
+        <section class="card pad" style="margin-bottom:10px"><canvas id="daysChart"></canvas></section>
+        <div id="daysListBox"></div>
       </section>
 
-      <section id="viewDetail" style="display:none; gap:12px">
-        <section class="card pad"><canvas id="pozoChart"></canvas></section>
+      <section id="viewDetail" style="display:none">
+        <section class="card pad" style="margin-bottom:10px"><canvas id="pozoChart"></canvas></section>
         <section class="card pad">
-          <div class="grid2">
-            <div class="summary">
-              <div class="kv"><span>Total</span><strong id="dTot">—</strong></div>
-              <div class="kv"><span>Hechas</span><strong id="dDone">—</strong></div>
-              <div class="kv"><span>Restantes</span><strong id="dLeft">—</strong></div>
-              <div class="kv"><span>Avance</span><strong id="dPct">—</strong></div>
-            </div>
-            <div id="dList" class="list"></div>
+          <div class="summary" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px">
+             <div class="kv" style="background:#0a0a0a; padding:10px; border-radius:8px"><span>Total:</span> <strong id="dTot">—</strong></div>
+             <div class="kv" style="background:#0a0a0a; padding:10px; border-radius:8px"><span>Hechas:</span> <strong id="dDone">—</strong></div>
           </div>
+          <div id="dList" class="list"></div>
         </section>
       </section>
     </main>
-
-    <footer class="nav">
-      <div class="nav-inner">
-        <button id="btnShare">Compartir</button>
-        <button id="btnHelp">Ayuda</button>
-      </div>
-    </footer>
   </div>
 
   <div class="overlay" id="modalSettings">
     <div class="modal-box">
-      <div class="modal-head">Ajustes <button id="btnCloseCfg" class="chip">✕</button></div>
+      <h3 style="margin-top:0">Ajustes de ETA</h3>
       <div class="form-row"><span>Usar Velocidad Fija</span><input type="checkbox" id="cfgUseManual"></div>
-      <div class="form-row"><span>Etapas por día</span><input type="number" id="cfgManualVal" step="0.1"></div>
-      <div style="text-align:right"><button id="btnSaveCfg" style="background:var(--accent); color:#000; border:none">Guardar</button></div>
+      <div class="form-row"><span>Etapas / Día</span><input type="number" id="cfgManualVal" step="0.1"></div>
+      <button id="btnSaveCfg" style="width:100%; background:var(--accent); color:#000; border:none; padding:12px; border-radius:8px; font-weight:bold">Guardar</button>
+      <button id="btnCloseCfg" style="width:100%; background:transparent; border:none; color:#fff; margin-top:10px">Cerrar</button>
     </div>
   </div>
 
@@ -185,210 +152,182 @@
 
 const CONFIG = {
   DATA_URL: 'https://baseslucas8071-maker.github.io/tablero/status.json',
-  MAX_ETAPAS: 70, // REPARADO: 70 Etapas
-  DAY_CUTOFF_HOUR: 0 
+  MAX_ETAPAS: 70 
 };
 
 let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || { useManual: true, manualSpeed: 10 };
+let gStats = {}, gNames = {}, gDays = [];
 
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
-const fmt = n => new Intl.NumberFormat('es-AR').format(n);
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
 
-function pad2(n){ return String(n).padStart(2,'0'); }
-function isStop(v){ return String(v || "").trim().toUpperCase() === 'STOP'; }
-function isAbortCancel(v){ const s = String(v || "").trim().toUpperCase(); return s === 'ABORTADA' || s === 'CANCELADA'; }
-
-function excelSerialToDate(x){
-  const n = Number(x); if(!isFinite(n)) return null;
-  const d = new Date((n - 25569) * 86400 * 1000);
-  return isNaN(d) ? null : d;
-}
-
-function isValidDateCell(v){
+function isStop(v) { return String(v || "").trim().toUpperCase() === 'STOP'; }
+function isValidDate(v) {
   const s = String(v || "").trim();
   if(!s) return false;
   if(!isNaN(s) && Number(s) > 40000) return true;
   return /^(\d{1,2})[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
 }
 
-function parseToYMD(v){
+function parseToYMD(v) {
   const s = String(v || "").trim();
-  if(!isNaN(s) && Number(s) > 40000){
-    const d = excelSerialToDate(s); if(!d) return null;
-    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
+  if(!isNaN(s) && Number(s) > 40000) {
+    const d = new Date((Number(s) - 25569) * 86400 * 1000);
+    return d.toISOString().split('T')[0];
   }
   const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
-  if(m){
+  if(m) {
     let y = +m[3]; if(y < 100) y += 2000;
-    return `${y}-${pad2(m[2])}-${pad2(m[1])}`;
+    return `${y}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
   }
   return s.match(/^\d{4}-\d{2}-\d{2}/) ? s : null;
 }
 
-/* --- LOGICA DE DATOS (REPARADA) --- */
-let gStats = null, gNames = null, gDaysArrDesc = [], gDaysLabels = [], gDaysValues = [];
-
-function extractData(rows){
-  const byPozo = {}, namesMap = {};
-  const keys = Object.keys(rows[0] || {});
-  const fechaCols = keys.filter(k => /^FechaFracPozo\d+$/i.test(k));
-  
-  const nameRow = rows[0] || {};
-  fechaCols.forEach(fk => {
-    const n = fk.match(/(\d+)/)[1];
-    const val = String(nameRow[fk] ?? "").trim();
-    if(val && val.toUpperCase() !== "X") namesMap[n] = val;
-  });
-
-  fechaCols.forEach(fk => {
-    const n = fk.match(/(\d+)/)[1];
-    if(!namesMap[n]) return;
-    const pozoRows = rows.map(r => ({...r, _f:String(r.Fila||'').trim()})).filter(r => /^#?\d+$/i.test(r._f));
-    
-    let stopIdx = pozoRows.findIndex(r => isStop(r[fk]));
-    const totalSlots = stopIdx >= 0 ? stopIdx : Math.min(pozoRows.length, CONFIG.MAX_ETAPAS);
-    const serie = pozoRows.slice(0, totalSlots);
-    
-    // REPARADO: Conteo estricto solo por isValidDateCell
-    const realizadas = serie.filter(r => isValidDateCell(r[fk])).length;
-    
-    byPozo[n] = { total: totalSlots, realizadas, restantes: Math.max(0, totalSlots - realizadas), serie, fk };
-  });
-  return { byPozo, namesMap };
-}
-
-function aggregateByDay(byPozo){
-  const map = new Map();
-  Object.values(byPozo).forEach(p => {
-    p.serie.forEach(r => {
-      if(isValidDateCell(r[p.fk])){
-        const ymd = parseToYMD(r[p.fk]);
-        if(ymd) map.set(ymd, (map.get(ymd)||0)+1);
-      }
-    });
-  });
-  return Array.from(map.entries()).sort((a,b)=> b[0].localeCompare(a[0]));
-}
-
-/* --- RENDER --- */
-async function load(){
-  try{
-    const res = await fetch(`${CONFIG.DATA_URL}?t=${Date.now()}`);
+async function load() {
+  try {
+    const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`);
     const json = await res.json();
     const rows = json.items || [];
-    const { byPozo, namesMap } = extractData(rows);
-    gStats = byPozo; gNames = namesMap;
-    gDaysArrDesc = aggregateByDay(byPozo);
+    
+    // 1. Detectar encabezados y nombres (Robusto)
+    const names = {};
+    const firstRow = rows[0] || {};
+    Object.keys(firstRow).forEach(k => {
+      if(k.startsWith('FechaFracPozo')) {
+        const id = k.match(/\d+/)[0];
+        const val = String(firstRow[k] || "").trim();
+        if(val && val.toUpperCase() !== 'X') names[id] = val;
+      }
+    });
+
+    // 2. Procesar filas (Límite 70)
+    const stats = {};
+    const dailyMap = new Map();
+    const dataRows = rows.filter(r => {
+        const f = String(r.Fila || r.fila || "").replace('#','');
+        return f && !isNaN(f) && parseInt(f) <= CONFIG.MAX_ETAPAS;
+    });
+
+    Object.keys(names).forEach(id => {
+      const fk = `FechaFracPozo${id}`;
+      let totalSlots = 0, hechas = 0, serie = [], stopped = false;
+
+      for(const r of dataRows) {
+        const val = r[fk];
+        if(isStop(val)) { stopped = true; break; }
+        totalSlots++;
+        if(isValidDate(val)) {
+          hechas++;
+          const ymd = parseToYMD(val);
+          if(ymd) dailyMap.set(ymd, (dailyMap.get(ymd)||0) + 1);
+        }
+        serie.push({ f: r.Fila || r.fila, v: val, isH: isValidDate(val) });
+      }
+      if(totalSlots > 0 || hechas > 0) {
+        stats[id] = { total: totalSlots, hechas, rest: totalSlots - hechas, serie, name: names[id] };
+      }
+    });
+
+    gStats = stats; gNames = names;
+    gDays = Array.from(dailyMap.entries()).sort((a,b) => b[0].localeCompare(a[0]));
     
     $('#lastUpdate').textContent = `Sincronizado: ${new Date().toLocaleTimeString()}`;
-    recompute();
-  }catch(e){ console.error(e); }
+    renderMain();
+  } catch (e) { console.error("Error cargando datos:", e); }
 }
 
-function recompute(){
+function renderMain() {
   const all = Object.values(gStats);
-  const t = all.reduce((a,b)=>a+b.total,0), h = all.reduce((a,b)=>a+b.realizadas,0), r = t - h;
+  const t = all.reduce((a,b) => a + b.total, 0);
+  const h = all.reduce((a,b) => a + b.hechas, 0);
+  const r = t - h;
+
   $('#kpiTotales .value').textContent = t;
   $('#kpiRealizadas .value').textContent = h;
   $('#kpiRestantes .value').textContent = r;
 
-  const last7 = gDaysArrDesc.slice(0, 7);
-  const avg = last7.length ? (last7.reduce((a,b)=>a+b[1],0)/last7.length) : 0;
+  const last7 = gDays.slice(0, 7);
+  const avg = last7.length ? (last7.reduce((a,b) => a + b[1], 0) / last7.length) : 0;
   $('#avgPace').textContent = `${avg.toFixed(1)} et/día`;
-  $('#avgFoot').textContent = `Ventana: ${last7.length} días`;
 
   const speed = PREFS.useManual ? PREFS.manualSpeed : avg;
-  if(speed > 0 && r > 0){
+  if(speed > 0 && r > 0) {
     const dLeft = r / speed;
     const target = new Date(Date.now() + dLeft * 86400000);
     $('#etaFinish').textContent = target.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'});
-    $('#etaTime').textContent = `≈ ${Math.ceil(dLeft)} días`;
-  } else {
-    $('#etaFinish').textContent = '—'; $('#etaTime').textContent = '—';
-  }
+  } else { $('#etaFinish').textContent = "—"; }
 
-  renderPozos(); renderDias();
-}
-
-function renderPozos(){
   const cont = $('#viewPozos'); cont.innerHTML = '';
-  Object.entries(gStats).forEach(([id, s]) => {
-    const pct = s.total > 0 ? Math.round((s.realizadas/s.total)*100) : 0;
-    const el = document.createElement('section');
+  Object.keys(gStats).forEach(id => {
+    const p = gStats[id];
+    const pct = p.total > 0 ? Math.round((p.hechas/p.total)*100) : 0;
+    const el = document.createElement('div');
     el.className = `card pad pozo color-${id}`;
     el.innerHTML = `
-      <div class="pozo-title"><div class="name">${gNames[id]}</div><div class="meta"><span class="badge">Tot: ${s.total}</span><span class="badge">H: ${s.realizadas}</span></div></div>
-      <div class="row"><div class="progress"><i style="width:${pct}%"></i></div><div class="pct">${pct}%</div></div>
+      <div class="pozo-title">
+        <div class="name">${p.name}</div>
+        <div class="meta"><span class="badge">T: ${p.total}</span> <span class="badge">H: ${p.hechas}</span></div>
+      </div>
+      <div class="row">
+        <div class="progress"><i style="width:${pct}%"></i></div>
+        <div class="pct">${pct}%</div>
+      </div>
     `;
     el.onclick = () => openDetail(id);
     cont.appendChild(el);
   });
 }
 
-function renderDias(){
-  const recent = gDaysArrDesc.slice(0, 15).reverse();
-  gDaysLabels = recent.map(d=>d[0]); gDaysValues = recent.map(d=>d[1]);
-  if($('#viewDias').style.display !== 'none') drawChart($('#daysChart'), gDaysLabels, gDaysValues);
-  
-  const box = $('#daysListBox'); box.innerHTML = '<div class="list"></div>';
-  gDaysArrDesc.forEach(([ymd, count]) => {
-    const it = document.createElement('div'); it.className='item';
-    it.innerHTML = `<div class="left"><div class="h">${ymd.split('-').reverse().join('/')}</div></div><div class="right">${count}</div>`;
-    box.firstChild.appendChild(it);
-  });
-}
-
-function openDetail(id){
-  const s = gStats[id]; $('#detailTitle').textContent = gNames[id];
+function openDetail(id) {
+  const p = gStats[id];
+  $('#detailTitle').textContent = p.name;
   $('#detailBar').className = `backbar color-${id}`;
-  $('#dTot').textContent = s.total; $('#dDone').textContent = s.realizadas; $('#dLeft').textContent = s.restantes;
-  $('#dPct').textContent = (s.total>0?Math.round(100*s.realizadas/s.total):0)+'%';
+  $('#dTot').textContent = p.total;
+  $('#dDone').textContent = p.hechas;
   
   const list = $('#dList'); list.innerHTML = '';
-  s.serie.forEach((r, i) => {
-    const it = document.createElement('div'); it.className='item';
-    const hasDate = isValidDateCell(r[s.fk]);
-    it.innerHTML = `<div class="left"><div class="h">Etapa ${r._f}</div></div><div class="right" style="color:${hasDate?'var(--ok)':''}">${r[s.fk]||'—'}</div>`;
-    list.appendChild(it);
+  p.serie.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'item';
+    item.innerHTML = `<div class="left"><strong>Etapa ${s.f}</strong></div><div class="right" style="color:${s.isH?'#1ad598':''}">${s.v || '—'}</div>`;
+    list.appendChild(item);
   });
 
   $('#topCard').style.display='none'; $('#viewPozos').style.display='none'; $('#mainTabs').style.display='none';
   $('#detailBar').style.display='flex'; $('#viewDetail').style.display='grid';
-  
-  let daily = [];
-  const m = new Map();
-  s.serie.forEach(r => { if(isValidDateCell(r[s.fk])) { const y = parseToYMD(r[s.fk]); if(y) m.set(y, (m.get(y)||0)+1); } });
-  daily = Array.from(m.entries()).sort((a,b)=>a[0].localeCompare(b[0])).slice(-10);
-  drawChart($('#pozoChart'), daily.map(d=>d[0]), daily.map(d=>d[1]));
+  drawChart($('#pozoChart'), p);
 }
 
-function drawChart(canv, labs, vals){
+function drawChart(canv, pozoData) {
   const ctx = canv.getContext('2d'), dpr = window.devicePixelRatio || 1;
   const w = canv.clientWidth, h = canv.clientHeight;
   canv.width = w * dpr; canv.height = h * dpr;
   ctx.scale(dpr, dpr); ctx.clearRect(0,0,w,h);
-  const max = Math.max(1, ...vals), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
-  const stepX = chartW / Math.max(1, labs.length);
-  vals.forEach((v, i) => {
-    const x = pad + i * stepX + 5, bw = Math.max(5, stepX - 10), bh = (v/max)*chartH, y = h - pad - bh;
-    const g = ctx.createLinearGradient(0,y,0,y+bh); g.addColorStop(0, '#47a3ff'); g.addColorStop(1, '#60dbfb');
-    ctx.fillStyle = g; ctx.fillRect(x, y, bw, bh);
-    ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(v, x+bw/2, y-5);
+  
+  const m = new Map();
+  pozoData.serie.forEach(s => { if(s.isH) { const y = parseToYMD(s.v); if(y) m.set(y, (m.get(y)||0)+1); } });
+  const data = Array.from(m.entries()).sort((a,b) => a[0].localeCompare(b[0])).slice(-8);
+  
+  const max = Math.max(1, ...data.map(d=>d[1])), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
+  const stepX = chartW / Math.max(1, data.length);
+
+  data.forEach((d, i) => {
+    const bw = Math.max(10, stepX - 15), bh = (d[1]/max)*chartH, x = pad + i*stepX + (stepX-bw)/2, y = h - pad - bh;
+    ctx.fillStyle = '#47a3ff'; ctx.fillRect(x, y, bw, bh);
+    ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(d[1], x+bw/2, y-5);
+    ctx.font = '8px sans-serif'; ctx.fillText(d[0].split('-').slice(1).reverse().join('/'), x+bw/2, h-5);
   });
 }
 
-/* --- EVENTOS --- */
 $('#btnRefresh').onclick = load;
 $('#btnBack').onclick = () => { $('#detailBar').style.display='none'; $('#viewDetail').style.display='none'; $('#topCard').style.display='block'; $('#viewPozos').style.display='grid'; $('#mainTabs').style.display='flex'; };
 $('#btnCfg').onclick = () => { $('#cfgUseManual').checked = PREFS.useManual; $('#cfgManualVal').value = PREFS.manualSpeed; $('#modalSettings').classList.add('open'); };
 $('#btnCloseCfg').onclick = () => $('#modalSettings').classList.remove('open');
-$('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked; PREFS.manualSpeed = parseFloat($('#cfgManualVal').value)||10; localStorage.setItem('mobile_prefs', JSON.stringify(PREFS)); $('#modalSettings').classList.remove('open'); recompute(); };
+$('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked; PREFS.manualSpeed = parseFloat($('#cfgManualVal').value)||10; localStorage.setItem('mobile_prefs', JSON.stringify(PREFS)); $('#modalSettings').classList.remove('open'); renderMain(); };
 
 $$('.tab').forEach(t => t.onclick = () => {
   $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
   const v = t.dataset.view; $('#viewPozos').style.display = v==='pozos'?'grid':'none'; $('#viewDias').style.display = v==='dias'?'block':'none';
-  if(v==='dias') setTimeout(()=>drawChart($('#daysChart'), gDaysLabels, gDaysValues), 100);
 });
 
 load();
