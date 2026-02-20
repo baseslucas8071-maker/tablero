@@ -151,7 +151,7 @@
 "use strict";
 
 const CONFIG = {
-  DATA_URL: 'status.json',
+  DATA_URL: 'status.json', // Puedes cambiarlo a tu URL completa si lo necesitas
   MAX_ETAPAS: 70 
 };
 
@@ -161,26 +161,47 @@ let gStats = {}, gNames = {}, gDays = [];
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
+function pad2(n) { return String(n).padStart(2,'0'); }
 function isStop(v) { return String(v || "").trim().toUpperCase() === 'STOP'; }
+
+// Reparación de validación de fechas (Evita falsos positivos y textos raros)
 function isValidDate(v) {
   const s = String(v || "").trim();
   if(!s) return false;
-  if(!isNaN(s) && Number(s) > 40000) return true;
-  return /^(\d{1,2})[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
+  if(!isNaN(s) && Number(s) > 30000 && Number(s) < 80000) return true; // Serial Excel
+  return /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
 }
 
+// Reparación de conversión a formato YYYY-MM-DD
 function parseToYMD(v) {
   const s = String(v || "").trim();
-  if(!isNaN(s) && Number(s) > 40000) {
-    const d = new Date((Number(s) - 25569) * 86400 * 1000);
-    return d.toISOString().split('T')[0];
+  if(!s) return null;
+  
+  if(!isNaN(s) && Number(s) > 30000 && Number(s) < 80000) {
+    const d = new Date(Date.UTC(1899, 11, 30) + Math.round(Number(s) * 86400000));
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
   }
-  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if(m) {
-    let y = +m[3]; if(y < 100) y += 2000;
-    return `${y}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
+    let d = +m[1], mo = +m[2], y = +m[3];
+    if(y < 100) y += 2000;
+    return `${y}-${pad2(mo)}-${pad2(d)}`;
   }
-  return s.match(/^\d{4}-\d{2}-\d{2}/) ? s : null;
+  
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return s.substring(0, 10);
+  
+  return null;
+}
+
+// Formatear para mostrar al usuario (DD/MM/YYYY o el texto original)
+function displayDate(v) {
+    if (!isValidDate(v)) return v; // Si dice "Abortada", lo muestra
+    const ymd = parseToYMD(v);
+    if (!ymd) return v;
+    const parts = ymd.split('-');
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 async function load() {
@@ -201,9 +222,13 @@ async function load() {
 
     const stats = {};
     const dailyMap = new Map();
+    
+    // REPARACIÓN: Incluir explícitamente el #00 en el filtro
     const dataRows = rows.filter(r => {
-        const f = String(r.Fila || r.fila || "").replace('#','');
-        return f && !isNaN(f) && parseInt(f) <= CONFIG.MAX_ETAPAS;
+        const fText = String(r.Fila || r.fila || "").trim().replace('#','');
+        if (fText === "0" || fText === "00") return true; 
+        const fNum = parseInt(fText, 10);
+        return !isNaN(fNum) && fNum <= CONFIG.MAX_ETAPAS;
     });
 
     Object.keys(names).forEach(id => {
@@ -212,15 +237,19 @@ async function load() {
 
       for(const r of dataRows) {
         const val = r[fk];
+        const fLabel = String(r.Fila || r.fila || "").trim();
+        
         if(isStop(val)) { stopped = true; break; }
+        
         totalSlots++;
         if(isValidDate(val)) {
           hechas++;
           const ymd = parseToYMD(val);
           if(ymd) dailyMap.set(ymd, (dailyMap.get(ymd)||0) + 1);
         }
-        serie.push({ f: r.Fila || r.fila, v: val, isH: isValidDate(val) });
+        serie.push({ f: fLabel, v: val, isH: isValidDate(val) });
       }
+      
       if(totalSlots > 0 || hechas > 0) {
         stats[id] = { total: totalSlots, hechas, rest: totalSlots - hechas, serie, name: names[id] };
       }
@@ -310,7 +339,9 @@ function openDetail(id) {
   p.serie.forEach(s => {
     const item = document.createElement('div');
     item.className = 'item';
-    item.innerHTML = `<div class="left"><strong>Etapa ${s.f}</strong></div><div class="right" style="color:${s.isH?'#1ad598':''}">${s.v || '—'}</div>`;
+    // REPARACIÓN: Mostrar fecha formateada correctamente o guión
+    const valDisp = s.v ? displayDate(s.v) : '—'; 
+    item.innerHTML = `<div class="left"><strong>Etapa ${s.f}</strong></div><div class="right" style="color:${s.isH?'#1ad598':''}">${valDisp}</div>`;
     list.appendChild(item);
   });
 
