@@ -156,7 +156,7 @@
 
   html.is-tv .wrap{ transform:none !important; }
   html.is-tv #saver{ backdrop-filter:none; }
-  html.is-tv .bImg, html.is-tv .fallImg{ filter:none; }
+  html.is-tv .bImg, html.is-tv .fallImg{ filter:none !important; }
   html.is-tv thead th{ -webkit-transform:translateZ(0); transform:translateZ(0); }
 </style>
 </head>
@@ -394,18 +394,15 @@ document.addEventListener('DOMContentLoaded', function(){
     [canonicalizeName('GEL TOTE')]:{display:'GEL TOTE',unit:'ud',low:5,mid:15},
   });
 
-  // CONFIGURACION DISPLAY (Incluye KPI manual)
-  // Por defecto: useManual=true, manualSpeed=10 (Pedido del usuario)
   var DISPLAY=prefs.get('display:cfg',{
     pozoFont:20, stockFont:16, cellFont:19,
-    saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:2, gitBase:DEFAULT_VALUES_BASE },
+    saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:30, gitBase:DEFAULT_VALUES_BASE },
     nightDim:{ enabled:true, startHour:1, endHour:6, dimLevel:0.65 },
     pixelShift:{ enabled:true, intervalMin:2, maxOffsetPx:2 },
     view:{ visibleWells:[1,2,3,4,5,6] },
     kpi: { useManual: true, manualSpeed: 10 }
   });
   
-  // Backward compatibility check
   if (!DISPLAY.kpi) DISPLAY.kpi = { useManual: true, manualSpeed: 10 };
   if (!DISPLAY.view || !Array.isArray(DISPLAY.view.visibleWells)) {
     DISPLAY.view = { visibleWells:[1,2,3,4,5,6] };
@@ -439,7 +436,6 @@ document.addEventListener('DOMContentLoaded', function(){
       kpiETA=document.getElementById('kpiETA');
 
   var modal=document.getElementById('settingsModal');
-  // Inputs Settings
   var setPozoFont=document.getElementById('setPozoFont'), setStockFont=document.getElementById('setStockFont'), setCellFont=document.getElementById('setCellFont');
   var setSaverMode=document.getElementById('setSaverMode'), setRotateEvery=document.getElementById('setRotateEvery'), setSaverIdle=document.getElementById('setSaverIdle');
   var setNightEnabled=document.getElementById('setNightEnabled'), setNightStart=document.getElementById('setNightStart'), setNightEnd=document.getElementById('setNightEnd'), setNightDim=document.getElementById('setNightDim');
@@ -783,15 +779,14 @@ document.addEventListener('DOMContentLoaded', function(){
         if (v === 'STOP'){ stop = rows[i]._row; break; }
       }
       
-      // FIX: Si no hay STOP, contar hasta ROWS (71)
       var limit = (stop !== null) ? stop : ROWS;
 
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
-        if (r._row >= limit) break; // Use limit instead of stop
+        if (r._row >= limit) break; 
         totalSlots++;
         var cell = r['Estado'+p];
-        if (isFechaValida(cell)) hechas++; // Strict date counting
+        if (isFechaValida(cell)) hechas++; 
       }
     }
     return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
@@ -928,6 +923,8 @@ document.addEventListener('DOMContentLoaded', function(){
   function startBounce(images){ 
     clearSaver(); 
     var saverStage=document.getElementById('saverStage'); 
+    
+    // CACHE DIMENSIONS OUTSIDE THE LOOP
     var W=saverStage.clientWidth, H=saverStage.clientHeight; 
     var n=Math.min(images.length, 8); 
     sprites=[]; 
@@ -942,9 +939,7 @@ document.addEventListener('DOMContentLoaded', function(){
       sprites.push({el:img, x:Math.random()*(W-w0), y:Math.random()*(H-h0), vx:(Math.random()<.5?-1:1)*(1.2+Math.random()), vy:(Math.random()<.5?-1:1)*(1.2+Math.random()), w:w0, h:h0}); 
     }
     var step=function(){ 
-      W=saverStage.clientWidth; H=saverStage.clientHeight; 
       for(var s of sprites){ 
-        s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; 
         s.x+=s.vx; s.y+=s.vy; 
         if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;} 
         if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;} 
@@ -958,6 +953,8 @@ document.addEventListener('DOMContentLoaded', function(){
   function startStarfall(images){ 
     clearSaver(); 
     var saverStage=document.getElementById('saverStage'); 
+    
+    // CACHE DIMENSIONS OUTSIDE THE LOOP
     var W=saverStage.clientWidth, H=saverStage.clientHeight; 
     var N=Math.min(images.length*3, 20); 
     sprites=[];
@@ -977,7 +974,6 @@ document.addEventListener('DOMContentLoaded', function(){
       sprites.push(sp); 
     }
     var step=function(){ 
-      W=saverStage.clientWidth; H=saverStage.clientHeight; 
       for(var s of sprites){ 
         s.y+=s.vy; s.x+=s.vx; s.a+=s.rot; 
         if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; 
