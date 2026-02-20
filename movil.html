@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Visor móvil de etapas</title>
+  <title>Visor móvil – Etapas (70 Max)</title>
   <style>
     :root{
       --bg:#000; --card:#0b0b0b; --muted:#cfe8ff; --ok:#1ad598; --warn:#ffc857; --bad:#ff6b6b; --ink:#e8f0ff;
@@ -49,8 +49,7 @@
     .pozo-title .name{font-weight:900; letter-spacing:.3px; font-size:18px}
     .meta{display:flex; gap:8px}
     .badge{font-size:13px; background:#090909; border:1px solid #222; padding:5px 10px; border-radius:999px; font-weight:700}
-    .pozo[class*="color-"] .pozo-title .badge{ background:rgba(0,0,0,.28); border-color:rgba(0,0,0,.35); color:#fff }
-
+    
     .row{display:flex; align-items:center; gap:14px}
     .progress{height:12px; background:#090909; border:1px solid #222; border-radius:999px; overflow:hidden; flex:1}
     .progress > i{display:block; height:100%; background:linear-gradient(90deg, #47a3ff, #60dbfb)}
@@ -77,29 +76,21 @@
     .nav-inner{display:flex; gap:8px; padding:10px 14px}
     .nav-inner button{flex:1}
 
-    /* Modal Overlay */
-    .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .2s}
-    .overlay.open{opacity:1; pointer-events:all}
-    .modal-box{background:#111; border:1px solid #222; width:90%; max-width:400px; border-radius:16px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,.8); transform:translateY(20px); transition:transform .2s}
-    .overlay.open .modal-box{transform:translateY(0)}
+    .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; display:none; align-items:center; justify-content:center}
+    .overlay.open{display:flex}
+    .modal-box{background:#111; border:1px solid #222; width:90%; max-width:400px; border-radius:16px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,.8)}
     .modal-head{font-weight:800; font-size:18px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center}
     .form-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding:10px; background:#080808; border-radius:8px; border:1px solid #1a1a1a}
     .form-row input[type="number"]{width:60px; background:#222; border:1px solid #333; color:#fff; padding:6px; border-radius:6px; font-weight:700; text-align:center}
     .form-row input[type="checkbox"]{transform:scale(1.3)}
 
-    /* Paleta por pozo (1..6) */
     .color-1{ --c-bg:linear-gradient(90deg,#ffd83a,#ffd83a); --c-fg:#001; }
     .color-2{ --c-bg:linear-gradient(90deg,#7ad39a,#5fbf87); --c-fg:#001; }
     .color-3{ --c-bg:linear-gradient(90deg,#74b3ff,#4686ff); --c-fg:#001; }
     .color-4{ --c-bg:linear-gradient(90deg,#ff7b7b,#ff4c4c); --c-fg:#001; }
     .color-5{ --c-bg:linear-gradient(90deg,#ffffff,#f2f6f9); --c-fg:#001; }
     .color-6{ --c-bg:linear-gradient(90deg,#e8c3ff,#d79bf6); --c-fg:#201; }
-    .pozo.color-1 .pozo-title,
-    .pozo.color-2 .pozo-title,
-    .pozo.color-3 .pozo-title,
-    .pozo.color-4 .pozo-title,
-    .pozo.color-5 .pozo-title,
-    .pozo.color-6 .pozo-title{ background:var(--c-bg); color:var(--c-fg); }
+    .pozo.color-1 .pozo-title, .pozo.color-2 .pozo-title, .pozo.color-3 .pozo-title, .pozo.color-4 .pozo-title, .pozo.color-5 .pozo-title, .pozo.color-6 .pozo-title{ background:var(--c-bg); color:var(--c-fg); }
     #detailBar[class*="color-"] .t{ background:var(--c-bg); color:var(--c-fg); padding:6px 10px; border-radius:10px; }
 
     @media (min-width:720px){ main{max-width:720px; margin:0 auto} }
@@ -109,13 +100,11 @@
   <div class="wrap">
     <header>
       <div class="bar">
-        <div>
-          <div class="title">Visor móvil – Etapas</div>
-        </div>
+        <div><div class="title">Visor móvil PAD</div></div>
         <div class="grow"></div>
         <div class="toolbar">
-          <button id="btnRefresh" title="Actualizar">↻</button>
-          <button id="btnCfg" title="Ajustes">⚙️</button>
+          <button id="btnRefresh">↻</button>
+          <button id="btnCfg">⚙️</button>
           <button id="btnInst">?</button>
         </div>
       </div>
@@ -138,7 +127,7 @@
         </div>
         <div class="speed" id="speedRow">
           <div class="box">
-            <div class="h">Promedio (Real)</div>
+            <div class="h">Promedio Real</div>
             <div class="v" id="avgPace">—</div>
             <div class="tiny muted" id="avgFoot">—</div>
           </div>
@@ -148,22 +137,18 @@
             <div class="tiny muted" id="etaTime">—</div>
           </div>
         </div>
-        <div class="tiny muted" id="lastUpdate" style="margin-top:8px">—</div>
+        <div class="tiny muted" id="lastUpdate" style="margin-top:8px; text-align:center"></div>
       </section>
 
       <section id="viewPozos" class="pozos"></section>
 
       <section id="viewDias" class="dias" style="display:none">
-        <section class="card pad">
-          <canvas id="daysChart" width="700" height="280" aria-label="Etapas por día (total PAD)"></canvas>
-        </section>
+        <section class="card pad"><canvas id="daysChart"></canvas></section>
         <section id="daysListBox" class="card pad"></section>
       </section>
 
       <section id="viewDetail" style="display:none; gap:12px">
-        <section class="card pad">
-          <canvas id="pozoChart" width="700" height="280" aria-label="Gráfica por día del pozo"></canvas>
-        </section>
+        <section class="card pad"><canvas id="pozoChart"></canvas></section>
         <section class="card pad">
           <div class="grid2">
             <div class="summary">
@@ -171,12 +156,8 @@
               <div class="kv"><span>Hechas</span><strong id="dDone">—</strong></div>
               <div class="kv"><span>Restantes</span><strong id="dLeft">—</strong></div>
               <div class="kv"><span>Avance</span><strong id="dPct">—</strong></div>
-              <div class="kv"><span>Primera</span><strong id="dFirst">—</strong></div>
-              <div class="kv"><span>Última</span><strong id="dLast">—</strong></div>
             </div>
-            <div>
-              <div class="list" id="dList"></div>
-            </div>
+            <div id="dList" class="list"></div>
           </div>
         </section>
       </section>
@@ -192,460 +173,226 @@
 
   <div class="overlay" id="modalSettings">
     <div class="modal-box">
-      <div class="modal-head">
-        Ajustes
-        <button id="btnCloseCfg" class="chip">✕</button>
-      </div>
-      <div class="form-row">
-        <span>Velocidad Fija (Manual)</span>
-        <input type="checkbox" id="cfgUseManual">
-      </div>
-      <div class="form-row">
-        <span>Etapas por día</span>
-        <input type="number" id="cfgManualVal" min="1" max="100" step="0.1">
-      </div>
-      <small class="muted" style="display:block; margin-bottom:12px">
-        Si se activa, el tiempo restante se calcula usando este valor fijo. El promedio histórico se muestra igual.
-      </small>
-      <div style="text-align:right">
-        <button id="btnSaveCfg" style="background:var(--accent); color:#000; border:none">Guardar</button>
-      </div>
+      <div class="modal-head">Ajustes <button id="btnCloseCfg" class="chip">✕</button></div>
+      <div class="form-row"><span>Usar Velocidad Fija</span><input type="checkbox" id="cfgUseManual"></div>
+      <div class="form-row"><span>Etapas por día</span><input type="number" id="cfgManualVal" step="0.1"></div>
+      <div style="text-align:right"><button id="btnSaveCfg" style="background:var(--accent); color:#000; border:none">Guardar</button></div>
     </div>
   </div>
 
 <script>
 "use strict";
 
-/* ========= CONFIG ========= */
 const CONFIG = {
-  DATA_URL: 'status.json',
-  MAX_ETAPAS: 62, // Actualizado a 62
+  DATA_URL: 'https://baseslucas8071-maker.github.io/tablero/status.json',
+  MAX_ETAPAS: 70, // REPARADO: 70 Etapas
   DAY_CUTOFF_HOUR: 0 
 };
 
-// Preferencias locales
-let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || {
-  useManual: true,
-  manualSpeed: 10
-};
+let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || { useManual: true, manualSpeed: 10 };
 
-/* ========= HELPERS ========= */
-const $  = sel => document.querySelector(sel);
+const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => new Intl.NumberFormat('es-AR').format(n);
 
 function pad2(n){ return String(n).padStart(2,'0'); }
-function fmtDate(d){ return d.toLocaleDateString('es-AR'); }
-function fmtTime(d){ return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`; }
-
-function isStop(v){ return String(v).trim().toUpperCase() === 'STOP'; }
-function isAbortCancel(v){
-  const s = String(v).trim().toUpperCase();
-  return s === 'ABORTADA' || s === 'CANCELADA';
-}
+function isStop(v){ return String(v || "").trim().toUpperCase() === 'STOP'; }
+function isAbortCancel(v){ const s = String(v || "").trim().toUpperCase(); return s === 'ABORTADA' || s === 'CANCELADA'; }
 
 function excelSerialToDate(x){
-  const n = Number(x);
-  if(!isFinite(n)) return null;
-  const ms = (n - 25569) * 86400 * 1000;
-  const d = new Date(ms);
+  const n = Number(x); if(!isFinite(n)) return null;
+  const d = new Date((n - 25569) * 86400 * 1000);
   return isNaN(d) ? null : d;
-}
-function isExcelSerial(v){
-  const n = Number(String(v).trim());
-  return isFinite(n) && n >= 20000 && n <= 80000;
 }
 
 function isValidDateCell(v){
-  const s = String(v).trim();
+  const s = String(v || "").trim();
   if(!s) return false;
-  if(isExcelSerial(s)) return true;
-  if(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.test(s)) return true;
-  if(/^(\d{1,2})-(\d{1,2})-(\d{4})$/.test(s)) return true;
-  if(/^(\d{4})-(\d{2})-(\d{2})$/.test(s)) return true;
-  return false;
+  if(!isNaN(s) && Number(s) > 40000) return true;
+  return /^(\d{1,2})[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
 }
+
 function parseToYMD(v){
-  const s = String(v).trim();
-  if(isExcelSerial(s)){
-    const d = excelSerialToDate(s);
-    if(!d) return null;
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth()+1).padStart(2,'0');
-    const dd= String(d.getUTCDate()).padStart(2,'0');
-    return `${y}-${m}-${dd}`;
+  const s = String(v || "").trim();
+  if(!isNaN(s) && Number(s) > 40000){
+    const d = excelSerialToDate(s); if(!d) return null;
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`;
   }
-  let d,m,y;
-  let m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
-  if(m1){ d=+m1[1]; m=+m1[2]; y=+m1[3]; if(y<100) y+=2000; return `${y.toString().padStart(4,'0')}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-  let m2 = s.match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
-  if(m2){ d=+m2[1]; m=+m2[2]; y=+m2[3]; return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
-  let m3 = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if(m3){ return s; }
-  return null;
+  const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m){
+    let y = +m[3]; if(y < 100) y += 2000;
+    return `${y}-${pad2(m[2])}-${pad2(m[1])}`;
+  }
+  return s.match(/^\d{4}-\d{2}-\d{2}/) ? s : null;
 }
 
-/* ========= EXTRACCIÓN ========= */
-let gByPozo = null;
-let gStats  = null;
-let gNames  = null;
-let gDaysLabels = [];
-let gDaysValues = [];
-let gDaysArrDesc = [];
+/* --- LOGICA DE DATOS (REPARADA) --- */
+let gStats = null, gNames = null, gDaysArrDesc = [], gDaysLabels = [], gDaysValues = [];
 
-function extractFracturadoColumns(rows){
-  const byPozo = {};
-  if(!rows || !rows.length){ return byPozo; }
+function extractData(rows){
+  const byPozo = {}, namesMap = {};
   const keys = Object.keys(rows[0] || {});
   const fechaCols = keys.filter(k => /^FechaFracPozo\d+$/i.test(k));
-  if (!fechaCols.length) return byPozo;
-
-  const namesMap = {};
+  
   const nameRow = rows[0] || {};
-  for (const fk of fechaCols){
+  fechaCols.forEach(fk => {
     const n = fk.match(/(\d+)/)[1];
     const val = String(nameRow[fk] ?? "").trim();
-    if(val && val.toUpperCase() !== "X"){ namesMap[`pozo-${n}`] = val; }
-  }
+    if(val && val.toUpperCase() !== "X") namesMap[n] = val;
+  });
 
-  const dataRows = rows.map(r => ({...r, _fila:String(r.Fila||'').trim()})).filter(r => /^#?\d+$/i.test(r._fila));
-
-  for (const fk of fechaCols){
+  fechaCols.forEach(fk => {
     const n = fk.match(/(\d+)/)[1];
-    const pk = `pozo-${n}`;
-    if(!(pk in namesMap)) continue;
-    const seqKey = keys.find(k => new RegExp(`^SecuenciaPozo${n}$`, 'i').test(k));
-    byPozo[pk] = dataRows.map(r => ({
-      fecha: r[fk] ?? "",
-      sec:   seqKey ? (r[seqKey] ?? "") : ""
-    }));
-  }
-  byPozo.__names = namesMap;
-  return byPozo;
-}
-
-function computeStats(byPozo){
-  const stats = {};
-  for(const [pozo, serieObjs] of Object.entries(byPozo)){
-    if(pozo === "__names") continue;
-    const stopIdx = serieObjs.findIndex(o => isStop(o.fecha));
-    const totalCells = (stopIdx >= 0) ? stopIdx : Math.min(serieObjs.length, CONFIG.MAX_ETAPAS);
-    const considered = serieObjs.slice(0, totalCells);
-    const realizadas = considered.filter(o => isValidDateCell(o.fecha) || isAbortCancel(o.fecha)).length;
-    const restantes  = Math.max(0, totalCells - realizadas);
-    stats[pozo] = { total: totalCells, realizadas, restantes, serie: considered };
-  }
-  return stats;
+    if(!namesMap[n]) return;
+    const pozoRows = rows.map(r => ({...r, _f:String(r.Fila||'').trim()})).filter(r => /^#?\d+$/i.test(r._f));
+    
+    let stopIdx = pozoRows.findIndex(r => isStop(r[fk]));
+    const totalSlots = stopIdx >= 0 ? stopIdx : Math.min(pozoRows.length, CONFIG.MAX_ETAPAS);
+    const serie = pozoRows.slice(0, totalSlots);
+    
+    // REPARADO: Conteo estricto solo por isValidDateCell
+    const realizadas = serie.filter(r => isValidDateCell(r[fk])).length;
+    
+    byPozo[n] = { total: totalSlots, realizadas, restantes: Math.max(0, totalSlots - realizadas), serie, fk };
+  });
+  return { byPozo, namesMap };
 }
 
 function aggregateByDay(byPozo){
   const map = new Map();
-  for (const [key, serie] of Object.entries(byPozo)){
-    if (key === "__names") continue;
-    for (const o of serie){
-      if (isValidDateCell(o.fecha)){
-        const ymd = parseToYMD(o.fecha);
-        if (ymd) map.set(ymd, (map.get(ymd)||0) + 1);
-      } else if (isStop(o.fecha)){ break; }
-    }
-  }
-  return Array.from(map.entries()).sort((a,b)=> a[0] < b[0] ? 1 : -1);
+  Object.values(byPozo).forEach(p => {
+    p.serie.forEach(r => {
+      if(isValidDateCell(r[p.fk])){
+        const ymd = parseToYMD(r[p.fk]);
+        if(ymd) map.set(ymd, (map.get(ymd)||0)+1);
+      }
+    });
+  });
+  return Array.from(map.entries()).sort((a,b)=> b[0].localeCompare(a[0]));
 }
 
-function computeAvgSinceStartCap7(daysArrDesc){
-  const map = new Map(daysArrDesc);
-  const allDaysAsc = Array.from(map.keys()).sort();
-  if (allDaysAsc.length === 0) return { avg:0, usedDays:0 };
-
-  const startYMD = allDaysAsc[0];
-  const tz = 'America/Argentina/Buenos_Aires';
-  const now = new Date();
-  const tzNow = new Date(now.toLocaleString('en-US', { timeZone: tz }));
-  const yesterday = new Date(tzNow.getFullYear(), tzNow.getMonth(), tzNow.getDate()-1);
-  const endYMD = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
-
-  if (startYMD > endYMD) return { avg:0, usedDays:0 };
-
-  const s = new Date(startYMD+'T00:00:00');
-  const e = new Date(endYMD+'T00:00:00');
-  const daysBetween = Math.floor((e - s) / 86400000) + 1;
-
-  let winStart = new Date(s);
-  let winLen   = daysBetween;
-  if (daysBetween > 7){
-    winStart = new Date(e); winStart.setDate(e.getDate() - 6);
-    winLen = 7;
-  }
-
-  const values = [];
-  for (let i=0;i<winLen;i++){
-    const d = new Date(winStart); d.setDate(winStart.getDate()+i);
-    const ymd = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    values.push(map.get(ymd) || 0);
-  }
-  const sum = values.reduce((a,b)=>a+b,0);
-  const avg = sum / (values.length || 1);
-  return { avg, usedDays: values.length };
-}
-
-function hoursLeftUntilCutoff(now = new Date(), corteHora = 0) {
-  const end = new Date(now);
-  if (corteHora === 0) { end.setHours(23,59,59,999); } 
-  else {
-    if (now.getHours() < corteHora || (now.getHours() === corteHora && now.getMinutes() === 0)) { end.setHours(corteHora,0,0,0); } 
-    else { end.setDate(end.getDate() + 1); end.setHours(corteHora,0,0,0); }
-  }
-  return (end - now) / 36e5;
-}
-
-function estimateFinishWithTime(remaining, avgPerDay, now = new Date(), corteHora = 0) {
-  if (!isFinite(remaining) || remaining <= 0) {
-    return { approx:"", dateLabel: fmtDate(now), timeLabel: fmtTime(now), target: now };
-  }
-  if (!isFinite(avgPerDay) || avgPerDay <= 0) {
-    return { approx:"—", dateLabel:"", timeLabel:"", target:null };
-  }
-  const hoursNeeded = (remaining / avgPerDay) * 24;
-  const hoursLeftToday = hoursLeftUntilCutoff(now, corteHora);
-  let approx, daysNeeded;
-  if (hoursNeeded <= hoursLeftToday) {
-    approx = "≈ hoy"; daysNeeded = 0;
-  } else {
-    daysNeeded = Math.ceil(hoursNeeded / 24);
-    approx = `≈ ${daysNeeded} día${daysNeeded > 1 ? "s" : ""}`;
-  }
-  const target = new Date(now.getTime() + hoursNeeded * 3600 * 1000);
-  const roundTo = 5; 
-  const m = target.getMinutes();
-  const rounded = new Date(target);
-  rounded.setMinutes(Math.round(m / roundTo) * roundTo, 0, 0);
-  return { approx, dateLabel: fmtDate(target), timeLabel: fmtTime(rounded), target: rounded };
-}
-
-/* ========= RENDER & LOGIC ========= */
-function renderKPIs(stats){
-  const all = Object.values(stats);
-  const totales = all.reduce((a,b)=>a+b.total,0);
-  const hechas  = all.reduce((a,b)=>a+b.realizadas,0);
-  const rest    = all.reduce((a,b)=>a+b.restantes,0);
-  $('#kpiTotales .value').textContent = fmt(totales);
-  $('#kpiRealizadas .value').textContent= fmt(hechas);
-  $('#kpiRestantes .value').textContent = fmt(rest);
-  return {totales, hechas, rest};
-}
-
-function renderSpeed(avgReal, etaObj, usedDays, isManual, manualVal){
-  // Promedio (Siempre Real)
-  $('#avgPace').textContent = (avgReal && avgReal>0) ? `${avgReal.toFixed(1)} etapas/día` : '—';
-  $('#avgFoot').textContent = `Ventana usada: ${usedDays} día(s).`;
-
-  // ETA (Puede ser Manual)
-  if (etaObj && etaObj.target){
-    $('#etaFinish').innerHTML = `${etaObj.dateLabel} <span class="muted">(${etaObj.approx})</span>`;
-    $('#etaTime').textContent = `~ ${etaObj.timeLabel}`;
-    
-    // Nota visual si es manual
-    if(isManual){
-        $('#etaTime').innerHTML += ` <span style="color:var(--warn); display:block; font-size:10px; margin-top:2px">(Base: ${manualVal} et/día)</span>`;
-    }
-  } else {
-    $('#etaFinish').textContent = '—';
-    $('#etaTime').textContent = '—';
-  }
-}
-
-function recomputeAndRender(){
-  const totals = renderKPIs(gStats);
-
-  // 1. Promedio Real
-  const { avg: histAvg, usedDays } = computeAvgSinceStartCap7(gDaysArrDesc);
-
-  // 2. Velocidad para ETA (Fija vs Real)
-  let calcSpeed = histAvg;
-  let isManual = false;
-  
-  if(PREFS.useManual && PREFS.manualSpeed > 0){
-      calcSpeed = PREFS.manualSpeed;
-      isManual = true;
-  }
-
-  // 3. Calculo
-  const etaObj = estimateFinishWithTime(totals.rest, calcSpeed, new Date(), CONFIG.DAY_CUTOFF_HOUR);
-
-  renderSpeed(histAvg, etaObj, usedDays, isManual, PREFS.manualSpeed);
-  renderDias(gDaysArrDesc);
-}
-
-/* ... (Funciones de renderizado de pozos y detalle igual que antes) ... */
-const pozoIndex = (key)=> { const m = key.match(/pozo-(\d+)/i); return m ? parseInt(m[1],10) : 0; };
-function renderPozos(stats, names){
-  const cont = $('#viewPozos'); cont.innerHTML = '';
-  const entries = Object.entries(stats).sort((a,b)=> a[0].localeCompare(b[0]));
-  for(const [pozo, s] of entries){
-    const pct = s.total>0 ? Math.round((s.realizadas/s.total)*100) : 0;
-    const title = (names[pozo] || pozo.toUpperCase().replace('-', ' '));
-    const idx = pozoIndex(pozo);
-    const el = document.createElement('section');
-    el.className = `card pad pozo color-${idx}`;
-    el.setAttribute('data-key', pozo);
-    el.innerHTML = `
-      <div class="pozo-title">
-        <div class="name">${title}</div>
-        <div class="meta"><span class="badge">Tot: ${s.total}</span><span class="badge">Hechas: ${s.realizadas}</span><span class="badge">Rest: ${s.restantes}</span></div>
-      </div>
-      <div class="row"><div class="progress"><i style="width:${pct}%"></i></div><div class="pct">${pct}%</div></div>
-    `;
-    el.addEventListener('click', ()=> openDetail(pozo));
-    cont.appendChild(el);
-  }
-}
-function renderDias(daysArr){
-  const recent = daysArr.slice(0, 20).reverse();
-  gDaysLabels = recent.map(d=>d[0]); gDaysValues = recent.map(d=>d[1]);
-  if ($('#viewDias').style.display !== 'none') { drawBarChart($('#daysChart'), gDaysLabels, gDaysValues); }
-  const box = $('#daysListBox'); box.innerHTML = '';
-  const list = document.createElement('div'); list.className='list'; box.appendChild(list);
-  if(daysArr.length===0){
-    const empty = document.createElement('div'); empty.className='muted'; empty.textContent = 'Sin datos recientes.'; box.appendChild(empty);
-  } else {
-    const todayYMD = new Date().toISOString().slice(0,10);
-    for(const [ymd, count] of daysArr){
-      const d = new Date(ymd+'T00:00:00');
-      const ddmmyy = d.toLocaleDateString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
-      const it = document.createElement('div'); it.className='item';
-      it.innerHTML = `<div class="left"><div class="h">${ddmmyy}</div><div class="tiny muted">${ymd===todayYMD?'Hoy':'—'}</div></div><div class="right">${fmt(count)}</div>`;
-      list.appendChild(it);
-    }
-  }
-}
-function dailyCountsForSerie(serie){
-  const map = new Map();
-  for (const o of serie){
-    if (isValidDateCell(o.fecha)){ const ymd = parseToYMD(o.fecha); if (ymd) map.set(ymd, (map.get(ymd)||0)+1); }
-    else if (isStop(o.fecha)) break;
-  }
-  return Array.from(map.entries()).sort((a,b)=> a[0].localeCompare(b[0]));
-}
-function drawBarChart(canvas, labels, values){
-  const ctx = canvas.getContext('2d'); const DPR = window.devicePixelRatio || 1;
-  const parentW = canvas.parentElement ? canvas.parentElement.clientWidth : 0;
-  const cssW = canvas.clientWidth || parentW || 700; const cssH = canvas.clientHeight || 220;
-  const w = Math.max(50, Math.round(cssW * DPR)); const h = Math.max(50, Math.round(cssH * DPR));
-  if (canvas.width !== w)  canvas.width = w; if (canvas.height !== h) canvas.height = h;
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  const ymdToDisp = ymd => { const m = ymd.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}/${m[2]}` : ymd; };
-  ctx.clearRect(0,0,cssW,cssH); ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0,0,cssW,cssH);
-  const P = {l: 12, r: 8, t: 8, b: 40}; const W = Math.max(10, cssW - P.l - P.r); const H = Math.max(10, cssH - P.t - P.b);
-  const maxV = Math.max(1, ...values); const count = Math.max(1, values.length);
-  const stepX = W / count; const barW  = Math.max(8, Math.floor(stepX - 6));
-  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1; ctx.beginPath();
-  for (let y=0; y<=4; y++){ const yy = P.t + H - (H * y / 4); ctx.moveTo(P.l, yy); ctx.lineTo(P.l+W, yy); } ctx.stroke();
-  ctx.font = '11px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
-  for (let i=0;i<count;i++){
-    const v = values[i] || 0; const hBar = Math.round(H * v / maxV);
-    const x = P.l + i*stepX + (stepX - barW)/2; const y = P.t + H - hBar;
-    const grad = ctx.createLinearGradient(0,y,0,y+hBar); grad.addColorStop(0, '#47a3ff'); grad.addColorStop(1, '#60dbfb');
-    ctx.fillStyle = grad; ctx.fillRect(x, y, barW, hBar);
-    const cx = x + barW/2; const inside = hBar > 18;
-    ctx.fillStyle = inside ? '#0b0b0b' : '#cfe8ff'; const ty = inside ? (y + 12) : (y - 4);
-    ctx.fillText(String(v), cx, ty);
-  }
-  ctx.fillStyle = '#cfe8ff';
-  for (let i=0;i<count;i++){
-    const lbl = ymdToDisp(labels[i] || ''); const x = P.l + i*stepX + stepX/2; const y = P.t + H + 18;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(-Math.PI/4); ctx.textAlign = 'right'; ctx.fillText(lbl, 0, 0); ctx.restore();
-  }
-}
-function renderDetail(pozoKey){
-  const serie = gStats[pozoKey].serie; const name  = gNames[pozoKey] || pozoKey.toUpperCase().replace('-', ' ');
-  $('#detailTitle').textContent = name;
-  const idx = pozoIndex(pozoKey); const bar = $('#detailBar');
-  bar.classList.remove('color-1','color-2','color-3','color-4','color-5','color-6');
-  if (idx>=1 && idx<=6) bar.classList.add(`color-${idx}`);
-  const s = gStats[pozoKey]; const pct = s.total>0 ? Math.round(100*s.realizadas/s.total) : 0;
-  $('#dTot').textContent = fmt(s.total); $('#dDone').textContent = fmt(s.realizadas); $('#dLeft').textContent = fmt(s.restantes); $('#dPct').textContent = pct + '%';
-  const fechas = serie.filter(o=>isValidDateCell(o.fecha)).map(o=>parseToYMD(o.fecha));
-  const first = fechas.length ? new Date(fechas[0]+'T00:00:00') : null;
-  const last  = fechas.length ? new Date(fechas[fechas.length-1]+'T00:00:00') : null;
-  $('#dFirst').textContent = first ? first.toLocaleDateString('es-AR') : '—';
-  $('#dLast').textContent  = last  ? last.toLocaleDateString('es-AR')  : '—';
-  const list = $('#dList'); list.innerHTML = ''; let idxEt = 0;
-  for (const o of serie){
-    if (isStop(o.fecha)) break;
-    idxEt++; let dateDisp = "—"; let sub = "";
-    if (isValidDateCell(o.fecha)){ const ymd = parseToYMD(o.fecha); sub = ymd; dateDisp = new Date(ymd+'T00:00:00').toLocaleDateString('es-AR'); }
-    else if(isAbortCancel(o.fecha)){ dateDisp = o.fecha; }
-    const el = document.createElement('div'); el.className='item';
-    el.innerHTML = `<div class="left"><div class="h">Etapa ${idxEt}</div><div class="tiny muted">${sub}</div></div><div class="right">${dateDisp}</div>`;
-    list.appendChild(el);
-  }
-  let daily = dailyCountsForSerie(serie);
-  if (daily.length > 14) daily = daily.slice(daily.length-14);
-  const labels = daily.map(d=>d[0]); const values = daily.map(d=>d[1]);
-  drawBarChart($('#pozoChart'), labels, values);
-}
-
-function openDetail(pozoKey){ $('#mainTabs').style.display='none'; $('#topCard').style.display='none'; $('#viewPozos').style.display='none'; $('#viewDias').style.display='none'; $('#detailBar').style.display=''; $('#viewDetail').style.display='grid'; renderDetail(pozoKey); location.hash = pozoKey; }
-function closeDetail(){ $('#detailBar').classList.remove('color-1','color-2','color-3','color-4','color-5','color-6'); $('#detailBar').style.display='none'; $('#viewDetail').style.display='none'; $('#mainTabs').style.display=''; $('#topCard').style.display=''; const active = document.querySelector('.tab.active')?.dataset.view || 'pozos'; $('#viewPozos').style.display = active==='pozos' ? '' : 'none'; $('#viewDias').style.display = active==='dias' ? '' : 'none'; history.replaceState(null, '', location.pathname + location.search); }
-$('#btnBack').addEventListener('click', closeDetail);
-
-async function fetchData(){ const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`, { cache:'no-store' }); if(!res.ok){ throw new Error('HTTP '+res.status); } return await res.json(); }
-
+/* --- RENDER --- */
 async function load(){
   try{
-    const data = await fetchData();
-    const rows = data.items || data.rows || data || [];
-    const byPozo = extractFracturadoColumns(rows);
-    const names  = byPozo.__names || {};
-    const stats  = computeStats(byPozo);
-    const dias   = aggregateByDay(byPozo);
-    gByPozo = byPozo; gStats = stats; gNames = names; gDaysArrDesc = dias;
-    const lu = (data.meta?.lastUpdate) || data.lastUpdate || new Date().toISOString();
-    const dtAR = new Date(lu).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires' });
-    $('#lastUpdate').textContent = `Actualizado: ${dtAR}`;
-    renderPozos(stats, names);
-    recomputeAndRender();
-    const hash = (location.hash||'').replace('#','').trim(); if (hash && stats[hash]) openDetail(hash);
-  }catch(err){ console.error(err); alert('Error: '+err.message); }
+    const res = await fetch(`${CONFIG.DATA_URL}?t=${Date.now()}`);
+    const json = await res.json();
+    const rows = json.items || [];
+    const { byPozo, namesMap } = extractData(rows);
+    gStats = byPozo; gNames = namesMap;
+    gDaysArrDesc = aggregateByDay(byPozo);
+    
+    $('#lastUpdate').textContent = `Sincronizado: ${new Date().toLocaleTimeString()}`;
+    recompute();
+  }catch(e){ console.error(e); }
 }
 
-/* Settings Logic */
-const elModal = $('#modalSettings');
-const elUseManual = $('#cfgUseManual');
-const elManualVal = $('#cfgManualVal');
+function recompute(){
+  const all = Object.values(gStats);
+  const t = all.reduce((a,b)=>a+b.total,0), h = all.reduce((a,b)=>a+b.realizadas,0), r = t - h;
+  $('#kpiTotales .value').textContent = t;
+  $('#kpiRealizadas .value').textContent = h;
+  $('#kpiRestantes .value').textContent = r;
 
-function openSettings(){
-  elUseManual.checked = PREFS.useManual;
-  elManualVal.value = PREFS.manualSpeed;
-  elModal.classList.add('open');
+  const last7 = gDaysArrDesc.slice(0, 7);
+  const avg = last7.length ? (last7.reduce((a,b)=>a+b[1],0)/last7.length) : 0;
+  $('#avgPace').textContent = `${avg.toFixed(1)} et/día`;
+  $('#avgFoot').textContent = `Ventana: ${last7.length} días`;
+
+  const speed = PREFS.useManual ? PREFS.manualSpeed : avg;
+  if(speed > 0 && r > 0){
+    const dLeft = r / speed;
+    const target = new Date(Date.now() + dLeft * 86400000);
+    $('#etaFinish').textContent = target.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'});
+    $('#etaTime').textContent = `≈ ${Math.ceil(dLeft)} días`;
+  } else {
+    $('#etaFinish').textContent = '—'; $('#etaTime').textContent = '—';
+  }
+
+  renderPozos(); renderDias();
 }
-function closeSettings(){ elModal.classList.remove('open'); }
-function saveSettings(){
-  PREFS.useManual = elUseManual.checked;
-  PREFS.manualSpeed = Number(elManualVal.value) || 8;
-  localStorage.setItem('mobile_prefs', JSON.stringify(PREFS));
-  closeSettings();
-  recomputeAndRender();
+
+function renderPozos(){
+  const cont = $('#viewPozos'); cont.innerHTML = '';
+  Object.entries(gStats).forEach(([id, s]) => {
+    const pct = s.total > 0 ? Math.round((s.realizadas/s.total)*100) : 0;
+    const el = document.createElement('section');
+    el.className = `card pad pozo color-${id}`;
+    el.innerHTML = `
+      <div class="pozo-title"><div class="name">${gNames[id]}</div><div class="meta"><span class="badge">Tot: ${s.total}</span><span class="badge">H: ${s.realizadas}</span></div></div>
+      <div class="row"><div class="progress"><i style="width:${pct}%"></i></div><div class="pct">${pct}%</div></div>
+    `;
+    el.onclick = () => openDetail(id);
+    cont.appendChild(el);
+  });
 }
 
-$('#btnCfg').addEventListener('click', openSettings);
-$('#btnCloseCfg').addEventListener('click', closeSettings);
-$('#btnSaveCfg').addEventListener('click', saveSettings);
+function renderDias(){
+  const recent = gDaysArrDesc.slice(0, 15).reverse();
+  gDaysLabels = recent.map(d=>d[0]); gDaysValues = recent.map(d=>d[1]);
+  if($('#viewDias').style.display !== 'none') drawChart($('#daysChart'), gDaysLabels, gDaysValues);
+  
+  const box = $('#daysListBox'); box.innerHTML = '<div class="list"></div>';
+  gDaysArrDesc.forEach(([ymd, count]) => {
+    const it = document.createElement('div'); it.className='item';
+    it.innerHTML = `<div class="left"><div class="h">${ymd.split('-').reverse().join('/')}</div></div><div class="right">${count}</div>`;
+    box.firstChild.appendChild(it);
+  });
+}
 
-/* UI Tabs */
-$$('.tab').forEach(t => t.addEventListener('click', ()=> {
-  const view = t.dataset.view; $$('.tab').forEach(x=> x.classList.toggle('active', x===t));
-  $('#viewPozos').style.display = view==='pozos' ? '' : 'none';
-  $('#viewDias').style.display  = view==='dias'  ? '' : 'none';
-  if (view === 'dias') { requestAnimationFrame(()=> { drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues); }); }
-}));
-$('#btnRefresh').addEventListener('click', load);
-$('#btnHelp').addEventListener('click', ()=>{ alert('Tocá un pozo para ver detalles. Usá ⚙️ para configurar el cálculo de ETA.'); });
-$('#btnInst').addEventListener('click', ()=>{ alert('Versión móvil v1.2\n\nEl ETA puede usar velocidad fija (8 et/día) o real. Configúralo en ⚙️.'); });
-$('#btnShare').addEventListener('click', async ()=>{ try{ await navigator.share({ title:'Visor móvil', url: location.href }); }catch(_){} });
-window.addEventListener('resize', () => { const diasVisible = $('#viewDias').style.display !== 'none'; if (diasVisible && gDaysLabels.length) { drawBarChart(document.getElementById('daysChart'), gDaysLabels, gDaysValues); } });
+function openDetail(id){
+  const s = gStats[id]; $('#detailTitle').textContent = gNames[id];
+  $('#detailBar').className = `backbar color-${id}`;
+  $('#dTot').textContent = s.total; $('#dDone').textContent = s.realizadas; $('#dLeft').textContent = s.restantes;
+  $('#dPct').textContent = (s.total>0?Math.round(100*s.realizadas/s.total):0)+'%';
+  
+  const list = $('#dList'); list.innerHTML = '';
+  s.serie.forEach((r, i) => {
+    const it = document.createElement('div'); it.className='item';
+    const hasDate = isValidDateCell(r[s.fk]);
+    it.innerHTML = `<div class="left"><div class="h">Etapa ${r._f}</div></div><div class="right" style="color:${hasDate?'var(--ok)':''}">${r[s.fk]||'—'}</div>`;
+    list.appendChild(it);
+  });
+
+  $('#topCard').style.display='none'; $('#viewPozos').style.display='none'; $('#mainTabs').style.display='none';
+  $('#detailBar').style.display='flex'; $('#viewDetail').style.display='grid';
+  
+  let daily = [];
+  const m = new Map();
+  s.serie.forEach(r => { if(isValidDateCell(r[s.fk])) { const y = parseToYMD(r[s.fk]); if(y) m.set(y, (m.get(y)||0)+1); } });
+  daily = Array.from(m.entries()).sort((a,b)=>a[0].localeCompare(b[0])).slice(-10);
+  drawChart($('#pozoChart'), daily.map(d=>d[0]), daily.map(d=>d[1]));
+}
+
+function drawChart(canv, labs, vals){
+  const ctx = canv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+  const w = canv.clientWidth, h = canv.clientHeight;
+  canv.width = w * dpr; canv.height = h * dpr;
+  ctx.scale(dpr, dpr); ctx.clearRect(0,0,w,h);
+  const max = Math.max(1, ...vals), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
+  const stepX = chartW / Math.max(1, labs.length);
+  vals.forEach((v, i) => {
+    const x = pad + i * stepX + 5, bw = Math.max(5, stepX - 10), bh = (v/max)*chartH, y = h - pad - bh;
+    const g = ctx.createLinearGradient(0,y,0,y+bh); g.addColorStop(0, '#47a3ff'); g.addColorStop(1, '#60dbfb');
+    ctx.fillStyle = g; ctx.fillRect(x, y, bw, bh);
+    ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(v, x+bw/2, y-5);
+  });
+}
+
+/* --- EVENTOS --- */
+$('#btnRefresh').onclick = load;
+$('#btnBack').onclick = () => { $('#detailBar').style.display='none'; $('#viewDetail').style.display='none'; $('#topCard').style.display='block'; $('#viewPozos').style.display='grid'; $('#mainTabs').style.display='flex'; };
+$('#btnCfg').onclick = () => { $('#cfgUseManual').checked = PREFS.useManual; $('#cfgManualVal').value = PREFS.manualSpeed; $('#modalSettings').classList.add('open'); };
+$('#btnCloseCfg').onclick = () => $('#modalSettings').classList.remove('open');
+$('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked; PREFS.manualSpeed = parseFloat($('#cfgManualVal').value)||10; localStorage.setItem('mobile_prefs', JSON.stringify(PREFS)); $('#modalSettings').classList.remove('open'); recompute(); };
+
+$$('.tab').forEach(t => t.onclick = () => {
+  $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
+  const v = t.dataset.view; $('#viewPozos').style.display = v==='pozos'?'grid':'none'; $('#viewDias').style.display = v==='dias'?'block':'none';
+  if(v==='dias') setTimeout(()=>drawChart($('#daysChart'), gDaysLabels, gDaysValues), 100);
+});
 
 load();
+setInterval(load, 60000);
 </script>
 </body>
 </html>
