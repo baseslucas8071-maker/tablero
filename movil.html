@@ -155,7 +155,8 @@ const CONFIG = {
   MAX_ETAPAS: 70 
 };
 
-let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || { useManual: true, manualSpeed: 10 };
+// CAMBIO APLICADO AQUÍ: manualSpeed: 8 por defecto
+let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || { useManual: true, manualSpeed: 8 };
 let gStats = {}, gNames = {}, gDays = [];
 
 const $ = s => document.querySelector(s);
@@ -164,7 +165,6 @@ const $$ = s => Array.from(document.querySelectorAll(s));
 function pad2(n) { return String(n).padStart(2,'0'); }
 function isStop(v) { return String(v || "").trim().toUpperCase() === 'STOP'; }
 
-// Reparación de validación de fechas (Evita falsos positivos y textos raros)
 function isValidDate(v) {
   const s = String(v || "").trim();
   if(!s) return false;
@@ -172,7 +172,6 @@ function isValidDate(v) {
   return /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
 }
 
-// Reparación de conversión a formato YYYY-MM-DD
 function parseToYMD(v) {
   const s = String(v || "").trim();
   if(!s) return null;
@@ -195,7 +194,6 @@ function parseToYMD(v) {
   return null;
 }
 
-// Formatear para mostrar al usuario (DD/MM/YYYY o el texto original)
 function displayDate(v) {
     if (!isValidDate(v)) return v; // Si dice "Abortada", lo muestra
     const ymd = parseToYMD(v);
@@ -223,7 +221,6 @@ async function load() {
     const stats = {};
     const dailyMap = new Map();
     
-    // REPARACIÓN: Incluir explícitamente el #00 en el filtro
     const dataRows = rows.filter(r => {
         const fText = String(r.Fila || r.fila || "").trim().replace('#','');
         if (fText === "0" || fText === "00") return true; 
@@ -339,7 +336,6 @@ function openDetail(id) {
   p.serie.forEach(s => {
     const item = document.createElement('div');
     item.className = 'item';
-    // REPARACIÓN: Mostrar fecha formateada correctamente o guión
     const valDisp = s.v ? displayDate(s.v) : '—'; 
     item.innerHTML = `<div class="left"><strong>Etapa ${s.f}</strong></div><div class="right" style="color:${s.isH?'#1ad598':''}">${valDisp}</div>`;
     list.appendChild(item);
@@ -375,7 +371,8 @@ $('#btnRefresh').onclick = load;
 $('#btnBack').onclick = () => { $('#detailBar').style.display='none'; $('#viewDetail').style.display='none'; $('#topCard').style.display='block'; $('#viewPozos').style.display='grid'; $('#mainTabs').style.display='flex'; };
 $('#btnCfg').onclick = () => { $('#cfgUseManual').checked = PREFS.useManual; $('#cfgManualVal').value = PREFS.manualSpeed; $('#modalSettings').classList.add('open'); };
 $('#btnCloseCfg').onclick = () => $('#modalSettings').classList.remove('open');
-$('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked; PREFS.manualSpeed = parseFloat($('#cfgManualVal').value)||10; localStorage.setItem('mobile_prefs', JSON.stringify(PREFS)); $('#modalSettings').classList.remove('open'); renderMain(); };
+// CAMBIO APLICADO AQUÍ: manualSpeed: ... || 8 en caso de error
+$('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked; PREFS.manualSpeed = parseFloat($('#cfgManualVal').value)||8; localStorage.setItem('mobile_prefs', JSON.stringify(PREFS)); $('#modalSettings').classList.remove('open'); renderMain(); };
 
 $$('.tab').forEach(t => t.onclick = () => {
   $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
