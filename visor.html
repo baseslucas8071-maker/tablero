@@ -399,7 +399,6 @@ document.addEventListener('DOMContentLoaded', function(){
     [canonicalizeName('GEL TOTE')]:{display:'GEL TOTE',unit:'ud',low:5,mid:15},
   });
 
-  // CAMBIO APLICADO AQUÍ: manualSpeed: 8 por defecto
   var DISPLAY=prefs.get('display:cfg',{
     pozoFont:20, stockFont:16, cellFont:19,
     saver:{ mode:'valores-lluvia', rotateEveryMin:3, idleMinutes:30, gitBase:DEFAULT_VALUES_BASE },
@@ -780,23 +779,24 @@ document.addEventListener('DOMContentLoaded', function(){
 
     for (var p=1; p<=POZOS; p++){
       var stop = null;
+      var lastDataRow = 0;
+
       for (var i=0; i<rows.length; i++){
         var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
         if (v === 'STOP'){ stop = rows[i]._row; break; }
+        if (v !== '') lastDataRow = rows[i]._row;
       }
       
-      var limit = (stop !== null) ? stop : ROWS;
+      // FIX: Si hay STOP, el límite es el STOP. Si no, es la última fila con datos (max 70)
+      var limit = (stop !== null) ? stop : Math.min(ROWS, lastDataRow + 1);
 
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
         if (r._row >= limit) break; 
         
+        totalSlots++;
         var cell = r['Estado'+p];
-        // Solo contamos el slot si no está vacío ni dice STOP
-        if (cell !== undefined && String(cell).trim() !== '' && !isStop(cell)) {
-           totalSlots++;
-           if (isFechaValida(cell)) hechas++; 
-        }
+        if (isFechaValida(cell)) hechas++; // Strict date counting
       }
     }
     return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
@@ -805,7 +805,6 @@ document.addEventListener('DOMContentLoaded', function(){
   /* ===== Promedio y ETA (Lógica Desacoplada) ===== */
   function computeAverageAndETA(freq, restantes){
     // 1. CALCULAR PROMEDIO REAL (HISTÓRICO)
-    // Siempre calculamos esto para mostrar la realidad operativa
     var keys = Array.from(freq.keys()).sort();
     var realAvg = 0;
     var usedDays = 0;
@@ -834,16 +833,15 @@ document.addEventListener('DOMContentLoaded', function(){
     }
 
     // 2. DETERMINAR VELOCIDAD DE CÁLCULO PARA ETA
-    var calcSpeed = realAvg; // Por defecto usamos la real
+    var calcSpeed = realAvg; 
     var isManual = false;
 
-    // Si está activado el manual, el ETA usa la velocidad fija
     if (DISPLAY.kpi && DISPLAY.kpi.useManual && DISPLAY.kpi.manualSpeed > 0) {
         calcSpeed = DISPLAY.kpi.manualSpeed;
         isManual = true;
     }
 
-    // 3. CALCULAR ETA (Usando calcSpeed)
+    // 3. CALCULAR ETA
     var etaText = '—';
     var etaSub = '';
     
@@ -875,17 +873,16 @@ document.addEventListener('DOMContentLoaded', function(){
         etaText = dateLabel + ' (' + approx + ') · ~ ' + timeLabel;
     }
 
-    // Retornamos ambos datos por separado
     return { 
-        realAvg: realAvg,       // Dato histórico puro
-        usedDays: usedDays,     // Días usados para el histórico
-        etaText: etaText,       // Texto del ETA calculado
-        calcSpeed: calcSpeed,   // La velocidad que se usó para el ETA
-        isManual: isManual      // Flag para saber si es manual
+        realAvg: realAvg,      
+        usedDays: usedDays,     
+        etaText: etaText,       
+        calcSpeed: calcSpeed,   
+        isManual: isManual      
     };
   }
 
-  /* ========= PROTECCIONES / SAVER (OPTIMIZADO TV) ========= */
+  /* ========= PROTECCIONES / SAVER ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
 
   function applyNightDim(){ 
@@ -932,8 +929,6 @@ document.addEventListener('DOMContentLoaded', function(){
   function startBounce(images){ 
     clearSaver(); 
     var saverStage=document.getElementById('saverStage'); 
-    
-    // CACHE DIMENSIONS OUTSIDE THE LOOP
     var W=saverStage.clientWidth, H=saverStage.clientHeight; 
     var n=Math.min(images.length, 8); 
     sprites=[]; 
@@ -948,7 +943,9 @@ document.addEventListener('DOMContentLoaded', function(){
       sprites.push({el:img, x:Math.random()*(W-w0), y:Math.random()*(H-h0), vx:(Math.random()<.5?-1:1)*(1.2+Math.random()), vy:(Math.random()<.5?-1:1)*(1.2+Math.random()), w:w0, h:h0}); 
     }
     var step=function(){ 
+      W=saverStage.clientWidth; H=saverStage.clientHeight; 
       for(var s of sprites){ 
+        s.w=s.el.offsetWidth||180; s.h=s.el.offsetHeight||100; 
         s.x+=s.vx; s.y+=s.vy; 
         if(s.x<=0){s.x=0;s.vx*=-1;} if(s.y<=0){s.y=0;s.vy*=-1;} 
         if(s.x+s.w>=W){s.x=W-s.w;s.vx*=-1;} if(s.y+s.h>=H){s.y=H-s.h;s.vy*=-1;} 
@@ -962,8 +959,6 @@ document.addEventListener('DOMContentLoaded', function(){
   function startStarfall(images){ 
     clearSaver(); 
     var saverStage=document.getElementById('saverStage'); 
-    
-    // CACHE DIMENSIONS OUTSIDE THE LOOP
     var W=saverStage.clientWidth, H=saverStage.clientHeight; 
     var N=Math.min(images.length*3, 20); 
     sprites=[];
@@ -983,6 +978,7 @@ document.addEventListener('DOMContentLoaded', function(){
       sprites.push(sp); 
     }
     var step=function(){ 
+      W=saverStage.clientWidth; H=saverStage.clientHeight; 
       for(var s of sprites){ 
         s.y+=s.vy; s.x+=s.vx; s.a+=s.rot; 
         if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; 
@@ -1164,23 +1160,25 @@ document.addEventListener('DOMContentLoaded', function(){
 
     for (var p=1; p<=POZOS; p++){
       var stop = null;
+      var lastDataRow = 0;
+
       for (var i=0; i<rows.length; i++){
         var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
         if (v === 'STOP'){ stop = rows[i]._row; break; }
+        if (v !== '') lastDataRow = rows[i]._row;
       }
       
-      var limit = (stop !== null) ? stop : ROWS;
+      // FIX: Si hay STOP, el límite es el STOP. Si no, es la última fila con datos (max 70)
+      var limit = (stop !== null) ? stop : Math.min(ROWS, lastDataRow + 1);
 
       var slots = 0, hechas = 0;
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
         if (r._row >= limit) break; 
         
+        slots++;
         var cell = r['Estado'+p];
-        if (cell !== undefined && String(cell).trim() !== '' && !isStop(cell)) {
-           slots++;
-           if (isFechaValida(cell)) hechas++; 
-        }
+        if (isFechaValida(cell)) hechas++; // Strict date counting
       }
       res[p-1] = Math.max(0, slots - hechas);
     }
