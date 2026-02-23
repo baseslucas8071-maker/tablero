@@ -601,11 +601,6 @@ document.addEventListener('DOMContentLoaded', function(){
   var isStop=function(v){ return String(v==null?'':v).trim().toUpperCase()==='STOP'; };
   var isFechaValida=function(v){ return parseDateValue(v)!==null; }
 
-  function isAbortOrCancel(v){
-    var s = String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
-    return s.includes('ABORTADA') || s.includes('CANCELADA');
-  }
-
   function transformItems(items){
     if(!Array.isArray(items)) return [];
     return items.map(function(raw){
@@ -764,8 +759,9 @@ document.addEventListener('DOMContentLoaded', function(){
     el.appendChild(next);
   }
 
-  /* ===== Totales: slots / realizadas (fecha o abort/cancel) / restantes ===== */
-  function computeTotals(conv){
+  /* ===== CÁLCULO UNIFICADO DE TOTALES Y BADGES ===== */
+  // REPARACIÓN: Unifica el criterio de conteo para Totales Globales y Píldoras
+  function computeAllStats(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
       .map(function(it){
@@ -775,63 +771,47 @@ document.addEventListener('DOMContentLoaded', function(){
       .filter(function(it){ return Number.isFinite(it._row) && it._row < ROWS; })
       .sort(function(a,b){ return a._row - b._row; });
 
-    var totalSlots=0, hechas=0;
+    var totalSlots=0, totalHechas=0;
+    var badges = new Array(POZOS).fill(0);
 
     for (var p=1; p<=POZOS; p++){
-      var stop = null;
+      var stopLimit = -1;
+      var lastDataLimit = -1;
+
       for (var i=0; i<rows.length; i++){
         var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
-        if (v === 'STOP'){ stop = rows[i]._row; break; }
+        var t = (rows[i]['Pozo'+p] || '').toString().trim();
+        if (v === 'STOP'){ stopLimit = rows[i]._row; break; }
+        if (v !== '' || t !== '') { lastDataLimit = rows[i]._row; }
       }
       
-      var limit = (stop !== null) ? stop : ROWS;
+      var limit = 0;
+      if (stopLimit !== -1) {
+          limit = stopLimit; // Hasta el STOP
+      } else if (lastDataLimit !== -1) {
+          limit = lastDataLimit + 1; // Hasta la última fila con algún dato
+      }
 
+      var slotsPozo = 0, hechasPozo = 0;
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
         if (r._row >= limit) break; 
         
-        totalSlots++;
-        var cell = r['Estado'+p];
-        if (isFechaValida(cell)) hechas++; 
-      }
-    }
-    return {totalSlots: totalSlots, hechas: hechas, restantes: Math.max(0,totalSlots-hechas)};
-  }
-
-  /* ========= BADGES RESTANTES POR POZO ========= */
-  function remainingPerPozo(conv){
-    var rows = conv
-      .filter(function(it){ return it.fila && it.fila.trim(); })
-      .map(function(it){
-        var m = it.fila.trim().match(/^#?(\d+)/);
-        return Object.assign({}, it, { _row: m ? parseInt(m[1],10) : NaN });
-      })
-      .filter(function(it){ return Number.isFinite(it._row) && it._row < ROWS; })
-      .sort(function(a,b){ return a._row - b._row; });
-
-    var res = new Array(POZOS).fill(0);
-
-    for (var p=1; p<=POZOS; p++){
-      var stop = null;
-      for (var i=0; i<rows.length; i++){
-        var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
-        if (v === 'STOP'){ stop = rows[i]._row; break; }
+        slotsPozo++;
+        if (isFechaValida(r['Estado'+p])) hechasPozo++; 
       }
       
-      var limit = (stop !== null) ? stop : ROWS;
-
-      var slots = 0, hechas = 0;
-      for (var j=0; j<rows.length; j++){
-        var r = rows[j];
-        if (r._row >= limit) break; 
-        
-        slots++;
-        var cell = r['Estado'+p];
-        if (isFechaValida(cell)) hechas++; 
-      }
-      res[p-1] = Math.max(0, slots - hechas);
+      totalSlots += slotsPozo;
+      totalHechas += hechasPozo;
+      badges[p-1] = Math.max(0, slotsPozo - hechasPozo);
     }
-    return res;
+    
+    return {
+      totalSlots: totalSlots, 
+      hechas: totalHechas, 
+      restantes: Math.max(0, totalSlots - totalHechas),
+      badges: badges
+    };
   }
 
   function paintBadgesPerPozo(arr){
@@ -844,10 +824,8 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  /* ===== Promedio y ETA (Lógica Desacoplada) ===== */
+  /* ===== Promedio y ETA ===== */
   function computeAverageAndETA(freq, restantes){
-    // 1. CALCULAR PROMEDIO REAL (HISTÓRICO)
-    // Siempre calculamos esto para mostrar la realidad operativa
     var keys = Array.from(freq.keys()).sort();
     var realAvg = 0;
     var usedDays = 0;
@@ -875,20 +853,15 @@ document.addEventListener('DOMContentLoaded', function(){
         }
     }
 
-    // 2. DETERMINAR VELOCIDAD DE CÁLCULO PARA ETA
-    var calcSpeed = realAvg; // Por defecto usamos la real
+    var calcSpeed = realAvg; 
     var isManual = false;
 
-    // Si está activado el manual, el ETA usa la velocidad fija
     if (DISPLAY.kpi && DISPLAY.kpi.useManual && DISPLAY.kpi.manualSpeed > 0) {
         calcSpeed = DISPLAY.kpi.manualSpeed;
         isManual = true;
     }
 
-    // 3. CALCULAR ETA (Usando calcSpeed)
     var etaText = '—';
-    var etaSub = '';
-    
     if (calcSpeed > 0 && restantes > 0) {
         var now = new Date();
         function hoursLeftUntilCutoff(n){
@@ -917,17 +890,16 @@ document.addEventListener('DOMContentLoaded', function(){
         etaText = dateLabel + ' (' + approx + ') · ~ ' + timeLabel;
     }
 
-    // Retornamos ambos datos por separado
     return { 
-        realAvg: realAvg,       // Dato histórico puro
-        usedDays: usedDays,     // Días usados para el histórico
-        etaText: etaText,       // Texto del ETA calculado
-        calcSpeed: calcSpeed,   // La velocidad que se usó para el ETA
-        isManual: isManual      // Flag para saber si es manual
+        realAvg: realAvg,       
+        usedDays: usedDays,     
+        etaText: etaText,       
+        calcSpeed: calcSpeed,   
+        isManual: isManual      
     };
   }
 
-  /* ========= PROTECCIONES / SAVER (OPTIMIZADO TV) ========= */
+  /* ========= PROTECCIONES / SAVER ========= */
   function inRangeHour(h,a,b){ return (a<=b)?(h>=a&&h<b):(h>=a||h<b); }
 
   function applyNightDim(){ 
@@ -975,7 +947,6 @@ document.addEventListener('DOMContentLoaded', function(){
     clearSaver(); 
     var saverStage=document.getElementById('saverStage'); 
     
-    // CACHE DIMENSIONS OUTSIDE THE LOOP
     var W=saverStage.clientWidth, H=saverStage.clientHeight; 
     var n=Math.min(images.length, 8); 
     sprites=[]; 
@@ -1005,7 +976,6 @@ document.addEventListener('DOMContentLoaded', function(){
     clearSaver(); 
     var saverStage=document.getElementById('saverStage'); 
     
-    // CACHE DIMENSIONS OUTSIDE THE LOOP
     var W=saverStage.clientWidth, H=saverStage.clientHeight; 
     var N=Math.min(images.length*3, 20); 
     sprites=[];
@@ -1092,6 +1062,7 @@ document.addEventListener('DOMContentLoaded', function(){
   function setNet(status, ok, extra){ net.textContent = (status || '') + (extra?(' '+extra):''); if(ok){ net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)'; }else{ net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)'; } }
 
   async function forceRefresh(){ if(isFetching) return; btnRefresh.disabled=true; var t=btnRefresh.textContent; btnRefresh.textContent='Actualizando...'; await loadAndRender(true); btnRefresh.textContent=t; btnRefresh.disabled=false; }
+  
   async function loadAndRender(isForced){
     if(isForced!==true) isForced=false;
     if(paused && !isForced) return; if(isFetching) return; isFetching=true;
@@ -1110,26 +1081,22 @@ document.addEventListener('DOMContentLoaded', function(){
       var changed=updateDOM(map).changedCellsTotal;
       deltaEl.textContent=changed>0?('• '+changed+' cambio(s)'):'';
 
-      /* Reel y promedio (solo FECHAS) */
       var stats=computeFractureStats(conv);
       updateDatesArray(stats.freq);
 
-      /* Totales / KPIs */
-      var totals=computeTotals(conv);
-      kpiTotal.textContent = totals.totalSlots;
-      kpiDone.textContent  = totals.hechas;
-      kpiRemain.textContent= totals.restantes;
+      // CÁLCULO UNIFICADO
+      var allStats = computeAllStats(conv);
+      kpiTotal.textContent = allStats.totalSlots;
+      kpiDone.textContent  = allStats.hechas;
+      kpiRemain.textContent= allStats.restantes;
 
-      var avgData = computeAverageAndETA(stats.freq, totals.restantes);
+      var avgData = computeAverageAndETA(stats.freq, allStats.restantes);
       
-      // 1. KPI PROMEDIO: Muestra SIEMPRE la realidad histórica
       kpiAvg.textContent = (avgData.realAvg > 0 ? fmt1(avgData.realAvg) : '—') + (avgData.realAvg > 0 ? ' etapas/día' : '');
       document.getElementById('kpiWindow').textContent = 'Ventana usada: ' + (avgData.usedDays||0) + ' día(s)';
 
-      // 2. KPI ETA: Muestra el cálculo (puede ser basado en 10 o en el real)
       kpiETA.textContent = avgData.etaText;
       
-      // Nota visual para saber qué se está usando
       var labelETA = kpiETA.parentElement.querySelector('.kpi-label');
       if(avgData.isManual){
           labelETA.innerHTML = 'Fin estimado <span style="color:#ffcc66;font-size:10px">(Base: '+avgData.calcSpeed+' et/día)</span>';
@@ -1137,7 +1104,7 @@ document.addEventListener('DOMContentLoaded', function(){
           labelETA.textContent = 'Fin estimado';
       }
 
-      paintBadgesPerPozo(remainingPerPozo(conv));
+      paintBadgesPerPozo(allStats.badges);
 
       if(changed>0){ lastActivityTs=Date.now(); hideSaver(); scheduleSaver(); }
       if(autoScroll.checked) requestAnimationFrame(function(){ scrollToLastWithData(LAST_N_TO_SHOW); });
@@ -1150,7 +1117,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }finally{ isFetching=false; }
   }
 
-  /* ====== Autoscroll: últimas N filas con datos, considerando pozos visibles ====== */
+  /* ====== Autoscroll ====== */
   function hasVisibleData(o, visibleSet){
     if(!o) return false;
     var wells = (visibleSet && visibleSet.size) ? visibleSet : new Set([1,2,3,4,5,6]);
@@ -1245,7 +1212,6 @@ document.addEventListener('DOMContentLoaded', function(){
     setNightEnabled.checked=!!DISPLAY.nightDim.enabled; setNightStart.value=DISPLAY.nightDim.startHour; setNightEnd.value=DISPLAY.nightDim.endHour; setNightDim.value=Math.round((DISPLAY.nightDim.dimLevel||0.65)*100);
     setShiftEnabled.checked=!!DISPLAY.pixelShift.enabled; setShiftEvery.value=DISPLAY.pixelShift.intervalMin; setShiftPixels.value=DISPLAY.pixelShift.maxOffsetPx;
     
-    // KPI Settings
     var kpi = DISPLAY.kpi || { useManual: true, manualSpeed: 8 };
     setUseManualSpeed.checked = !!kpi.useManual;
     setManualSpeed.value = kpi.manualSpeed || 8;
@@ -1269,7 +1235,6 @@ document.addEventListener('DOMContentLoaded', function(){
     DISPLAY.pixelShift.intervalMin=clamp(+setShiftEvery.value||2,1,60);
     DISPLAY.pixelShift.maxOffsetPx=clamp(+setShiftPixels.value||2,0,10);
 
-    // Save KPI
     DISPLAY.kpi = {
         useManual: !!setUseManualSpeed.checked,
         manualSpeed: clamp(+setManualSpeed.value||8, 0.1, 100)
@@ -1315,7 +1280,6 @@ document.addEventListener('DOMContentLoaded', function(){
   function applyDisplay(){ applyFontVars(); restartNight(); restartShift(); scheduleSaver(); }
   initializeDOM(); applyDisplay(); fitRowsToViewport(); applyWellVisibility();
   
-  // Aplicar zoom guardado al cargar
   applyZoom(zoomLevel);
   
   loadAndRender(true);
