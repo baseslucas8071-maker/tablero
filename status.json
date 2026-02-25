@@ -478,7 +478,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5575.2",
       "TPNPozo2": "5668",
-      "TPNPozo3": "",
+      "TPNPozo3": "5568",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -499,7 +499,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5535.2",
       "TPNPozo2": "5628",
-      "TPNPozo3": "",
+      "TPNPozo3": "5528",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -520,7 +520,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5495.2",
       "TPNPozo2": "5588",
-      "TPNPozo3": "",
+      "TPNPozo3": "5488",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -541,7 +541,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5455.2",
       "TPNPozo2": "5548",
-      "TPNPozo3": "",
+      "TPNPozo3": "5448",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -562,7 +562,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5415.2",
       "TPNPozo2": "5508",
-      "TPNPozo3": "",
+      "TPNPozo3": "5408",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -583,7 +583,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "5375.2",
       "TPNPozo2": "5468",
-      "TPNPozo3": "",
+      "TPNPozo3": "5368",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-02-25T01:54:50.8246502Z",
+  "lastUpdate": "2026-02-25T01:56:04.7090033Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
