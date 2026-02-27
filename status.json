@@ -1492,31 +1492,31 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-02-27T20:05:52.8378003Z",
+  "lastUpdate": "2026-02-27T20:34:58.8555255Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "64583 lts"
+      "STOCK": "0"
     },
     {
       "ITEM": "ARENA #100",
-      "STOCK": "754 tn"
+      "STOCK": "0"
     },
     {
       "ITEM": "ARENA #30/70",
-      "STOCK": "986 tn"
+      "STOCK": "0"
     },
     {
-      "ITEM": "Flojet 533 EM",
-      "STOCK": "31849 kg"
+      "ITEM": "0",
+      "STOCK": "0"
     },
     {
-      "ITEM": "DRP-2340",
-      "STOCK": "61398 kg"
+      "ITEM": "0",
+      "STOCK": "0"
     },
     {
-      "ITEM": "DRMAX-9115",
-      "STOCK": "18400 kg"
+      "ITEM": "0",
+      "STOCK": "0"
     }
   ]
 }
