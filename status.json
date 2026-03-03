@@ -703,8 +703,8 @@
       "Fila": "#31",
       "SecuenciaPozo1": "46084.2777777778",
       "SecuenciaPozo2": "46084.3368055556",
-      "SecuenciaPozo3": "",
-      "SecuenciaPozo4": "",
+      "SecuenciaPozo3": "46084.3944444444",
+      "SecuenciaPozo4": "46084.4729166667",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5085.2",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-03-03T14:33:29.1194257Z",
+  "lastUpdate": "2026-03-03T14:33:59.5587635Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
