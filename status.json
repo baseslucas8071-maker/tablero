@@ -907,8 +907,8 @@
       "FechaFracPozo1": "46088",
       "FechaFracPozo2": "46089",
       "FechaFracPozo3": "46089",
-      "FechaFracPozo4": "FRACTURANDO",
-      "FechaFracPozo5": "STDBY",
+      "FechaFracPozo4": "46089",
+      "FechaFracPozo5": "46089",
       "FechaFracPozo6": "",
       "Fila": "#41",
       "SecuenciaPozo1": "46088.6909722222",
@@ -925,7 +925,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "STDBY",
+      "FechaFracPozo1": "FRACTURANDO",
       "FechaFracPozo2": "STDBY",
       "FechaFracPozo3": "STDBY",
       "FechaFracPozo4": "WL",
@@ -939,10 +939,10 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "4535.2",
-      "TPNPozo2": "",
+      "TPNPozo2": "4628",
       "TPNPozo3": "4528",
-      "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo4": "4667",
+      "TPNPozo5": "4565",
       "TPNPozo6": ""
     },
     {
@@ -959,11 +959,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
-      "TPNPozo3": "",
-      "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo1": "4485.2",
+      "TPNPozo2": "4578",
+      "TPNPozo3": "4478",
+      "TPNPozo4": "4617",
+      "TPNPozo5": "4515",
       "TPNPozo6": ""
     },
     {
@@ -980,11 +980,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
-      "TPNPozo3": "",
-      "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo1": "4435.2",
+      "TPNPozo2": "4528",
+      "TPNPozo3": "4428",
+      "TPNPozo4": "4567",
+      "TPNPozo5": "4465",
       "TPNPozo6": ""
     },
     {
@@ -1001,11 +1001,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
-      "TPNPozo3": "",
-      "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo1": "4385.2",
+      "TPNPozo2": "4478",
+      "TPNPozo3": "4378",
+      "TPNPozo4": "4517",
+      "TPNPozo5": "4415",
       "TPNPozo6": ""
     },
     {
@@ -1022,11 +1022,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
-      "TPNPozo3": "",
-      "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo1": "4335.2",
+      "TPNPozo2": "4428",
+      "TPNPozo3": "4328",
+      "TPNPozo4": "4467",
+      "TPNPozo5": "4365",
       "TPNPozo6": ""
     },
     {
@@ -1043,11 +1043,11 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
-      "TPNPozo3": "",
-      "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo1": "4285.2",
+      "TPNPozo2": "4378",
+      "TPNPozo3": "4278",
+      "TPNPozo4": "4417",
+      "TPNPozo5": "4315",
       "TPNPozo6": ""
     },
     {
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-03-08T10:59:58.5718817Z",
+  "lastUpdate": "2026-03-08T12:58:47.2021726Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
