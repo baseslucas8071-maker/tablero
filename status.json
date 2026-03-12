@@ -1137,14 +1137,14 @@
     {
       "FechaFracPozo1": "STDBY",
       "FechaFracPozo2": "WL",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "STDBY",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#52",
       "SecuenciaPozo1": "46092.95625",
       "SecuenciaPozo2": "46093.0243055556",
-      "SecuenciaPozo3": "",
+      "SecuenciaPozo3": "46093.0833333333",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-03-12T05:14:21.4610206Z",
+  "lastUpdate": "2026-03-12T05:14:51.3664987Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
