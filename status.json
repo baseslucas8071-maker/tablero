@@ -1303,7 +1303,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "BUBBA",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1316,7 +1316,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "BUBBA",
+      "TPNPozo1": "",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1324,7 +1324,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "BUBBA",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1337,7 +1337,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "BUBBA",
+      "TPNPozo1": "",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1345,7 +1345,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "BUBBA",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1358,7 +1358,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "BUBBA",
+      "TPNPozo1": "",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1366,7 +1366,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "BUBBA",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1379,7 +1379,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "BUBBA",
+      "TPNPozo1": "",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1387,7 +1387,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "BUBBA",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "STOP",
@@ -1400,7 +1400,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "BUBBA",
+      "TPNPozo1": "",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-03-12T11:27:35.3092404Z",
+  "lastUpdate": "2026-03-12T12:41:16.6936333Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
