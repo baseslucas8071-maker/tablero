@@ -1366,11 +1366,11 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "BUBBA",
+      "FechaFracPozo1": "STOP",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
-      "FechaFracPozo4": "",
-      "FechaFracPozo5": "",
+      "FechaFracPozo4": "STOP",
+      "FechaFracPozo5": "STOP",
       "FechaFracPozo6": "",
       "Fila": "#63",
       "SecuenciaPozo1": "",
@@ -1387,11 +1387,11 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "STOP",
-      "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
-      "FechaFracPozo4": "STOP",
-      "FechaFracPozo5": "STOP",
+      "FechaFracPozo1": "",
+      "FechaFracPozo2": "STOP",
+      "FechaFracPozo3": "STOP",
+      "FechaFracPozo4": "",
+      "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#64",
       "SecuenciaPozo1": "cancelada",
@@ -1409,8 +1409,8 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "STOP",
-      "FechaFracPozo3": "STOP",
+      "FechaFracPozo2": "",
+      "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-03-14T21:40:25.6302577Z",
+  "lastUpdate": "2026-03-14T21:41:57.2132983Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
