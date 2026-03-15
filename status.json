@@ -1285,14 +1285,14 @@
       "FechaFracPozo1": "46095",
       "FechaFracPozo2": "FRACTURA",
       "FechaFracPozo3": "stansby",
-      "FechaFracPozo4": "wl",
-      "FechaFracPozo5": "",
+      "FechaFracPozo4": "stansby",
+      "FechaFracPozo5": "wl",
       "FechaFracPozo6": "",
       "Fila": "#59",
       "SecuenciaPozo1": "46095.8854166667",
       "SecuenciaPozo2": "46067.9305555556",
       "SecuenciaPozo3": "45730.9791666667",
-      "SecuenciaPozo4": "",
+      "SecuenciaPozo4": "46096.0256944444",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "3685.2 BBA",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-03-15T04:15:25.1183509Z",
+  "lastUpdate": "2026-03-15T04:17:23.9581550Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
