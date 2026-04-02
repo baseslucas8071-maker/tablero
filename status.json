@@ -232,7 +232,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "WL POOH",
+      "FechaFracPozo1": "STDBY",
       "FechaFracPozo2": "STDBY",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-02T11:53:43.8512818Z",
+  "lastUpdate": "2026-04-02T14:54:33.2364701Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
