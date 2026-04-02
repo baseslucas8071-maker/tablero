@@ -253,7 +253,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "WL RHI",
+      "FechaFracPozo1": "",
       "FechaFracPozo2": "46114",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -275,7 +275,7 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
+      "FechaFracPozo2": "WL RHI",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-02T22:28:10.7877520Z",
+  "lastUpdate": "2026-04-02T22:28:42.2165525Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
