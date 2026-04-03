@@ -234,7 +234,7 @@
     {
       "FechaFracPozo1": "46114",
       "FechaFracPozo2": "46114",
-      "FechaFracPozo3": "STAND BY",
+      "FechaFracPozo3": "STAND BY 1",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -274,8 +274,8 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
-      "FechaFracPozo2": "WL RIH",
+      "FechaFracPozo1": "WL",
+      "FechaFracPozo2": "STDBY",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -287,8 +287,8 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
+      "TPNPozo1": "6369",
+      "TPNPozo2": "6293",
       "TPNPozo3": "",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -308,8 +308,8 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
+      "TPNPozo1": "6315",
+      "TPNPozo2": "6239",
       "TPNPozo3": "",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -329,8 +329,8 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
-      "TPNPozo2": "",
+      "TPNPozo1": "6261",
+      "TPNPozo2": "6185",
       "TPNPozo3": "",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-03T00:33:59.6306997Z",
+  "lastUpdate": "2026-04-03T00:35:54.8353365Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
