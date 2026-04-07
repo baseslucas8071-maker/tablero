@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-07T10:16:02.4819245Z",
+  "lastUpdate": "2026-04-07T10:36:02.9084724Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "134130 lts"
+      "STOCK": "120465 lts"
     },
     {
       "ITEM": "ARENA #100",
@@ -1512,7 +1512,7 @@
     },
     {
       "ITEM": "DRP-2340",
-      "STOCK": "49525 kg"
+      "STOCK": "48288 kg"
     },
     {
       "ITEM": "DRMAX-9115",
