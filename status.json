@@ -779,7 +779,7 @@
     },
     {
       "FechaFracPozo1": "46124",
-      "FechaFracPozo2": "FRACTURA",
+      "FechaFracPozo2": "46124",
       "FechaFracPozo3": "46124",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -799,15 +799,15 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "STDBY 1",
-      "FechaFracPozo2": "WL",
-      "FechaFracPozo3": "STDBY 2",
+      "FechaFracPozo1": "FRACTURA",
+      "FechaFracPozo2": "STDBY2",
+      "FechaFracPozo3": "STDBY 1",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#36",
       "SecuenciaPozo1": "46124.55625",
-      "SecuenciaPozo2": "",
+      "SecuenciaPozo2": "46124.6784722222",
       "SecuenciaPozo3": "46124.3583333333",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
@@ -820,7 +820,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "WL",
       "FechaFracPozo2": "BBA",
       "FechaFracPozo3": "BBA",
       "FechaFracPozo4": "",
@@ -1492,19 +1492,19 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-12T19:42:45.5555919Z",
+  "lastUpdate": "2026-04-12T20:34:08.3574270Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "96325 lts"
+      "STOCK": "68987 lts"
     },
     {
       "ITEM": "ARENA #100",
-      "STOCK": "0 tn"
+      "STOCK": "510 tn"
     },
     {
       "ITEM": "ARENA #30/70",
-      "STOCK": "0 tn"
+      "STOCK": "1110 tn"
     },
     {
       "ITEM": "Flojet 533 EM",
