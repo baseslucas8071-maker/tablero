@@ -249,13 +249,14 @@ async function load() {
         // STOP: cortar el pozo aquí
         if(isStop(val)) break;
 
+        totalSlots++;
+        
         // Cancelada: aparece en el detalle con etiqueta naranja pero NO suma a total ni a hechas
         if(isCancelada(val)) {
           serie.push({ f: fLabel, v: 'Cancelada', isH: false, isCancelada: true });
           continue;
         }
 
-        totalSlots++;
         if(isValidDate(val)) {
           hechas++;
           const ymd = parseToYMD(val);
