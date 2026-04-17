@@ -1192,7 +1192,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "3663",
       "TPNPozo2": "3587",
-      "TPNPozo3": "",
+      "TPNPozo3": "TAPON DE PRUEBA",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-17T18:15:00.3991064Z",
+  "lastUpdate": "2026-04-17T18:15:37.4309593Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
