@@ -761,7 +761,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
   /* ===== CÁLCULO UNIFICADO DE TOTALES Y BADGES ===== */
   // REPARACIÓN: Unifica el criterio de conteo para Totales Globales y Píldoras
-  function computeAllStats(conv){
+ function computeAllStats(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
       .map(function(it){
@@ -779,6 +779,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var lastDataLimit = -1;
 
       for (var i=0; i<rows.length; i++){
+        if (rows[i]._row === 0) continue;  // ← ignorar #00 al buscar límite
         var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
         var t = (rows[i]['Pozo'+p] || '').toString().trim();
         if (v === 'STOP'){ stopLimit = rows[i]._row; break; }
@@ -787,14 +788,15 @@ document.addEventListener('DOMContentLoaded', function(){
       
       var limit = 0;
       if (stopLimit !== -1) {
-          limit = stopLimit; // Hasta el STOP
+          limit = stopLimit;
       } else if (lastDataLimit !== -1) {
-          limit = lastDataLimit + 1; // Hasta la última fila con algún dato
+          limit = lastDataLimit + 1;
       }
 
       var slotsPozo = 0, hechasPozo = 0;
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
+        if (r._row === 0) continue;  // ← ignorar #00 al contar
         if (r._row >= limit) break; 
         
         slotsPozo++;
@@ -813,7 +815,6 @@ document.addEventListener('DOMContentLoaded', function(){
       badges: badges
     };
   }
-
   function paintBadgesPerPozo(arr){
     var ths=document.querySelectorAll('#hdrTop th.pozoTop');
     for(var i=0;i<ths.length;i++){
