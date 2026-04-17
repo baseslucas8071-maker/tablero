@@ -771,7 +771,7 @@ document.addEventListener('DOMContentLoaded', function(){
       .filter(function(it){ return Number.isFinite(it._row) && it._row < ROWS; })
       .sort(function(a,b){ return a._row - b._row; });
 
-    var totalSlots=0, totalHechas=0;
+    var totalSlots=0, totalHechas=0, totalCanceladas=0;
     var badges = new Array(POZOS).fill(0);
 
     for (var p=1; p<=POZOS; p++){
@@ -779,13 +779,15 @@ document.addEventListener('DOMContentLoaded', function(){
       var lastDataLimit = -1;
 
       for (var i=0; i<rows.length; i++){
-        if (rows[i]._row === 0) continue;  // ← ignorar #00 al buscar límite
+        if (rows[i]._row === 0) continue;
         var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
+        var vNorm = (rows[i]['Estado'+p] || '').toString().trim()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
         var t = (rows[i]['Pozo'+p] || '').toString().trim();
         if (v === 'STOP'){ stopLimit = rows[i]._row; break; }
         if (v !== '' || t !== '') { lastDataLimit = rows[i]._row; }
       }
-      
+
       var limit = 0;
       if (stopLimit !== -1) {
           limit = stopLimit;
@@ -793,28 +795,44 @@ document.addEventListener('DOMContentLoaded', function(){
           limit = lastDataLimit + 1;
       }
 
-      var slotsPozo = 0, hechasPozo = 0;
+      var slotsPozo = 0, hechasPozo = 0, canceladasPozo = 0;
       for (var j=0; j<rows.length; j++){
         var r = rows[j];
-        if (r._row === 0) continue;  // ← ignorar #00 al contar
-        if (r._row >= limit) break; 
-        
+        if (r._row === 0) continue;
+        if (r._row >= limit) break;
+
+        // Suma al total siempre
         slotsPozo++;
-        if (isFechaValida(r['Estado'+p])) hechasPozo++; 
+
+        var estadoNorm = (r['Estado'+p] || '').toString().trim()
+                         .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+
+        // Cancelada: suma al total, se descuenta de restantes, NO suma a hechas
+        if (estadoNorm === 'cancelada') {
+          canceladasPozo++;
+          continue;
+        }
+
+        if (isFechaValida(r['Estado'+p])) hechasPozo++;
       }
-      
-      totalSlots += slotsPozo;
-      totalHechas += hechasPozo;
-      badges[p-1] = Math.max(0, slotsPozo - hechasPozo);
+
+      totalSlots      += slotsPozo;
+      totalHechas     += hechasPozo;
+      totalCanceladas += canceladasPozo;
+
+      // Badge = pendientes reales (ni hechas ni canceladas)
+      badges[p-1] = Math.max(0, slotsPozo - hechasPozo - canceladasPozo);
     }
-    
+
     return {
-      totalSlots: totalSlots, 
-      hechas: totalHechas, 
-      restantes: Math.max(0, totalSlots - totalHechas),
-      badges: badges
+      totalSlots:  totalSlots,
+      hechas:      totalHechas,
+      // Restantes = slots - hechas - canceladas
+      restantes:   Math.max(0, totalSlots - totalHechas - totalCanceladas),
+      badges:      badges
     };
   }
+  
   function paintBadgesPerPozo(arr){
     var ths=document.querySelectorAll('#hdrTop th.pozoTop');
     for(var i=0;i<ths.length;i++){
