@@ -75,7 +75,8 @@
   }
 
   td.stop{background:rgba(255,60,60,.14)!important;color:#ffb3b3!important;font-weight:900;letter-spacing:.4px;text-shadow:0 0 6px rgba(255,60,60,.4)}
-
+  td.cancelada{background:rgba(255,140,0,.14)!important;color:#ffb347!important;font-weight:900;letter-spacing:.4px;text-shadow:0 0 6px rgba(255,140,0,.4)}
+  
   .table-container::-webkit-scrollbar{height:10px;width:10px}
   .table-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:6px}
 
@@ -599,6 +600,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   var maybeFormatDate=function(v){ var p=parseDateValue(v); return p?p.display:(v==null?'':v); };
   var isStop=function(v){ return String(v==null?'':v).trim().toUpperCase()==='STOP'; };
+  var isCancelada=function(v){ return String(v==null?'':v).trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()==='cancelada'; };
   var isFechaValida=function(v){ return parseDateValue(v)!==null; }
 
   function transformItems(items){
@@ -694,6 +696,8 @@ document.addEventListener('DOMContentLoaded', function(){
       if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;}
       if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;}
       if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); }
+      if(td2){ td2.classList.toggle('stop',     isStop(raw)||isStop(v2)); }
+      if(td2){ td2.classList.toggle('cancelada', isCancelada(raw));        }
     }
     return{changed:ch,cells:c};
   }
