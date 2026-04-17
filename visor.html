@@ -695,8 +695,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(tdS && tdS.innerHTML!==fhHTML){tdS.innerHTML=fhHTML; ch=true;c++;}
       if(td1 && td1.innerText!==v1){td1.innerText=v1; ch=true;c++;}
       if(td2 && td2.innerText!==v2){td2.innerText=v2; ch=true;c++;}
-      if(td2){ td2.classList.toggle('stop', isStop(raw)||isStop(v2)); }
-      if(td2){ td2.classList.toggle('stop',     isStop(raw)||isStop(v2)); }
+      if(td2){ td2.classList.toggle('stop',      isStop(raw)||isStop(v2)); }
       if(td2){ td2.classList.toggle('cancelada', isCancelada(raw));        }
     }
     return{changed:ch,cells:c};
