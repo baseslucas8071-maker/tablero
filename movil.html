@@ -58,7 +58,7 @@
 
     .backbar{display:flex; align-items:center; gap:10px; padding:8px 14px}
     .backbar .t{font-weight:900; font-size:18px}
-    
+
     canvas{width:100%; height:220px; display:block}
 
     .overlay{position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:100; display:none; align-items:center; justify-content:center}
@@ -236,7 +236,7 @@ async function load() {
 
     Object.keys(names).forEach(id => {
       const fk = `FechaFracPozo${id}`;
-      let totalSlots = 0, hechas = 0, serie = [];
+      let totalSlots = 0, hechas = 0, canceladas = 0, serie = [];
 
       for(const r of dataRows) {
         const val = r[fk];
@@ -249,10 +249,13 @@ async function load() {
         // STOP: cortar el pozo aquí
         if(isStop(val)) break;
 
+        // Suma al total siempre (cancelada o no)
         totalSlots++;
-        
-        // Cancelada: aparece en el detalle con etiqueta naranja pero NO suma a total ni a hechas
+
+        // Cancelada: suma al total, se contabiliza aparte para
+        // descontar de restantes, NO suma a hechas
         if(isCancelada(val)) {
+          canceladas++;
           serie.push({ f: fLabel, v: 'Cancelada', isH: false, isCancelada: true });
           continue;
         }
@@ -266,7 +269,14 @@ async function load() {
       }
 
       if(totalSlots > 0 || hechas > 0) {
-        stats[id] = { total: totalSlots, hechas, rest: totalSlots - hechas, serie, name: names[id] };
+        stats[id] = {
+          total: totalSlots,
+          hechas,
+          // rest = pendientes reales: ni hechas ni canceladas
+          rest: Math.max(0, totalSlots - hechas - canceladas),
+          serie,
+          name: names[id]
+        };
       }
     });
 
@@ -284,7 +294,8 @@ function renderMain() {
   const all = Object.values(gStats);
   const t = all.reduce((a,b) => a + b.total, 0);
   const h = all.reduce((a,b) => a + b.hechas, 0);
-  const r = t - h;
+  // Usa rest pre-calculado por pozo para respetar canceladas
+  const r = all.reduce((a,b) => a + b.rest, 0);
 
   $('#kpiTotales .value').textContent = t;
   $('#kpiRealizadas .value').textContent = h;
@@ -452,4 +463,3 @@ setInterval(load, 60000);
 </script>
 </body>
 </html>
-
