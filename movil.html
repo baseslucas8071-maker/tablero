@@ -151,11 +151,10 @@
 "use strict";
 
 const CONFIG = {
-  DATA_URL: 'status.json', // Puedes cambiarlo a tu URL completa si lo necesitas
-  MAX_ETAPAS: 70 
+  DATA_URL: 'status.json',
+  MAX_ETAPAS: 70
 };
 
-// CAMBIO APLICADO AQUÍ: manualSpeed: 8 por defecto
 let PREFS = JSON.parse(localStorage.getItem('mobile_prefs')) || { useManual: true, manualSpeed: 8 };
 let gStats = {}, gNames = {}, gDays = [];
 
@@ -163,43 +162,50 @@ const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
 function pad2(n) { return String(n).padStart(2,'0'); }
-function isStop(v) { return String(v || "").trim().toUpperCase() === 'STOP'; }
+
+function isStop(v) {
+  return String(v || "").trim().toUpperCase() === 'STOP';
+}
+
+function isCancelada(v) {
+  return String(v || "").trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase() === 'cancelada';
+}
 
 function isValidDate(v) {
   const s = String(v || "").trim();
   if(!s) return false;
-  if(!isNaN(s) && Number(s) > 30000 && Number(s) < 80000) return true; // Serial Excel
+  if(!isNaN(s) && Number(s) > 30000 && Number(s) < 80000) return true;
   return /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/.test(s) || /^\d{4}-\d{2}-\d{2}/.test(s);
 }
 
 function parseToYMD(v) {
   const s = String(v || "").trim();
   if(!s) return null;
-  
+
   if(!isNaN(s) && Number(s) > 30000 && Number(s) < 80000) {
     const d = new Date(Date.UTC(1899, 11, 30) + Math.round(Number(s) * 86400000));
     return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
   }
-  
+
   let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
   if(m) {
     let d = +m[1], mo = +m[2], y = +m[3];
     if(y < 100) y += 2000;
     return `${y}-${pad2(mo)}-${pad2(d)}`;
   }
-  
+
   m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return s.substring(0, 10);
-  
+  if(m) return s.substring(0, 10);
+
   return null;
 }
 
 function displayDate(v) {
-    if (!isValidDate(v)) return v; // Si dice "Abortada", lo muestra
-    const ymd = parseToYMD(v);
-    if (!ymd) return v;
-    const parts = ymd.split('-');
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  if(!isValidDate(v)) return v;
+  const ymd = parseToYMD(v);
+  if(!ymd) return v;
+  const parts = ymd.split('-');
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
 async function load() {
@@ -207,7 +213,7 @@ async function load() {
     const res = await fetch(`${CONFIG.DATA_URL}?v=${Date.now()}`);
     const json = await res.json();
     const rows = json.items || [];
-    
+
     const names = {};
     const firstRow = rows[0] || {};
     Object.keys(firstRow).forEach(k => {
@@ -220,48 +226,57 @@ async function load() {
 
     const stats = {};
     const dailyMap = new Map();
-    
+
     const dataRows = rows.filter(r => {
-        const fText = String(r.Fila || r.fila || "").trim().replace('#','');
-        if (fText === "0" || fText === "00") return true; 
-        const fNum = parseInt(fText, 10);
-        return !isNaN(fNum) && fNum <= CONFIG.MAX_ETAPAS;
+      const fText = String(r.Fila || r.fila || "").trim().replace('#','');
+      if(fText === "0" || fText === "00") return true;
+      const fNum = parseInt(fText, 10);
+      return !isNaN(fNum) && fNum <= CONFIG.MAX_ETAPAS;
     });
 
-Object.keys(names).forEach(id => {
+    Object.keys(names).forEach(id => {
       const fk = `FechaFracPozo${id}`;
-      let totalSlots = 0, hechas = 0, serie = [], stopped = false;
+      let totalSlots = 0, hechas = 0, serie = [];
 
       for(const r of dataRows) {
         const val = r[fk];
         const fLabel = String(r.Fila || r.fila || "").trim();
         const fNum = parseInt(fLabel.replace('#',''), 10);
 
-        if(fNum === 0) continue;  // ← ignorar fila #00
+        // Ignorar fila #00
+        if(fNum === 0) continue;
 
-        if(isStop(val)) { stopped = true; break; }
-        
+        // STOP: cortar el pozo aquí
+        if(isStop(val)) break;
+
+        // Cancelada: aparece en el detalle con etiqueta naranja pero NO suma a total ni a hechas
+        if(isCancelada(val)) {
+          serie.push({ f: fLabel, v: 'Cancelada', isH: false, isCancelada: true });
+          continue;
+        }
+
         totalSlots++;
         if(isValidDate(val)) {
           hechas++;
           const ymd = parseToYMD(val);
           if(ymd) dailyMap.set(ymd, (dailyMap.get(ymd)||0) + 1);
         }
-        serie.push({ f: fLabel, v: val, isH: isValidDate(val) });
+        serie.push({ f: fLabel, v: val, isH: isValidDate(val), isCancelada: false });
       }
-      
+
       if(totalSlots > 0 || hechas > 0) {
         stats[id] = { total: totalSlots, hechas, rest: totalSlots - hechas, serie, name: names[id] };
       }
     });
 
-    gStats = stats; gNames = names;
+    gStats = stats;
+    gNames = names;
     gDays = Array.from(dailyMap.entries()).sort((a,b) => b[0].localeCompare(a[0]));
-    
+
     $('#lastUpdate').textContent = `Sincronizado: ${new Date().toLocaleTimeString()}`;
     renderMain();
     if($('#viewDias').style.display !== 'none') renderDays();
-  } catch (e) { console.error("Error cargando datos:", e); }
+  } catch(e) { console.error("Error cargando datos:", e); }
 }
 
 function renderMain() {
@@ -285,12 +300,14 @@ function renderMain() {
     const dLeft = r / speed;
     const target = new Date(Date.now() + dLeft * 86400000);
     $('#etaFinish').innerHTML = `${target.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})} <div style="font-size:10px; opacity:0.6; font-weight:normal">(Base: ${speedLabel} et/día)</div>`;
-  } else { $('#etaFinish').textContent = "—"; }
+  } else {
+    $('#etaFinish').textContent = "—";
+  }
 
   const cont = $('#viewPozos'); cont.innerHTML = '';
   Object.keys(gStats).forEach(id => {
     const p = gStats[id];
-    const pct = p.total > 0 ? Math.round((p.hechas/p.total)*100) : 0;
+    const pct = p.total > 0 ? Math.round((p.hechas / p.total) * 100) : 0;
     const el = document.createElement('div');
     el.className = `card pad pozo color-${id}`;
     el.innerHTML = `
@@ -312,8 +329,8 @@ function renderDays() {
   const box = $('#daysListBox');
   if(!box) return;
   box.innerHTML = '<div class="list"></div>';
-  
-  if (gDays.length === 0) {
+
+  if(gDays.length === 0) {
     box.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5">Sin datos registrados</div>';
     return;
   }
@@ -322,8 +339,8 @@ function renderDays() {
     const item = document.createElement('div');
     item.className = 'item';
     const dateParts = ymd.split('-');
-    const displayDate = `${dateParts[2]}/${dateParts[1]}`;
-    item.innerHTML = `<div class="left"><strong>${displayDate}</strong></div><div class="right">${count} etapas</div>`;
+    const d = `${dateParts[2]}/${dateParts[1]}`;
+    item.innerHTML = `<div class="left"><strong>${d}</strong></div><div class="right">${count} etapas</div>`;
     box.firstChild.appendChild(item);
   });
 }
@@ -334,18 +351,22 @@ function openDetail(id) {
   $('#detailBar').className = `backbar color-${id}`;
   $('#dTot').textContent = p.total;
   $('#dDone').textContent = p.hechas;
-  
+
   const list = $('#dList'); list.innerHTML = '';
   p.serie.forEach(s => {
     const item = document.createElement('div');
     item.className = 'item';
-    const valDisp = s.v ? displayDate(s.v) : '—'; 
-    item.innerHTML = `<div class="left"><strong>Etapa ${s.f}</strong></div><div class="right" style="color:${s.isH?'#1ad598':''}">${valDisp}</div>`;
+    const valDisp = s.isCancelada ? 'Cancelada' : (s.v ? displayDate(s.v) : '—');
+    const color = s.isH ? '#1ad598' : (s.isCancelada ? '#ff9500' : '');
+    item.innerHTML = `<div class="left"><strong>Etapa ${s.f}</strong></div><div class="right" style="color:${color}">${valDisp}</div>`;
     list.appendChild(item);
   });
 
-  $('#topCard').style.display='none'; $('#viewPozos').style.display='none'; $('#mainTabs').style.display='none';
-  $('#detailBar').style.display='flex'; $('#viewDetail').style.display='grid';
+  $('#topCard').style.display='none';
+  $('#viewPozos').style.display='none';
+  $('#mainTabs').style.display='none';
+  $('#detailBar').style.display='flex';
+  $('#viewDetail').style.display='grid';
   drawChart($('#pozoChart'), p);
 }
 
@@ -354,11 +375,13 @@ function drawChart(canv, pozoData) {
   const w = canv.clientWidth, h = canv.clientHeight;
   canv.width = w * dpr; canv.height = h * dpr;
   ctx.scale(dpr, dpr); ctx.clearRect(0,0,w,h);
-  
+
   const m = new Map();
-  pozoData.serie.forEach(s => { if(s.isH) { const y = parseToYMD(s.v); if(y) m.set(y, (m.get(y)||0)+1); } });
+  pozoData.serie.forEach(s => {
+    if(s.isH) { const y = parseToYMD(s.v); if(y) m.set(y, (m.get(y)||0)+1); }
+  });
   const data = Array.from(m.entries()).sort((a,b) => a[0].localeCompare(b[0])).slice(-8);
-  
+
   const max = Math.max(1, ...data.map(d=>d[1])), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
   const stepX = chartW / Math.max(1, data.length);
 
@@ -371,34 +394,54 @@ function drawChart(canv, pozoData) {
 }
 
 $('#btnRefresh').onclick = load;
-$('#btnBack').onclick = () => { $('#detailBar').style.display='none'; $('#viewDetail').style.display='none'; $('#topCard').style.display='block'; $('#viewPozos').style.display='grid'; $('#mainTabs').style.display='flex'; };
-$('#btnCfg').onclick = () => { $('#cfgUseManual').checked = PREFS.useManual; $('#cfgManualVal').value = PREFS.manualSpeed; $('#modalSettings').classList.add('open'); };
+
+$('#btnBack').onclick = () => {
+  $('#detailBar').style.display='none';
+  $('#viewDetail').style.display='none';
+  $('#topCard').style.display='block';
+  $('#viewPozos').style.display='grid';
+  $('#mainTabs').style.display='flex';
+};
+
+$('#btnCfg').onclick = () => {
+  $('#cfgUseManual').checked = PREFS.useManual;
+  $('#cfgManualVal').value = PREFS.manualSpeed;
+  $('#modalSettings').classList.add('open');
+};
+
 $('#btnCloseCfg').onclick = () => $('#modalSettings').classList.remove('open');
-// CAMBIO APLICADO AQUÍ: manualSpeed: ... || 8 en caso de error
-$('#btnSaveCfg').onclick = () => { PREFS.useManual = $('#cfgUseManual').checked; PREFS.manualSpeed = parseFloat($('#cfgManualVal').value)||8; localStorage.setItem('mobile_prefs', JSON.stringify(PREFS)); $('#modalSettings').classList.remove('open'); renderMain(); };
+
+$('#btnSaveCfg').onclick = () => {
+  PREFS.useManual = $('#cfgUseManual').checked;
+  PREFS.manualSpeed = parseFloat($('#cfgManualVal').value) || 8;
+  localStorage.setItem('mobile_prefs', JSON.stringify(PREFS));
+  $('#modalSettings').classList.remove('open');
+  renderMain();
+};
 
 $$('.tab').forEach(t => t.onclick = () => {
-  $$('.tab').forEach(x => x.classList.remove('active')); t.classList.add('active');
-  const v = t.dataset.view; 
-  $('#viewPozos').style.display = v==='pozos'?'grid':'none'; 
-  $('#viewDias').style.display = v==='dias'?'block':'none';
+  $$('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  const v = t.dataset.view;
+  $('#viewPozos').style.display = v==='pozos' ? 'grid' : 'none';
+  $('#viewDias').style.display  = v==='dias'  ? 'block' : 'none';
   if(v === 'dias') {
     renderDays();
     setTimeout(() => {
-        const canv = $('#daysChart');
-        const ctx = canv.getContext('2d'), dpr = window.devicePixelRatio || 1;
-        const w = canv.clientWidth, h = canv.clientHeight;
-        canv.width = w * dpr; canv.height = h * dpr;
-        ctx.scale(dpr, dpr); ctx.clearRect(0,0,w,h);
-        const data = gDays.slice(0, 10).reverse();
-        const max = Math.max(1, ...data.map(d=>d[1])), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
-        const stepX = chartW / Math.max(1, data.length);
-        data.forEach((d, i) => {
-            const bw = Math.max(10, stepX - 15), bh = (d[1]/max)*chartH, x = pad + i*stepX + (stepX-bw)/2, y = h - pad - bh;
-            ctx.fillStyle = '#47a3ff'; ctx.fillRect(x, y, bw, bh);
-            ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(d[1], x+bw/2, y-5);
-            ctx.font = '8px sans-serif'; ctx.fillText(d[0].split('-').slice(1).reverse().join('/'), x+bw/2, h-5);
-        });
+      const canv = $('#daysChart');
+      const ctx = canv.getContext('2d'), dpr = window.devicePixelRatio || 1;
+      const w = canv.clientWidth, h = canv.clientHeight;
+      canv.width = w * dpr; canv.height = h * dpr;
+      ctx.scale(dpr, dpr); ctx.clearRect(0,0,w,h);
+      const data = gDays.slice(0, 10).reverse();
+      const max = Math.max(1, ...data.map(d=>d[1])), pad = 20, chartW = w - pad*2, chartH = h - pad*2;
+      const stepX = chartW / Math.max(1, data.length);
+      data.forEach((d, i) => {
+        const bw = Math.max(10, stepX - 15), bh = (d[1]/max)*chartH, x = pad + i*stepX + (stepX-bw)/2, y = h - pad - bh;
+        ctx.fillStyle = '#47a3ff'; ctx.fillRect(x, y, bw, bh);
+        ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center'; ctx.fillText(d[1], x+bw/2, y-5);
+        ctx.font = '8px sans-serif'; ctx.fillText(d[0].split('-').slice(1).reverse().join('/'), x+bw/2, h-5);
+      });
     }, 50);
   }
 });
@@ -408,3 +451,4 @@ setInterval(load, 60000);
 </script>
 </body>
 </html>
+
