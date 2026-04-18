@@ -1178,7 +1178,7 @@
     },
     {
       "FechaFracPozo1": "FRACTURANDO",
-      "FechaFracPozo2": "FRACTURANDO",
+      "FechaFracPozo2": "46129",
       "FechaFracPozo3": "HASA Illusion",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-04-18T02:08:46.2161722Z",
+  "lastUpdate": "2026-04-18T02:09:20.2798648Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
