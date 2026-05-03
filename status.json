@@ -170,7 +170,7 @@
     },
     {
       "FechaFracPozo1": "46145",
-      "FechaFracPozo2": "WL Espera por viento ",
+      "FechaFracPozo2": "WL RIIH",
       "FechaFracPozo3": "46145",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -190,7 +190,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "FRAC 01",
+      "FechaFracPozo1": "FRAC 01 PRUEBA EQUIPO",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "FRACTURANDO",
       "FechaFracPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-03T21:29:53.2176629Z",
+  "lastUpdate": "2026-05-03T21:56:39.5138539Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
