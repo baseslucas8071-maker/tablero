@@ -380,7 +380,7 @@
     },
     {
       "FechaFracPozo1": "46149",
-      "FechaFracPozo2": "wl 1",
+      "FechaFracPozo2": "wl 2",
       "FechaFracPozo3": "46149",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -401,7 +401,7 @@
     },
     {
       "FechaFracPozo1": "46149",
-      "FechaFracPozo2": "WL3",
+      "FechaFracPozo2": "WL4",
       "FechaFracPozo3": "46149",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -463,7 +463,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "wl4",
+      "FechaFracPozo1": "wl3",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "WL1",
       "FechaFracPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-08T10:07:09.3350578Z",
+  "lastUpdate": "2026-05-08T10:07:42.5156665Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
