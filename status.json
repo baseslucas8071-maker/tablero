@@ -443,7 +443,7 @@
     },
     {
       "FechaFracPozo1": "46150",
-      "FechaFracPozo2": "stamdby",
+      "FechaFracPozo2": "standby",
       "FechaFracPozo3": "46150",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -484,7 +484,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "WL1",
+      "FechaFracPozo1": "Fracturando",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46150",
       "FechaFracPozo4": "",
@@ -505,9 +505,9 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "WL2",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "Fracturando",
+      "FechaFracPozo3": "46151",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -528,7 +528,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "WL1",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -610,7 +610,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "Fracturando",
+      "FechaFracPozo1": "",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-09T08:40:42.5030043Z",
+  "lastUpdate": "2026-05-09T08:41:14.5459717Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
