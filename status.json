@@ -687,7 +687,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "3 t/FT 120° 5099",
-      "TPNPozo2": "",
+      "TPNPozo2": "5158",
       "TPNPozo3": "5137",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -708,7 +708,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5039",
-      "TPNPozo2": "",
+      "TPNPozo2": "5098",
       "TPNPozo3": "5077",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -749,7 +749,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
+      "TPNPozo1": "4919",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -770,7 +770,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
+      "TPNPozo1": "4859",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -791,7 +791,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
+      "TPNPozo1": "4799",
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-12T06:36:34.6958868Z",
+  "lastUpdate": "2026-05-12T06:37:45.8089993Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
