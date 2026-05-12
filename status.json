@@ -653,8 +653,8 @@
     },
     {
       "FechaFracPozo1": "46153",
-      "FechaFracPozo2": "WL2",
-      "FechaFracPozo3": "WL REPUNZ",
+      "FechaFracPozo2": "WL1",
+      "FechaFracPozo3": "fracturando",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -694,7 +694,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "WL2",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-12T09:34:41.2042679Z",
+  "lastUpdate": "2026-05-12T09:35:09.0710703Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
