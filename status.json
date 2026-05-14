@@ -812,7 +812,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "4739",
+      "TPNPozo1": "HUNTING SCH-312-23-381 4739",
       "TPNPozo2": "4798",
       "TPNPozo3": "4777",
       "TPNPozo4": "",
@@ -833,7 +833,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "4679",
+      "TPNPozo1": "HUNTING SCH-312-23-381 4679",
       "TPNPozo2": "4738",
       "TPNPozo3": "4717",
       "TPNPozo4": "",
@@ -854,7 +854,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "4619",
+      "TPNPozo1": "HUNTING SCH-312-23-381 4619",
       "TPNPozo2": "4678",
       "TPNPozo3": "4657",
       "TPNPozo4": "",
@@ -898,7 +898,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "ETA TR26R -   4499",
       "TPNPozo2": "4558",
-      "TPNPozo3": "",
+      "TPNPozo3": "ETA TR26R - ",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -917,9 +917,9 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "4439",
+      "TPNPozo1": "ETA TR26R -   4439",
       "TPNPozo2": "4498",
-      "TPNPozo3": "",
+      "TPNPozo3": "ETA TR26R - ",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -938,9 +938,9 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "",
+      "TPNPozo1": "ETA TR26R - 4379",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "ETA TR26R - ",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-14T22:34:14.3793733Z",
+  "lastUpdate": "2026-05-14T22:35:03.5358617Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
