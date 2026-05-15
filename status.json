@@ -862,7 +862,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "FRACTURANDO",
+      "FechaFracPozo1": "46157",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46157",
       "FechaFracPozo4": "",
@@ -885,7 +885,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "STAND BY",
+      "FechaFracPozo3": "FRACTURANDO",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -898,7 +898,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "ETA TR26R -   4499",
       "TPNPozo2": "4558",
-      "TPNPozo3": "ETA TR26R - 4537 ",
+      "TPNPozo3": "a",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-15T07:36:08.6659197Z",
+  "lastUpdate": "2026-05-15T08:17:49.1640578Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
