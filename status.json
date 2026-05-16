@@ -960,7 +960,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "ETA TR26R - 4319",
-      "TPNPozo2": "",
+      "TPNPozo2": "12 Clustrs",
       "TPNPozo3": "4357",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-16T12:16:08.2973576Z",
+  "lastUpdate": "2026-05-16T12:16:37.5763726Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
