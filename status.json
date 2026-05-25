@@ -1169,7 +1169,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "Interferencia",
+      "TPNPozo1": "Interferencia 12 clusters",
       "TPNPozo2": "Interferencia",
       "TPNPozo3": "12 CLUSTER - 3673",
       "TPNPozo4": "",
@@ -1179,7 +1179,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "WL 3",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1190,7 +1190,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "Interferencia",
+      "TPNPozo1": "Interferencia 10 clusters",
       "TPNPozo2": "Interferencia",
       "TPNPozo3": "Interferencia",
       "TPNPozo4": "",
@@ -1211,7 +1211,7 @@
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "Interferencia",
+      "TPNPozo1": "Interferencia 10 clusters",
       "TPNPozo2": "",
       "TPNPozo3": "Interferencia",
       "TPNPozo4": "",
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-05-21T02:13:25.1350557Z",
+  "lastUpdate": "2026-05-25T11:13:50.7595617Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "292522 lts"
+      "STOCK": "655823 lts"
     },
     {
       "ITEM": "ARENA #100",
