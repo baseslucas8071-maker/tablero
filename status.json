@@ -151,14 +151,14 @@
       "FechaFracPozo1": "S300-6tn",
       "FechaFracPozo2": "Fracturando",
       "FechaFracPozo3": "StdBy",
-      "FechaFracPozo4": "WL1",
+      "FechaFracPozo4": "StdBy",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#05",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "46181.7048611111",
       "SecuenciaPozo3": "46181.7916666667",
-      "SecuenciaPozo4": "8/6/20268 7:35",
+      "SecuenciaPozo4": "8/6/20268 22:41",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6718",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-06-09T01:37:41.0111861Z",
+  "lastUpdate": "2026-06-09T01:38:10.0511054Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
