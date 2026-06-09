@@ -170,8 +170,8 @@
     },
     {
       "FechaFracPozo1": "NM-6tn(Stanby)",
-      "FechaFracPozo2": "Fracturando",
-      "FechaFracPozo3": "StdBy",
+      "FechaFracPozo2": "Wl",
+      "FechaFracPozo3": "Fracturando",
       "FechaFracPozo4": "StdBy",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-06-09T12:47:38.2864480Z",
+  "lastUpdate": "2026-06-09T13:00:58.6213576Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
