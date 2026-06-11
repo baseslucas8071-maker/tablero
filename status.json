@@ -256,14 +256,14 @@
       "FechaFracPozo1": "NM-4.5tn",
       "FechaFracPozo2": "StdBy",
       "FechaFracPozo3": "StdBy",
-      "FechaFracPozo4": "WL",
+      "FechaFracPozo4": "StdBy",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#10",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "46183.9680555556",
       "SecuenciaPozo3": "46184.0451388889",
-      "SecuenciaPozo4": "",
+      "SecuenciaPozo4": "46184.1770833333",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6448",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-06-11T08:33:20.8243021Z",
+  "lastUpdate": "2026-06-11T08:43:44.7569810Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
