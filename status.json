@@ -232,7 +232,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "S300-3tn",
+      "FechaFracPozo1": "NM-4.5tn",
       "FechaFracPozo2": "46183",
       "FechaFracPozo3": "Fracturando",
       "FechaFracPozo4": "StdBy",
@@ -245,7 +245,7 @@
       "SecuenciaPozo4": "10/6/20268 19:31",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
-      "TPNPozo1": "6502 #300",
+      "TPNPozo1": "6502",
       "TPNPozo2": "6586",
       "TPNPozo3": "6617",
       "TPNPozo4": "6674",
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-06-11T00:38:57.1727128Z",
+  "lastUpdate": "2026-06-11T00:39:27.9311996Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "114728 lts"
+      "STOCK": "83822 lts"
     },
     {
       "ITEM": "ARENA #100",
