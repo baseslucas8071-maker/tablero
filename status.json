@@ -478,7 +478,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "6017",
       "TPNPozo4": "6074",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -499,7 +499,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5957",
       "TPNPozo4": "6014",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -520,7 +520,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5897",
       "TPNPozo4": "5954",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -541,7 +541,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5837",
       "TPNPozo4": "5894",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -562,7 +562,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5777",
       "TPNPozo4": "5834",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -583,7 +583,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5717",
       "TPNPozo4": "5774",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -604,7 +604,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5657",
       "TPNPozo4": "5714",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -625,7 +625,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5597",
       "TPNPozo4": "5654",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -646,7 +646,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5537",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-06-15T23:29:53.9327259Z",
+  "lastUpdate": "2026-06-15T23:30:26.3898504Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
