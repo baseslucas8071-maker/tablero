@@ -736,7 +736,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
+      "FechaFracPozo1": "WL",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-06-22T05:48:54.0292506Z",
+  "lastUpdate": "2026-06-22T06:21:23.7618415Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "459799 lts"
+      "STOCK": "889799 lts"
     },
     {
       "ITEM": "ARENA #100",
