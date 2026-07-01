@@ -586,15 +586,8 @@ document.addEventListener('DOMContentLoaded', function(){
   function transformItems(items){
     if(!Array.isArray(items)) return [];
     
-    // REPLICADO DEL MÓVIL: Filtrado directo del array crudo en memoria
-    var dataRows = items.filter(function(r) {
-      var fText = String(r.Fila || r.fila || "").trim().replace('#','');
-      if(fText === "0" || fText === "00") return true;
-      var fNum = parseInt(fText, 10);
-      return !isNaN(fNum) && fNum <= ROWS; // No procesa más de las filas permitidas del visor
-    });
-
-    return dataRows.map(function(raw){
+    // FILTRADO DE FILAS FANTASMA: Mapea solo filas con una identificación de etapa válida
+    return items.map(function(raw){
       var o={};
       o.fila=String((raw.Fila!=null?raw.Fila:(raw.fila!=null?raw.fila:'')));
       for(var i=1;i<=POZOS;i++){
@@ -752,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* ===== CÁLCULO UNIFICADO DE TOTALES Y BADGES ===== */
-  // PROCESAMIENTO EXACTO AL MÓVIL: Recorrido vertical puro con corte inmediato por STOP
+  // SOLUCIÓN FINAL: Ignora #00 de forma explícita y salta celdas vacías sin romper el break vertical del STOP
   function computeAllStats(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
@@ -771,13 +764,21 @@ document.addEventListener('DOMContentLoaded', function(){
 
       for (var i=0; i<rows.length; i++){
         var r = rows[i];
-        if (r._row === 0) continue;
+        
+        // Exclusión estricta de la fila #00 y superiores inválidas
+        if (r._row === 0 || isNaN(r._row)) continue;
 
         var val = (r['Estado'+p] || '').toString().trim();
+        var tpn = (r['Pozo'+p] || '').toString().trim();
         
-        // Ejecuta el break idéntico al móvil: frena la lectura vertical al ver el "STOP"
+        // Frena la iteración del pozo al encontrar 'STOP'
         if (isStop(val)) {
           break;
+        }
+
+        // Si la celda está completamente vacía (sin TPN ni Estado), no es etapa del PAD
+        if (val === '' && tpn === '') {
+          continue;
         }
 
         totalSlots++;
@@ -1070,7 +1071,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
       renderStock(json.stock||[]);
       
-      // Mapea y filtra directo en base al json
       var conv=transformItems(json.items||[]);
       var hdr=extractHeaderRows(conv); updateHeaderNames(hdr.top,hdr.sub);
       var map=itemsArrayToMap(conv);
