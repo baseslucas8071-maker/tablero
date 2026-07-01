@@ -585,8 +585,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function transformItems(items){
     if(!Array.isArray(items)) return [];
-    
-    // FILTRADO DE FILAS FANTASMA: Mapea solo filas con una identificación de etapa válida
     return items.map(function(raw){
       var o={};
       o.fila=String((raw.Fila!=null?raw.Fila:(raw.fila!=null?raw.fila:'')));
@@ -740,12 +738,12 @@ document.addEventListener('DOMContentLoaded', function(){
       chip.appendChild(dd); chip.appendChild(nn); el.appendChild(chip);
     }
     var next=document.createElement('button'); next.className='reel-btn'; next.textContent='›'; next.disabled=(reelStart>=max);
-    next.onclick=function(){ reelStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel(); };
+    next.onclick=function(){ netStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel(); };
     el.appendChild(next);
   }
 
   /* ===== CÁLCULO UNIFICADO DE TOTALES Y BADGES ===== */
-  // SOLUCIÓN FINAL: Ignora #00 de forma explícita y salta celdas vacías sin romper el break vertical del STOP
+  // CRITERIO EXACTO: Recorrido vertical por pozo de la fila #01 en adelante. Suma total lineal y corta al ver 'STOP' sin incluirlo.
   function computeAllStats(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
@@ -765,22 +763,17 @@ document.addEventListener('DOMContentLoaded', function(){
       for (var i=0; i<rows.length; i++){
         var r = rows[i];
         
-        // Exclusión estricta de la fila #00 y superiores inválidas
+        // Se saltea estrictamente la fila #00
         if (r._row === 0 || isNaN(r._row)) continue;
 
         var val = (r['Estado'+p] || '').toString().trim();
-        var tpn = (r['Pozo'+p] || '').toString().trim();
         
-        // Frena la iteración del pozo al encontrar 'STOP'
+        // Frena de inmediato antes de procesar el STOP (No incluye esta etapa)
         if (isStop(val)) {
           break;
         }
 
-        // Si la celda está completamente vacía (sin TPN ni Estado), no es etapa del PAD
-        if (val === '' && tpn === '') {
-          continue;
-        }
-
+        // Cuenta la etapa de forma lineal e ininterrumpida
         totalSlots++;
         slotsPozo++;
 
@@ -798,6 +791,7 @@ document.addEventListener('DOMContentLoaded', function(){
         }
       }
 
+      // Badge de etapas pendientes del pozo
       badges[p-1] = Math.max(0, slotsPozo - hechasPozo - canceladasPozo);
     }
 
@@ -1108,7 +1102,7 @@ document.addEventListener('DOMContentLoaded', function(){
       console.error(e);
       setNet('ERROR:', false, (e&&e.message?e.message:'')); 
       document.getElementById('lastUpdate').innerHTML='<span style="color:salmon">Error de conexión</span>';
-      document.getElementById('delta').textContent='';
+      deltaEl.textContent='';
     }finally{ isFetching=false; }
   }
 
