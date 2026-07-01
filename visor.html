@@ -763,8 +763,8 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   /* ===== CÁLCULO UNIFICADO DE TOTALES Y BADGES ===== */
-  // REPARACIÓN: Unifica el criterio de conteo para Totales Globales y Píldoras
- function computeAllStats(conv){
+  // REPARADO: Conteo lineal e interrupción inmediata por pozo emulando el modelo móvil
+  function computeAllStats(conv){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
       .map(function(it){
@@ -778,50 +778,35 @@ document.addEventListener('DOMContentLoaded', function(){
     var badges = new Array(POZOS).fill(0);
 
     for (var p=1; p<=POZOS; p++){
-      var stopLimit = -1;
-      var lastDataLimit = -1;
+      var slotsPozo = 0, hechasPozo = 0, canceladasPozo = 0;
 
       for (var i=0; i<rows.length; i++){
-        if (rows[i]._row === 0) continue;
-        var v = (rows[i]['Estado'+p] || '').toString().trim().toUpperCase();
-        var vNorm = (rows[i]['Estado'+p] || '').toString().trim()
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-        var t = (rows[i]['Pozo'+p] || '').toString().trim();
-        if (v === 'STOP'){ stopLimit = rows[i]._row; break; }
-        if (v !== '' || t !== '') { lastDataLimit = rows[i]._row; }
-      }
-
-      var limit = 0;
-      if (stopLimit !== -1) {
-          limit = stopLimit;
-      } else if (lastDataLimit !== -1) {
-          limit = lastDataLimit + 1;
-      }
-
-      var slotsPozo = 0, hechasPozo = 0, canceladasPozo = 0;
-      for (var j=0; j<rows.length; j++){
-        var r = rows[j];
+        var r = rows[i];
         if (r._row === 0) continue;
-        if (r._row >= limit) break;
 
-        // Suma al total siempre
+        var val = (r['Estado'+p] || '').toString().trim();
+        
+        // Criterio STOP idéntico al modelo móvil: interrupción vertical inmediata
+        if (isStop(val)) {
+          break;
+        }
+
+        totalSlots++;
         slotsPozo++;
 
-        var estadoNorm = (r['Estado'+p] || '').toString().trim()
-                         .normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+        var estadoNorm = val.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 
-        // Cancelada: suma al total, se descuenta de restantes, NO suma a hechas
         if (estadoNorm === 'cancelada') {
           canceladasPozo++;
+          totalCanceladas++;
           continue;
         }
 
-        if (isFechaValida(r['Estado'+p])) hechasPozo++;
+        if (isFechaValida(r['Estado'+p])) {
+          hechasPozo++;
+          totalHechas++;
+        }
       }
-
-      totalSlots      += slotsPozo;
-      totalHechas     += hechasPozo;
-      totalCanceladas += canceladasPozo;
 
       // Badge = pendientes reales (ni hechas ni canceladas)
       badges[p-1] = Math.max(0, slotsPozo - hechasPozo - canceladasPozo);
@@ -830,7 +815,6 @@ document.addEventListener('DOMContentLoaded', function(){
     return {
       totalSlots:  totalSlots,
       hechas:      totalHechas,
-      // Restantes = slots - hechas - canceladas
       restantes:   Math.max(0, totalSlots - totalHechas - totalCanceladas),
       badges:      badges
     };
@@ -1020,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', function(){
       for(var s of sprites){ 
         s.y+=s.vy; s.x+=s.vx; s.a+=s.rot; 
         if(s.x<0) s.x=0; if(s.x+s.size>W) s.x=W-s.size; 
-        if(s.y>H+50){ 
+        if(s.y+s.size>H+50){ 
           s.y=-s.size - 20; 
           s.x=Math.random()*(W - s.size); 
         } 
@@ -1078,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(!res.ok) throw new Error('HTTP '+res.status); 
       JSON_URL=url; 
       return res.json(); 
-    }); 
+    });
   }
   function fetchJSON(){ return tryFetch(JSON_CANDIDATES[0]).catch(function(){ return tryFetch(JSON_CANDIDATES[1]); }); }
   function setNet(status, ok, extra){ net.textContent = (status || '') + (extra?(' '+extra):''); if(ok){ net.style.background='rgba(0,180,60,.2)'; net.style.borderColor='rgba(0,180,60,.35)'; }else{ net.style.background='rgba(220,60,60,.25)'; net.style.borderColor='rgba(220,60,60,.4)'; } }
@@ -1106,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var stats=computeFractureStats(conv);
       updateDatesArray(stats.freq);
 
-      // CÁLCULO UNIFICADO
+      // CÁLCULO UNIFICADO REPARADO
       var allStats = computeAllStats(conv);
       kpiTotal.textContent = allStats.totalSlots;
       kpiDone.textContent  = allStats.hechas;
