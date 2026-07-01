@@ -738,13 +738,12 @@ document.addEventListener('DOMContentLoaded', function(){
       chip.appendChild(dd); chip.appendChild(nn); el.appendChild(chip);
     }
     var next=document.createElement('button'); next.className='reel-btn'; next.textContent='›'; next.disabled=(reelStart>=max);
-    next.onclick=function(){ netStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel(); };
+    next.onclick=function(){ reelStart=Math.min(max,reelStart+REEL_SIZE); userMovedReel=true; prefs.set('reel:moved',true); prefs.set('reel:start',reelStart); renderDatesReel(); };
     el.appendChild(next);
   }
 
   /* ===== CÁLCULO UNIFICADO DE TOTALES Y BADGES ===== */
-  // CRITERIO EXACTO: Recorrido vertical por pozo de la fila #01 en adelante. Suma total lineal y corta al ver 'STOP' sin incluirlo.
-  function computeAllStats(conv){
+  function computeAllStats(conv, topRow){
     var rows = conv
       .filter(function(it){ return it.fila && it.fila.trim(); })
       .map(function(it){
@@ -758,22 +757,28 @@ document.addEventListener('DOMContentLoaded', function(){
     var badges = new Array(POZOS).fill(0);
 
     for (var p=1; p<=POZOS; p++){
+      
+      // EXCLUIR POZOS DESHABILITADOS: Si en el JSON la cabecera del pozo es "X", ignora la columna completa
+      if (topRow && String(topRow['Estado'+p]).trim().toUpperCase() === 'X') {
+        continue;
+      }
+
       var slotsPozo = 0, hechasPozo = 0, canceladasPozo = 0;
 
       for (var i=0; i<rows.length; i++){
         var r = rows[i];
         
-        // Se saltea estrictamente la fila #00
+        // Empezar a contar estrictamente desde la fila #01
         if (r._row === 0 || isNaN(r._row)) continue;
 
         var val = (r['Estado'+p] || '').toString().trim();
         
-        // Frena de inmediato antes de procesar el STOP (No incluye esta etapa)
+        // CORTE INMEDIATO: Si la columna FRACTURADO dice "STOP", termina de contar ese pozo
         if (isStop(val)) {
           break;
         }
 
-        // Cuenta la etapa de forma lineal e ininterrumpida
+        // Cuenta la etapa ya que está antes del STOP
         totalSlots++;
         slotsPozo++;
 
@@ -791,7 +796,6 @@ document.addEventListener('DOMContentLoaded', function(){
         }
       }
 
-      // Badge de etapas pendientes del pozo
       badges[p-1] = Math.max(0, slotsPozo - hechasPozo - canceladasPozo);
     }
 
@@ -1074,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var stats=computeFractureStats(conv);
       updateDatesArray(stats.freq);
 
-      var allStats = computeAllStats(conv);
+      var allStats = computeAllStats(conv, hdr.top); // Pasamos la cabecera para identificar los "X"
       kpiTotal.textContent = allStats.totalSlots;
       kpiDone.textContent  = allStats.hechas;
       kpiRemain.textContent= allStats.restantes;
