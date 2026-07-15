@@ -183,7 +183,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6434",
-      "TPNPozo2": "",
+      "TPNPozo2": "6361",
       "TPNPozo3": "6498",
       "TPNPozo4": "6436",
       "TPNPozo5": "",
@@ -352,7 +352,7 @@
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "6066",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-07-15T18:17:58.5725840Z",
+  "lastUpdate": "2026-07-15T18:18:32.4654013Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "897597 lts"
+      "STOCK": "613937 lts"
     },
     {
       "ITEM": "ARENA #100",
@@ -1508,7 +1508,7 @@
     },
     {
       "ITEM": "Flojet 533 EM",
-      "STOCK": "35371 kg"
+      "STOCK": "23656 kg"
     },
     {
       "ITEM": "DRP-2340",
