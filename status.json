@@ -277,14 +277,14 @@
       "FechaFracPozo1": "46221",
       "FechaFracPozo2": "46221",
       "FechaFracPozo3": "46219",
-      "FechaFracPozo4": "Fracturando",
+      "FechaFracPozo4": "46221",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#11",
       "SecuenciaPozo1": "46221.1805555556",
       "SecuenciaPozo2": "46221.3055555556",
       "SecuenciaPozo3": "46219.5763888889",
-      "SecuenciaPozo4": "18:07:2026 09:20",
+      "SecuenciaPozo4": "46221.3888888889",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6134",
@@ -295,17 +295,17 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "F1",
-      "FechaFracPozo2": "F2",
+      "FechaFracPozo1": "46221",
+      "FechaFracPozo2": "F1",
       "FechaFracPozo3": "46220",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "F3",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#12",
       "SecuenciaPozo1": "46221.4583333333",
       "SecuenciaPozo2": "46221",
       "SecuenciaPozo3": "46219.8951388889",
-      "SecuenciaPozo4": "",
+      "SecuenciaPozo4": "46221.6951388889",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6074",
@@ -316,7 +316,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "Cerrar pozo BdC 27",
+      "FechaFracPozo1": "WL",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46220",
       "FechaFracPozo4": "",
@@ -402,7 +402,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "F3",
+      "FechaFracPozo3": "F2",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-07-18T21:06:44.4443247Z",
+  "lastUpdate": "2026-07-18T21:15:06.3850049Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
