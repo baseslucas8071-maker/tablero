@@ -1492,27 +1492,27 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-07-19T10:40:10.9493333Z",
+  "lastUpdate": "2026-07-19T10:40:18.9978147Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "681872 lts"
+      "STOCK": "0"
     },
     {
       "ITEM": "ARENA #100",
-      "STOCK": "0 tn"
+      "STOCK": "0"
     },
     {
       "ITEM": "ARENA #30/70",
-      "STOCK": "0 tn"
+      "STOCK": "0"
     },
     {
       "ITEM": "0",
-      "STOCK": "40269 kg"
+      "STOCK": "37726 kg"
     },
     {
       "ITEM": "DRP-2340",
-      "STOCK": "#VALUE!"
+      "STOCK": "32800 kg"
     },
     {
       "ITEM": "0",
