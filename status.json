@@ -547,15 +547,15 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "STDBY",
-      "FechaFracPozo2": "WL",
+      "FechaFracPozo1": "FRACTURA",
+      "FechaFracPozo2": "STDBY",
       "FechaFracPozo3": "46225",
-      "FechaFracPozo4": "FRACTURA",
+      "FechaFracPozo4": "46228",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#24",
       "SecuenciaPozo1": "46228.1208333333",
-      "SecuenciaPozo2": "",
+      "SecuenciaPozo2": "46228.1826388889",
       "SecuenciaPozo3": "46224.6597222222",
       "SecuenciaPozo4": "46227.9673611111",
       "SecuenciaPozo5": "",
@@ -696,20 +696,20 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "WL",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#31",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "",
-      "SecuenciaPozo3": "",
+      "SecuenciaPozo3": "46228.2430555556",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "",
       "TPNPozo2": "",
-      "TPNPozo3": "",
+      "TPNPozo3": "5148",
       "TPNPozo4": "",
       "TPNPozo5": "",
       "TPNPozo6": ""
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-07-25T08:43:38.1734712Z",
+  "lastUpdate": "2026-07-25T09:10:43.4582213Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "1288541 lts"
+      "STOCK": "793648 lts"
     },
     {
       "ITEM": "ARENA #100",
@@ -1508,7 +1508,7 @@
     },
     {
       "ITEM": "Flojet 533 EM",
-      "STOCK": "46544 kg"
+      "STOCK": "43317 kg"
     },
     {
       "ITEM": "DRP-2340",
