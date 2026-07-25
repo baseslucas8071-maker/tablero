@@ -571,7 +571,7 @@
       "FechaFracPozo1": "Cerrar pozo BdC 28",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46225",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "WL",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#25",
@@ -696,7 +696,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "WL",
+      "FechaFracPozo3": "STDBY",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-07-25T09:46:13.2809375Z",
+  "lastUpdate": "2026-07-25T09:48:46.9380693Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
