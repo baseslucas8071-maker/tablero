@@ -926,7 +926,7 @@
     },
     {
       "FechaFracPozo1": "46235",
-      "FechaFracPozo2": "fracturando",
+      "FechaFracPozo2": "FRACTURA",
       "FechaFracPozo3": "46232",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -1030,10 +1030,10 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
+      "FechaFracPozo1": "MONOMALL",
+      "FechaFracPozo2": "MONOMALL",
       "FechaFracPozo3": "46234",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "MONOMALL",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#47",
@@ -1051,10 +1051,10 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
+      "FechaFracPozo1": "MONOMALL",
+      "FechaFracPozo2": "MONOMALL",
       "FechaFracPozo3": "46234",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "MONOMALL",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#48",
@@ -1072,10 +1072,10 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
+      "FechaFracPozo1": "MONOMALL",
+      "FechaFracPozo2": "MONOMALL",
       "FechaFracPozo3": "46235",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "MONOMALL",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#49",
@@ -1093,10 +1093,10 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
+      "FechaFracPozo1": "MONOMALL",
+      "FechaFracPozo2": "MONOMALL",
       "FechaFracPozo3": "STDBY",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "MONOMALL",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#50",
@@ -1179,7 +1179,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "MONOMALL",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1200,7 +1200,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "MONOMALL",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1221,7 +1221,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "MONOMALL",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1242,7 +1242,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "",
+      "FechaFracPozo3": "MONOMALL",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-01T13:36:09.7842533Z",
+  "lastUpdate": "2026-08-01T14:13:25.0046435Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "607071 lts"
+      "STOCK": "96236 lts"
     },
     {
       "ITEM": "ARENA #100",
