@@ -1031,9 +1031,9 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "MONOMALL",
+      "FechaFracPozo2": "",
       "FechaFracPozo3": "46234",
-      "FechaFracPozo4": "MONOMALL",
+      "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#47",
@@ -1052,9 +1052,9 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "MONOMALL",
+      "FechaFracPozo2": "",
       "FechaFracPozo3": "46234",
-      "FechaFracPozo4": "MONOMALL",
+      "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#48",
@@ -1073,9 +1073,9 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "MONOMALL",
+      "FechaFracPozo2": "",
       "FechaFracPozo3": "46235",
-      "FechaFracPozo4": "MONOMALL",
+      "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#49",
@@ -1093,10 +1093,10 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "",
-      "FechaFracPozo2": "MONOMALL",
+      "FechaFracPozo1": "S/#300 monomalla",
+      "FechaFracPozo2": "S/#300 monomalla",
       "FechaFracPozo3": "FRACTURA",
-      "FechaFracPozo4": "MONOMALL",
+      "FechaFracPozo4": "S/#300 monomalla",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#50",
@@ -1179,7 +1179,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "MONOMALL",
+      "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1200,7 +1200,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "MONOMALL",
+      "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1221,7 +1221,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "MONOMALL",
+      "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1242,7 +1242,7 @@
     {
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "MONOMALL",
+      "FechaFracPozo3": "S/#300 monomalla",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-02T02:02:46.5901775Z",
+  "lastUpdate": "2026-08-02T02:04:16.5819261Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
