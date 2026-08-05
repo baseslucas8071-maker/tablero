@@ -1093,10 +1093,10 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "FRACTURA",
-      "FechaFracPozo2": " monomalla",
+      "FechaFracPozo1": "46239",
+      "FechaFracPozo2": "46239",
       "FechaFracPozo3": "46236",
-      "FechaFracPozo4": "WL",
+      "FechaFracPozo4": "FRACTURA",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#50",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-05T09:14:24.1842437Z",
+  "lastUpdate": "2026-08-05T09:25:19.3605076Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
