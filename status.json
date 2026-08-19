@@ -372,7 +372,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5922",
-      "TPNPozo2": "",
+      "TPNPozo2": "5851",
       "TPNPozo3": "5895",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -393,7 +393,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5862",
-      "TPNPozo2": "",
+      "TPNPozo2": "5791",
       "TPNPozo3": "5835",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -414,7 +414,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5802",
-      "TPNPozo2": "",
+      "TPNPozo2": "5731",
       "TPNPozo3": "5775",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -435,7 +435,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5742",
-      "TPNPozo2": "",
+      "TPNPozo2": "5671",
       "TPNPozo3": "5715",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -456,7 +456,7 @@
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "5682",
-      "TPNPozo2": "",
+      "TPNPozo2": "5611",
       "TPNPozo3": "5655",
       "TPNPozo4": "",
       "TPNPozo5": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-19T23:46:34.8697160Z",
+  "lastUpdate": "2026-08-19T23:58:40.1451189Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
@@ -1508,11 +1508,11 @@
     },
     {
       "ITEM": "Flojet 533 EM",
-      "STOCK": "24846 kg"
+      "STOCK": "44703 kg"
     },
     {
       "ITEM": "DRP-2340",
-      "STOCK": "#VALUE!"
+      "STOCK": "15200 kg"
     },
     {
       "ITEM": "DRMAX-9115",
