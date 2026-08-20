@@ -400,7 +400,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "WL",
+      "FechaFracPozo1": "WL espera Op HASA",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-20T08:11:58.7616463Z",
+  "lastUpdate": "2026-08-20T08:12:17.1748244Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
