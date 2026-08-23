@@ -591,7 +591,7 @@
     {
       "FechaFracPozo1": "46257",
       "FechaFracPozo2": "46256",
-      "FechaFracPozo3": "STDBY 2",
+      "FechaFracPozo3": "FRACTURA",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
@@ -610,7 +610,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "WL",
+      "FechaFracPozo1": "STDBY",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
@@ -674,7 +674,7 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "FRACTURA",
+      "FechaFracPozo2": "46257",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -695,7 +695,7 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "",
+      "FechaFracPozo2": "WL",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-23T07:28:36.8174356Z",
+  "lastUpdate": "2026-08-23T08:42:35.6324197Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "947864 lts"
+      "STOCK": "769028 lts"
     },
     {
       "ITEM": "ARENA #100",
