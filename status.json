@@ -778,7 +778,7 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "WL carrera 2",
+      "FechaFracPozo1": "FRACTURA",
       "FechaFracPozo2": "46258",
       "FechaFracPozo3": "46259",
       "FechaFracPozo4": "",
@@ -842,7 +842,7 @@
     },
     {
       "FechaFracPozo1": "",
-      "FechaFracPozo2": "FRACTURA",
+      "FechaFracPozo2": "46259",
       "FechaFracPozo3": "",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-08-25T04:52:23.7520192Z",
+  "lastUpdate": "2026-08-25T05:28:02.5109430Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
