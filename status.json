@@ -67,7 +67,7 @@
       "FechaFracPozo1": "46267",
       "FechaFracPozo2": "Registro de Fibra",
       "FechaFracPozo3": "46267",
-      "FechaFracPozo4": "Fractura ",
+      "FechaFracPozo4": "46267",
       "FechaFracPozo5": "Registro de Fibra",
       "FechaFracPozo6": "",
       "Fila": "#01",
@@ -88,7 +88,7 @@
       "FechaFracPozo1": "stanby",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46267",
-      "FechaFracPozo4": "",
+      "FechaFracPozo4": "wl",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#02",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-09-02T19:27:15.9445687Z",
+  "lastUpdate": "2026-09-02T19:27:54.6382610Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
