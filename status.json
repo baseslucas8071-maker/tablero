@@ -7,7 +7,7 @@
       "FechaFracPozo4": "BdC-1044(h) T7",
       "FechaFracPozo5": "BdC-1045(h) T6",
       "FechaFracPozo6": "X",
-      "Fila": "",
+      "Fila": "NOTA",
       "SecuenciaPozo1": "",
       "SecuenciaPozo2": "",
       "SecuenciaPozo3": "",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-09-02T12:50:39.5459354Z",
+  "lastUpdate": "2026-09-02T12:51:56.7393517Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
