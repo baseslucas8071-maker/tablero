@@ -214,7 +214,7 @@
       "FechaFracPozo1": "46269",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46269",
-      "FechaFracPozo4": "FRACTURADO",
+      "FechaFracPozo4": "FRACTURANDO",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#08",
@@ -1492,19 +1492,19 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-09-05T09:43:55.0653591Z",
+  "lastUpdate": "2026-09-05T11:54:33.3592903Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "1062206 lts"
+      "STOCK": "1025567 lts"
     },
     {
       "ITEM": "ARENA #100",
-      "STOCK": "0 tn"
+      "STOCK": "36 tn"
     },
     {
       "ITEM": "ARENA #30/70",
-      "STOCK": "0 tn"
+      "STOCK": "188.5 tn"
     },
     {
       "ITEM": "Flojet 533 EM",
