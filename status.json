@@ -866,7 +866,7 @@
       "FechaFracPozo2": "",
       "FechaFracPozo3": "46293",
       "FechaFracPozo4": "46292",
-      "FechaFracPozo5": "Frac#1",
+      "FechaFracPozo5": "Frac#2",
       "FechaFracPozo6": "",
       "Fila": "#39",
       "SecuenciaPozo1": "46292.2944444444",
@@ -885,29 +885,29 @@
     {
       "FechaFracPozo1": "46292",
       "FechaFracPozo2": "",
-      "FechaFracPozo3": "WL",
+      "FechaFracPozo3": "Stdby",
       "FechaFracPozo4": "46292",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#40",
       "SecuenciaPozo1": "46292.6138888889",
       "SecuenciaPozo2": "",
-      "SecuenciaPozo3": "",
+      "SecuenciaPozo3": "46293.2152777778",
       "SecuenciaPozo4": "46292.4868055556",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "4626",
       "TPNPozo2": "3565",
-      "TPNPozo3": "",
+      "TPNPozo3": "4506",
       "TPNPozo4": "4504 (12 CL)",
       "TPNPozo5": "",
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "Frac#2",
+      "FechaFracPozo1": "Frac#3",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "",
-      "FechaFracPozo4": "46231",
+      "FechaFracPozo4": "Fracturando",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#41",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-09-28T08:04:44.6493928Z",
+  "lastUpdate": "2026-09-28T08:47:52.6150370Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
