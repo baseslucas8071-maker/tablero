@@ -956,7 +956,7 @@
       "SecuenciaPozo1": "FP 12 clusters",
       "SecuenciaPozo2": "",
       "SecuenciaPozo3": "",
-      "SecuenciaPozo4": "",
+      "SecuenciaPozo4": "46293.2743055556",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
       "TPNPozo1": "4446 (12 CL)",
@@ -1492,11 +1492,11 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-09-29T00:17:42.2411663Z",
+  "lastUpdate": "2026-09-29T00:18:51.8842271Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "626432 lts"
+      "STOCK": "931684 lts"
     },
     {
       "ITEM": "ARENA #100",
