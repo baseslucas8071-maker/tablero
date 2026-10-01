@@ -992,7 +992,7 @@
       "FechaFracPozo2": "",
       "FechaFracPozo3": "Frac #3",
       "FechaFracPozo4": "46294",
-      "FechaFracPozo5": "FRACTURADO",
+      "FechaFracPozo5": "46296",
       "FechaFracPozo6": "",
       "Fila": "#45",
       "SecuenciaPozo1": "46295.1631944444",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-10-01T07:45:33.4632232Z",
+  "lastUpdate": "2026-10-01T08:04:03.0019804Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
