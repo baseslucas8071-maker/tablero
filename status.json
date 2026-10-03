@@ -1159,7 +1159,7 @@
       "FechaFracPozo1": "",
       "FechaFracPozo2": "",
       "FechaFracPozo3": "Interf. Drilling",
-      "FechaFracPozo4": "WL",
+      "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#53",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-10-03T20:01:19.0477194Z",
+  "lastUpdate": "2026-10-03T21:34:32.0565499Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
