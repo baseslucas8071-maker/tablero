@@ -211,16 +211,16 @@
       "TPNPozo6": ""
     },
     {
-      "FechaFracPozo1": "FRACTURADO",
-      "FechaFracPozo2": "WL",
-      "FechaFracPozo3": "",
+      "FechaFracPozo1": "46324",
+      "FechaFracPozo2": "46324",
+      "FechaFracPozo3": "StdBy",
       "FechaFracPozo4": "",
       "FechaFracPozo5": "",
       "FechaFracPozo6": "",
       "Fila": "#08",
       "SecuenciaPozo1": "46324.2486111111",
-      "SecuenciaPozo2": "",
-      "SecuenciaPozo3": "",
+      "SecuenciaPozo2": "46323.3243055556",
+      "SecuenciaPozo3": "46324.7611111111",
       "SecuenciaPozo4": "",
       "SecuenciaPozo5": "",
       "SecuenciaPozo6": "",
@@ -1492,19 +1492,19 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-10-29T11:58:48.2219351Z",
+  "lastUpdate": "2026-10-29T22:49:52.7891918Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
-      "STOCK": "675172 lts"
+      "STOCK": "829828 lts"
     },
     {
       "ITEM": "ARENA #100",
-      "STOCK": "38.5 tn"
+      "STOCK": "0 tn"
     },
     {
       "ITEM": "ARENA #30/70",
-      "STOCK": "968.11 tn"
+      "STOCK": "0 tn"
     },
     {
       "ITEM": "Flojet 533 EM",
