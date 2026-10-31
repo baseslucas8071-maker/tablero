@@ -256,7 +256,7 @@
       "FechaFracPozo1": "46325",
       "FechaFracPozo2": "46325",
       "FechaFracPozo3": "46326",
-      "FechaFracPozo4": "Frac#1",
+      "FechaFracPozo4": "FRACTURADO",
       "FechaFracPozo5": "FP RAMPUP SUAVE",
       "FechaFracPozo6": "",
       "Fila": "#10",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-10-31T05:36:14.6969743Z",
+  "lastUpdate": "2026-10-31T05:39:31.0415809Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
