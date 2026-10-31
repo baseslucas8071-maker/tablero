@@ -254,17 +254,17 @@
     },
     {
       "FechaFracPozo1": "46325",
-      "FechaFracPozo2": "FRACTURADO",
-      "FechaFracPozo3": "FP RAMPUP SUAVE",
-      "FechaFracPozo4": "WL",
+      "FechaFracPozo2": "46325",
+      "FechaFracPozo3": "FRACTURADO",
+      "FechaFracPozo4": "Frac#1",
       "FechaFracPozo5": "FP RAMPUP SUAVE",
       "FechaFracPozo6": "",
       "Fila": "#10",
       "SecuenciaPozo1": "46325.5611111111",
       "SecuenciaPozo2": "46325.68125",
       "SecuenciaPozo3": "46325.8152777778",
-      "SecuenciaPozo4": "",
-      "SecuenciaPozo5": "",
+      "SecuenciaPozo4": "46325.9027777778",
+      "SecuenciaPozo5": "46325.9819444444",
       "SecuenciaPozo6": "",
       "TPNPozo1": "6260",
       "TPNPozo2": "6172",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-10-31T02:49:52.4192125Z",
+  "lastUpdate": "2026-10-31T03:15:04.4573920Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
