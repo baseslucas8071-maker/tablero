@@ -817,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  /* ===== Promedio y ETA ===== */
+ /* ===== Promedio y ETA ===== */
   function computeAverageAndETA(freq, restantes){
     var keys = Array.from(freq.keys()).sort();
     var realAvg = 0;
@@ -829,16 +829,28 @@ document.addEventListener('DOMContentLoaded', function(){
         function toNorm(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 
         var today = startOfDay(new Date());
-        var yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-        var start = startOfDay(fromNorm(keys[0]));
+        
+        // Tomar estrictamente el último día cerrado (ayer) como tope final de la ventana de 7 días
+        var lastClosedDay = new Date(today);
+        lastClosedDay.setDate(lastClosedDay.getDate() - 1);
 
-        if(start <= yesterday){
+        // El inicio de la ventana de 7 días hacia atrás desde el día cerrado
+        var startWindowDay = new Date(lastClosedDay);
+        startWindowDay.setDate(startWindowDay.getDate() - 6); // 7 días en total (ayer y 6 días previos)
+
+        var firstDataDay = startOfDay(fromNorm(keys[0]));
+        
+        // El inicio efectivo no puede ser anterior al primer día con registros disponibles
+        var start = (startWindowDay > firstDataDay) ? startWindowDay : firstDataDay;
+
+        if(start <= lastClosedDay){
             var counts = [];
-            for (var d=new Date(start); d<=yesterday; d.setDate(d.getDate()+1)) {
+            for (var d = new Date(start); d <= lastClosedDay; d.setDate(d.getDate() + 1)) {
               var k = toNorm(d);
               var rec = freq.get(k);
               counts.push(rec ? rec.count : 0);
             }
+            // Asegurar que se tomen como máximo los últimos 7 días del rango delimitado
             var slice = counts.length > 7 ? counts.slice(counts.length - 7) : counts;
             usedDays = slice.length;
             var sum = slice.reduce(function(a,b){ return a+b; }, 0);
