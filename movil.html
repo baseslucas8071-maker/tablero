@@ -301,8 +301,36 @@ function renderMain() {
   $('#kpiRealizadas .value').textContent = h;
   $('#kpiRestantes .value').textContent = r;
 
-  const last7 = gDays.slice(0, 7);
-  const avg = last7.length ? (last7.reduce((a,b) => a + b[1], 0) / last7.length) : 0;
+  // ===== NUEVO CÁLCULO DE PROMEDIO (7 días cerrados hacia atrás desde ayer) =====
+  function startOfDay(d){ var x=new Date(d); x.setHours(0,0,0,0); return x; }
+  function toNorm(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+
+  let avg = 0;
+  let usedDaysCount = 0;
+
+  if (gDays.length > 0) {
+      const today = startOfDay(new Date());
+      const lastClosedDay = new Date(today);
+      lastClosedDay.setDate(lastClosedDay.getDate() - 1); // Ayer (último día cerrado)
+
+      const startWindowDay = new Date(lastClosedDay);
+      startWindowDay.setDate(startWindowDay.getDate() - 6); // 7 días en total
+
+      // Mapear gDays (que viene como [ [ymd, count], ... ]) a un objeto/mapa para búsqueda rápida
+      const dailyFreqMap = new Map(gDays);
+      const counts = [];
+
+      for (let d = new Date(startWindowDay); d <= lastClosedDay; d.setDate(d.getDate() + 1)) {
+          const k = toNorm(d);
+          counts.push(dailyFreqMap.get(k) || 0);
+      }
+
+      usedDaysCount = counts.length;
+      const sum = counts.reduce((a, b) => a + b, 0);
+      avg = usedDaysCount > 0 ? (sum / usedDaysCount) : 0;
+  }
+  // =============================================================================
+
   $('#avgPace').textContent = `${avg.toFixed(1)} et/día`;
 
   const speed = PREFS.useManual ? PREFS.manualSpeed : avg;
