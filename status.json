@@ -716,10 +716,10 @@
     },
     {
       "FechaFracPozo1": "46306",
-      "FechaFracPozo2": "FRACTURADO",
-      "FechaFracPozo3": "stand by",
+      "FechaFracPozo2": "46337",
+      "FechaFracPozo3": "FRACTURADO",
       "FechaFracPozo4": "stand by",
-      "FechaFracPozo5": "",
+      "FechaFracPozo5": "wl",
       "FechaFracPozo6": "",
       "Fila": "#32",
       "SecuenciaPozo1": "46336.7868055556",
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-11-11T05:48:41.1512871Z",
+  "lastUpdate": "2026-11-11T06:40:59.4011933Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
@@ -1508,7 +1508,7 @@
     },
     {
       "ITEM": "Flojet 533 EM",
-      "STOCK": "46385 kg"
+      "STOCK": "46234 kg"
     },
     {
       "ITEM": "DRP-2340",
