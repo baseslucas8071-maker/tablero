@@ -900,7 +900,7 @@
       "TPNPozo2": "4312",
       "TPNPozo3": "4514",
       "TPNPozo4": "4394",
-      "TPNPozo5": "",
+      "TPNPozo5": "4409",
       "TPNPozo6": ""
     },
     {
@@ -921,7 +921,7 @@
       "TPNPozo2": "",
       "TPNPozo3": "",
       "TPNPozo4": "",
-      "TPNPozo5": "",
+      "TPNPozo5": "4337",
       "TPNPozo6": ""
     },
     {
@@ -1492,7 +1492,7 @@
       "TPNPozo6": ""
     }
   ],
-  "lastUpdate": "2026-11-12T07:57:59.2967982Z",
+  "lastUpdate": "2026-11-12T08:00:56.3824169Z",
   "stock": [
     {
       "ITEM": "GAS OIL",
